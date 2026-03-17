@@ -11,7 +11,7 @@ public abstract class FakeImplementation {
     nextFailure.set(failure);
   }
 
-  void maybeFail() {
+  protected void maybeFail() {
     Supplier<? extends RuntimeException> f = nextFailure.getAndSet(null);
     if (f != null) {
       nextFailure.set(null);
