@@ -100,6 +100,61 @@ public interface ErrorMessage {
     }
   }
 
+
+  enum Contract implements ErrorMessage {
+    START_DATE_NULL("contract.start_date_null", "Start date must not be null"), DURATION_NULL(
+        "contract.duration_null", "Duration must not be null"), PAYMENT_DAY_INVALID(
+        "contract.payment_day_invalid",
+        "Payment day must be between 1 and 31"), PAYMENT_ACCOUNT_NULL(
+        "contract.payment_account_null", "Payment account must not be null"), PROPERTY_NULL(
+        "contract.property_null", "Property must not be null"), LANDLORD_NULL(
+        "contract.landlord_null", "Landlord must not be null"), TENANTS_EMPTY(
+        "contract.tenants_empty", "Tenants list must not be empty");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Contract(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
+
+  enum PaymentAccount implements ErrorMessage {
+    BANK_EMPTY("payment_account.bank_empty", "Bank must not be empty"), BANK_BRANCH_EMPTY(
+        "payment_account.bank_branch_empty", "Bank branch must not be empty"), ACCOUNT_NUMBER_EMPTY(
+        "payment_account.account_number_empty", "Account number must not be empty");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    PaymentAccount(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
   enum Address implements ErrorMessage {
     CEP_REQUIRED("address.cep_required", "CEP must not be empty"),
     CEP_INVALID("address.cep_invalid", "CEP must contain exactly 8 digits"),
