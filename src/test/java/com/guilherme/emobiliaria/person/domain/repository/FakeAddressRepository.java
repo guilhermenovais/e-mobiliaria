@@ -4,6 +4,7 @@ import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,11 +17,16 @@ public class FakeAddressRepository extends FakeImplementation implements Address
   private final AtomicLong idSequence = new AtomicLong(1);
 
   @Override
-  public Address save(Address address) {
+  public Address create(Address address) {
     maybeFail();
-    if (address.getId() == null) {
-      address.setId(idSequence.getAndIncrement());
-    }
+    address.setId(idSequence.getAndIncrement());
+    store.put(address.getId(), address);
+    return address;
+  }
+
+  @Override
+  public Address update(Address address) {
+    maybeFail();
     store.put(address.getId(), address);
     return address;
   }

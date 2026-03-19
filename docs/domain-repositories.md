@@ -5,3 +5,4 @@
 - On methods that return a collection, the method should have a
   com.guilherme.emobiliaria.shared.persistence.PaginationInput parameter and return a
   com.guilherme.emobiliaria.shared.persistence.PagedResult
+- Repositories should have separate save and update methods

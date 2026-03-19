@@ -4,6 +4,7 @@ import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,11 +18,16 @@ public class FakePhysicalPersonRepository extends FakeImplementation
   private final AtomicLong idSequence = new AtomicLong(1);
 
   @Override
-  public PhysicalPerson save(PhysicalPerson person) {
+  public PhysicalPerson create(PhysicalPerson person) {
     maybeFail();
-    if (person.getId() == null) {
-      person.setId(idSequence.getAndIncrement());
-    }
+    person.setId(idSequence.getAndIncrement());
+    store.put(person.getId(), person);
+    return person;
+  }
+
+  @Override
+  public PhysicalPerson update(PhysicalPerson person) {
+    maybeFail();
     store.put(person.getId(), person);
     return person;
   }
