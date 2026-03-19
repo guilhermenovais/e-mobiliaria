@@ -1,6 +1,5 @@
 package com.guilherme.emobiliaria.receipt.domain.repository;
 
-import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -16,5 +15,5 @@ public interface ReceiptRepository {
 
   Optional<Receipt> findById(Long id);
 
-  PagedResult<Receipt> findAllByContract(Contract contract, PaginationInput pagination);
+  PagedResult<Receipt> findAllByContractId(Long contractId, PaginationInput pagination);
 }

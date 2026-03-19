@@ -1,6 +1,5 @@
 package com.guilherme.emobiliaria.receipt.domain.repository;
 
-import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
@@ -45,10 +44,10 @@ public class FakeReceiptRepository extends FakeImplementation implements Receipt
   }
 
   @Override
-  public PagedResult<Receipt> findAllByContract(Contract contract, PaginationInput pagination) {
+  public PagedResult<Receipt> findAllByContractId(Long contractId, PaginationInput pagination) {
     maybeFail();
     List<Receipt> filtered = store.values().stream().filter(
-            r -> r.getContract().getId() != null && r.getContract().getId().equals(contract.getId()))
+            r -> r.getContract().getId() != null && r.getContract().getId().equals(contractId))
         .toList();
     long total = filtered.size();
     int offset = pagination.offset() != null ? pagination.offset() : 0;
