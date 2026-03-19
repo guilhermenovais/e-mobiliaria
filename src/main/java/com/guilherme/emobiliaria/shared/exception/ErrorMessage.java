@@ -155,6 +155,40 @@ public interface ErrorMessage {
     }
   }
 
+
+  enum Receipt implements ErrorMessage {
+    DATE_NULL("receipt.date_null", "Date must not be null"), INTERVAL_START_NULL(
+        "receipt.interval_start_null",
+        "Interval start must not be null"), INTERVAL_START_AFTER_INTERVAL_END(
+        "receipt.interval_start_after_interval_end",
+        "Interval start must not be after interval end"), INTERVAL_END_NULL(
+        "receipt.interval_end_null",
+        "Interval end must not be null"), INTERVAL_END_BEFORE_INTERVAL_START(
+        "receipt.interval_end_before_interval_start",
+        "Interval end must not be before interval start"), DISCOUNT_NEGATIVE(
+        "receipt.discount_negative", "Discount must not be negative"), FINE_NEGATIVE(
+        "receipt.fine_negative", "Fine must not be negative"), CONTRACT_NULL(
+        "receipt.contract_null", "Contract must not be null");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Receipt(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
   enum Address implements ErrorMessage {
     CEP_REQUIRED("address.cep_required", "CEP must not be empty"),
     CEP_INVALID("address.cep_invalid", "CEP must contain exactly 8 digits"),
