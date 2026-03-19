@@ -70,6 +70,36 @@ public interface ErrorMessage {
     }
   }
 
+
+  enum Property implements ErrorMessage {
+    NAME_EMPTY("property.name_empty", "Name must not be empty"), TYPE_EMPTY("property.type_empty",
+        "Type must not be empty"), PURPOSE_NULL("property.purpose_null",
+        "Purpose must not be null"), RENT_NEGATIVE("property.rent_negative",
+        "Rent must not be negative"), CEMIG_EMPTY("property.cemig_empty",
+        "CEMIG must not be empty"), COPASA_EMPTY("property.copasa_empty",
+        "COPASA must not be empty"), IPTU_EMPTY("property.iptu_empty",
+        "IPTU must not be empty"), ADDRESS_NULL("property.address_null",
+        "Address must not be null");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Property(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
   enum Address implements ErrorMessage {
     CEP_REQUIRED("address.cep_required", "CEP must not be empty"),
     CEP_INVALID("address.cep_invalid", "CEP must contain exactly 8 digits"),

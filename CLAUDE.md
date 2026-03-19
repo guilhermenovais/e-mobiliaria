@@ -85,6 +85,7 @@ JuridicalPerson "1" --> "1" Address : is based in
 PhysicalPerson "1" --> "1" Address : lives in
 
 class Property {
+string name
 string type
 Purpose purpose /' RESIDENTIAL, COMMERCIAL '/
 int rent
