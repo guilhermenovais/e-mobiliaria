@@ -18,5 +18,5 @@ public interface PropertyRepository {
 
   PagedResult<Property> findAll(PaginationInput pagination);
 
-  PagedResult<Property> searchByType(String query, PaginationInput pagination);
+  PagedResult<Property> searchByName(String query, PaginationInput pagination);
 }

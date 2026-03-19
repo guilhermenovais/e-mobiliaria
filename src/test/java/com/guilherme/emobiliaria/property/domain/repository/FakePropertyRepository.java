@@ -55,10 +55,10 @@ public class FakePropertyRepository extends FakeImplementation implements Proper
   }
 
   @Override
-  public PagedResult<Property> searchByType(String query, PaginationInput pagination) {
+  public PagedResult<Property> searchByName(String query, PaginationInput pagination) {
     maybeFail();
     List<Property> filtered =
-        store.values().stream().filter(p -> p.getType().toLowerCase().contains(query.toLowerCase()))
+        store.values().stream().filter(p -> p.getName().toLowerCase().contains(query.toLowerCase()))
             .toList();
     long total = filtered.size();
     int offset = pagination.offset() != null ? pagination.offset() : 0;
