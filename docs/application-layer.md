@@ -8,3 +8,4 @@
   returned in a field in the output class.
 - When a repository's `findById` returns an empty `Optional`, the interactor should throw a `BusinessException` with the
   appropriate `ErrorMessage` using `orElseThrow`.
+- All interactors should be unit tested.
