@@ -1,6 +1,8 @@
 package com.guilherme.emobiliaria.contract.domain.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -27,6 +29,9 @@ public class FakeContractRepository extends FakeImplementation implements Contra
   @Override
   public Contract update(Contract contract) {
     maybeFail();
+    if (!store.containsKey(contract.getId())) {
+      throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, null);
+    }
     store.put(contract.getId(), contract);
     return contract;
   }
@@ -34,6 +39,9 @@ public class FakeContractRepository extends FakeImplementation implements Contra
   @Override
   public void delete(Long id) {
     maybeFail();
+    if (!store.containsKey(id)) {
+      throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, null);
+    }
     store.remove(id);
   }
 

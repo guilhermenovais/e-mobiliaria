@@ -1,6 +1,8 @@
 package com.guilherme.emobiliaria.person.domain.repository;
 
 import com.guilherme.emobiliaria.person.domain.entity.Address;
+import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -27,6 +29,9 @@ public class FakeAddressRepository extends FakeImplementation implements Address
   @Override
   public Address update(Address address) {
     maybeFail();
+    if (!store.containsKey(address.getId())) {
+      throw new PersistenceException(ErrorMessage.Address.NOT_FOUND, null);
+    }
     store.put(address.getId(), address);
     return address;
   }
@@ -51,6 +56,9 @@ public class FakeAddressRepository extends FakeImplementation implements Address
   @Override
   public void delete(Long id) {
     maybeFail();
+    if (!store.containsKey(id)) {
+      throw new PersistenceException(ErrorMessage.Address.NOT_FOUND, null);
+    }
     store.remove(id);
   }
 }

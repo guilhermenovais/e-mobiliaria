@@ -1,6 +1,8 @@
 package com.guilherme.emobiliaria.person.domain.repository;
 
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
+import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -28,6 +30,9 @@ public class FakeJuridicalPersonRepository extends FakeImplementation
   @Override
   public JuridicalPerson update(JuridicalPerson person) {
     maybeFail();
+    if (!store.containsKey(person.getId())) {
+      throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, null);
+    }
     store.put(person.getId(), person);
     return person;
   }
@@ -52,6 +57,9 @@ public class FakeJuridicalPersonRepository extends FakeImplementation
   @Override
   public void delete(Long id) {
     maybeFail();
+    if (!store.containsKey(id)) {
+      throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, null);
+    }
     store.remove(id);
   }
 }

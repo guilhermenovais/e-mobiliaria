@@ -20,7 +20,8 @@ public interface ErrorMessage {
     ID_CARD_NUMBER_TOO_LONG("physical_person.id_card_number_too_long",
         "ID card number must contain less than 20 characters"),
     CIVIL_STATE_NULL("physical_person.civil_state_null", "Civil state must not be null"),
-    ADDRESS_NULL("physical_person.address_null", "Address must not be null");
+    ADDRESS_NULL("physical_person.address_null", "Address must not be null"),
+    NOT_FOUND("physical_person.not_found", "Physical person not found");
 
     private final String translationKey;
     private final String logMessage;
@@ -49,7 +50,8 @@ public interface ErrorMessage {
     CNPJ_INVALID("juridical_person.cnpj_invalid", "CNPJ is invalid"),
     REPRESENTATIVE_NULL("juridical_person.representative_null",
         "Representative must not be null"),
-    ADDRESS_NULL("juridical_person.address_null", "Address must not be null");
+    ADDRESS_NULL("juridical_person.address_null", "Address must not be null"),
+    NOT_FOUND("juridical_person.not_found", "Juridical person not found");
 
     private final String translationKey;
     private final String logMessage;
@@ -79,7 +81,7 @@ public interface ErrorMessage {
         "CEMIG must not be empty"), COPASA_EMPTY("property.copasa_empty",
         "COPASA must not be empty"), IPTU_EMPTY("property.iptu_empty",
         "IPTU must not be empty"), ADDRESS_NULL("property.address_null",
-        "Address must not be null");
+        "Address must not be null"), NOT_FOUND("property.not_found", "Property not found");
 
     private final String translationKey;
     private final String logMessage;
@@ -109,7 +111,8 @@ public interface ErrorMessage {
         "contract.payment_account_null", "Payment account must not be null"), PROPERTY_NULL(
         "contract.property_null", "Property must not be null"), LANDLORD_NULL(
         "contract.landlord_null", "Landlord must not be null"), TENANTS_EMPTY(
-        "contract.tenants_empty", "Tenants list must not be empty");
+        "contract.tenants_empty", "Tenants list must not be empty"), NOT_FOUND(
+        "contract.not_found", "Contract not found");
 
     private final String translationKey;
     private final String logMessage;
@@ -134,7 +137,8 @@ public interface ErrorMessage {
   enum PaymentAccount implements ErrorMessage {
     BANK_EMPTY("payment_account.bank_empty", "Bank must not be empty"), BANK_BRANCH_EMPTY(
         "payment_account.bank_branch_empty", "Bank branch must not be empty"), ACCOUNT_NUMBER_EMPTY(
-        "payment_account.account_number_empty", "Account number must not be empty");
+        "payment_account.account_number_empty", "Account number must not be empty"), NOT_FOUND(
+        "payment_account.not_found", "Payment account not found");
 
     private final String translationKey;
     private final String logMessage;
@@ -168,7 +172,8 @@ public interface ErrorMessage {
         "Interval end must not be before interval start"), DISCOUNT_NEGATIVE(
         "receipt.discount_negative", "Discount must not be negative"), FINE_NEGATIVE(
         "receipt.fine_negative", "Fine must not be negative"), CONTRACT_NULL(
-        "receipt.contract_null", "Contract must not be null");
+        "receipt.contract_null", "Contract must not be null"), NOT_FOUND("receipt.not_found",
+        "Receipt not found");
 
     private final String translationKey;
     private final String logMessage;
@@ -215,7 +220,8 @@ public interface ErrorMessage {
     CITY_INVALID_LENGTH("address.city_invalid_length",
         "City must contain between 2 and 100 characters"),
     CITY_INVALID_CHARACTERS("address.city_invalid_characters", "City contains invalid characters"),
-    STATE_REQUIRED("address.state_required", "State must not be null");
+    STATE_REQUIRED("address.state_required", "State must not be null"),
+    NOT_FOUND("address.not_found", "Address not found");
 
     private final String translationKey;
     private final String logMessage;

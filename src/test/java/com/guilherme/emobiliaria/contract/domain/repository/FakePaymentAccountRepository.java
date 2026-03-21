@@ -1,6 +1,8 @@
 package com.guilherme.emobiliaria.contract.domain.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
+import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -28,6 +30,9 @@ public class FakePaymentAccountRepository extends FakeImplementation
   @Override
   public PaymentAccount update(PaymentAccount paymentAccount) {
     maybeFail();
+    if (!store.containsKey(paymentAccount.getId())) {
+      throw new PersistenceException(ErrorMessage.PaymentAccount.NOT_FOUND, null);
+    }
     store.put(paymentAccount.getId(), paymentAccount);
     return paymentAccount;
   }
@@ -35,6 +40,9 @@ public class FakePaymentAccountRepository extends FakeImplementation
   @Override
   public void delete(Long id) {
     maybeFail();
+    if (!store.containsKey(id)) {
+      throw new PersistenceException(ErrorMessage.PaymentAccount.NOT_FOUND, null);
+    }
     store.remove(id);
   }
 

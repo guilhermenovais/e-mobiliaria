@@ -1,6 +1,8 @@
 package com.guilherme.emobiliaria.property.domain.repository;
 
 import com.guilherme.emobiliaria.property.domain.entity.Property;
+import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -27,6 +29,9 @@ public class FakePropertyRepository extends FakeImplementation implements Proper
   @Override
   public Property update(Property property) {
     maybeFail();
+    if (!store.containsKey(property.getId())) {
+      throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, null);
+    }
     store.put(property.getId(), property);
     return property;
   }
@@ -34,6 +39,9 @@ public class FakePropertyRepository extends FakeImplementation implements Proper
   @Override
   public void delete(Long id) {
     maybeFail();
+    if (!store.containsKey(id)) {
+      throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, null);
+    }
     store.remove(id);
   }
 
