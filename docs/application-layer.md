@@ -6,3 +6,5 @@
 - The input should contain only the data necessary for the use case to execute.
 - The output should contain the results of the use case execution. If the return data is an entity, the entity should be
   returned in a field in the output class.
+- When a repository's `findById` returns an empty `Optional`, the interactor should throw a `BusinessException` with the
+  appropriate `ErrorMessage` using `orElseThrow`.
