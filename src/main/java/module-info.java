@@ -1,6 +1,8 @@
 module com.guilherme.emobiliaria {
   requires javafx.controls;
   requires javafx.fxml;
+  requires net.sf.jasperreports.core;
+  requires java.sql;
 
   opens com.guilherme.emobiliaria to javafx.fxml;
   exports com.guilherme.emobiliaria;
@@ -13,4 +15,7 @@ module com.guilherme.emobiliaria {
   exports com.guilherme.emobiliaria.person.domain.repository;
   exports com.guilherme.emobiliaria.shared.exception;
   exports com.guilherme.emobiliaria.shared.persistence;
+
+  opens com.guilherme.emobiliaria.shared.pdf;
+  opens com.guilherme.emobiliaria.shared.pdf.templates;
 }

@@ -33,6 +33,7 @@ src/main/java/com/guilherme/emobiliaria/
 │     └─ view/              // FXML views associated with this feature.
 │
 └─ shared/                  // Cross-feature reusable utilities and UI elements.
+    ├─ pdf/                 // Where the PDF generation implementation lives.
     └─ ui/                  // Shared presentation resources used by multiple features.
         ├─ component/       // Generic reusable UI components (buttons, cards, controls).
         ├─ layout/          // Shared layout containers/templates (shells, panels, wrappers).
