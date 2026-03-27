@@ -68,6 +68,12 @@
             <artifactId>jasperreports-fonts</artifactId>
             <version>${jasperreports.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>7.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -90,7 +96,8 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.guilherme.emobiliaria/com.guilherme.emobiliaria.HelloApplication</mainClass>
+                            <mainClass>com.guilherme.emobiliaria/com.guilherme.emobiliaria.EMobiliariaApplication
+                            </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>

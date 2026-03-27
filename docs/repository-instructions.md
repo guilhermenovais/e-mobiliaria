@@ -27,6 +27,8 @@ src/main/java/com/guilherme/emobiliaria/
 │  │  ├─ repository/        // Repository implementations.
 │  │  └─ service/           // Domain service implementations.
 │  │
+│  ├─ di/                   // Feature dependency injection configuration.
+│  │
 │  └─ ui/                   // JavaFX presentation layer specific to this feature.
 │     ├─ controller/        // JavaFX controllers handling UI events and invoking use cases.
 │     ├─ component/         // Feature-specific reusable JavaFX components/custom nodes.
@@ -127,3 +129,38 @@ Receipt "*" --> "1" Contract : payment is for
 
 @enduml
 ```
+
+## Dependency Injection
+
+- This project uses **Google Guice 7** for dependency injection.
+- The `Injector` is created once in `EMobiliariaApplication.init()` using `AppModule` as the root module.
+
+### Module structure
+
+- **`AppModule`** (`shared/di/AppModule.java`) is the root module. It installs one feature sub-module per feature.
+- **Feature modules** live at `<feature>/di/<Feature>Module.java` (e.g., `person/di/PersonModule.java`).
+- Each feature module binds domain repository interfaces and domain service interfaces to their infrastructure
+  implementations:
+  ```java
+  bind(PhysicalPersonRepository.class).to(JdbcPhysicalPersonRepository.class);
+  ```
+- When an infrastructure implementation is added, add its `bind()` call to the corresponding feature module and open the
+  new package to `com.google.guice` in `module-info.java`.
+
+### Constructor injection rules
+
+- Annotate every interactor and infrastructure class constructor with `@jakarta.inject.Inject`.
+- **Never use field injection.** Constructor injection keeps classes testable without Guice.
+- Concrete in-memory domain services (e.g., `CpfValidationService`, `CnpjValidationService`) require no explicit
+  `bind()` call — Guice resolves them via just-in-time binding.
+
+### JavaFX controller injection
+
+- All FXML loading must go through `GuiceFxmlLoader` (`shared/di/GuiceFxmlLoader.java`).
+- Never use `new FXMLLoader(...)` directly — it bypasses injection.
+- `GuiceFxmlLoader` sets `injector::getInstance` as the controller factory, so Guice instantiates controllers and
+  resolves all their constructor dependencies.
+- UI controller packages must be opened to both `javafx.fxml` and `com.google.guice` in `module-info.java`:
+  ```java
+  opens com.guilherme.emobiliaria.<feature>.ui.controller to javafx.fxml, com.google.guice;
+  ```
