@@ -42,4 +42,6 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.contract.infrastructure.repository to com.google.guice;
   opens com.guilherme.emobiliaria.contract.infrastructure.service to com.google.guice;
   opens com.guilherme.emobiliaria.property.infrastructure.repository to com.google.guice;
+  opens com.guilherme.emobiliaria.receipt.infrastructure.repository to com.google.guice;
+  opens com.guilherme.emobiliaria.receipt.infrastructure.service to com.google.guice;
 }
