@@ -9,6 +9,7 @@ module com.guilherme.emobiliaria {
   requires com.h2database;
   requires flyway.core;
   requires org.slf4j;
+  requires java.net.http;
 
   opens com.guilherme.emobiliaria to javafx.fxml;
   exports com.guilherme.emobiliaria;
@@ -36,6 +37,8 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.property.application.usecase to com.google.guice;
   opens com.guilherme.emobiliaria.receipt.application.usecase to com.google.guice;
 
+  opens com.guilherme.emobiliaria.person.infrastructure.repository to com.google.guice;
+  opens com.guilherme.emobiliaria.person.infrastructure.service to com.google.guice;
   opens com.guilherme.emobiliaria.contract.infrastructure.repository to com.google.guice;
   opens com.guilherme.emobiliaria.contract.infrastructure.service to com.google.guice;
 }
