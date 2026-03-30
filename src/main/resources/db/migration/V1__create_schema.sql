@@ -75,3 +75,11 @@ CREATE TABLE receipts (
     fine           INT    NOT NULL DEFAULT 0,
     contract_id    BIGINT NOT NULL REFERENCES contracts(id)
 );
+
+CREATE TABLE configs (
+                         id                    BIGINT      PRIMARY KEY CHECK (id = 1),
+                         default_landlord_id   BIGINT      NULL,
+                         default_landlord_type VARCHAR(10) NULL
+);
+
+INSERT INTO configs (id, default_landlord_id, default_landlord_type) VALUES (1, NULL, NULL);

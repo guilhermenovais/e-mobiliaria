@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.shared.di;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
+import com.guilherme.emobiliaria.config.di.ConfigModule;
 import com.guilherme.emobiliaria.contract.di.ContractModule;
 import com.guilherme.emobiliaria.person.di.PersonModule;
 import com.guilherme.emobiliaria.property.di.PropertyModule;
@@ -17,6 +18,7 @@ public class AppModule extends AbstractModule {
     bind(DataSource.class).toProvider(DataSourceProvider.class).in(Scopes.SINGLETON);
     bind(PdfGenerationService.class);
 
+    install(new ConfigModule());
     install(new PersonModule());
     install(new ContractModule());
     install(new PropertyModule());

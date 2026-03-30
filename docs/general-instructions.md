@@ -1,4 +1,4 @@
-# E-mobiliaria repository instructions
+# General instructions
 
 ## Overview
 
@@ -126,6 +126,10 @@ int fine
 }
 
 Receipt "*" --> "1" Contract : payment is for
+
+class Config {}
+
+Config "1" --> "1" Person : defines the default landlord as
 
 @enduml
 ```

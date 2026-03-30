@@ -14,6 +14,12 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria to javafx.fxml;
   exports com.guilherme.emobiliaria;
 
+  exports com.guilherme.emobiliaria.config.domain.entity;
+  exports com.guilherme.emobiliaria.config.domain.repository;
+  opens com.guilherme.emobiliaria.config.di to com.google.guice;
+  opens com.guilherme.emobiliaria.config.application.usecase to com.google.guice;
+  opens com.guilherme.emobiliaria.config.infrastructure.repository to com.google.guice;
+
   opens com.guilherme.emobiliaria.person.domain.entity;
   opens com.guilherme.emobiliaria.person.domain.service;
   opens com.guilherme.emobiliaria.person.domain.repository;

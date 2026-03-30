@@ -1,1 +1,1 @@
-@docs/repository-instructions.md
+@docs/general-instructions.md

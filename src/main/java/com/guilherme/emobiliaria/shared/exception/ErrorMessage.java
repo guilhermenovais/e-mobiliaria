@@ -194,6 +194,28 @@ public interface ErrorMessage {
     }
   }
 
+  enum Config implements ErrorMessage {
+    NOT_FOUND("config.not_found", "Config not found");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Config(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
   enum Address implements ErrorMessage {
     CEP_REQUIRED("address.cep_required", "CEP must not be empty"),
     CEP_INVALID("address.cep_invalid", "CEP must contain exactly 8 digits"),
