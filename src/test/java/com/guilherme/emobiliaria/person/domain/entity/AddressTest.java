@@ -247,6 +247,14 @@ class AddressTest {
       address.setComplement("Apto 42");
       assertEquals("Apto 42", address.getComplement());
     }
+
+    @Test
+    @DisplayName("When complement contains parenthesis, should set complement")
+    void shouldSetComplementWhenContainsParenthesis() {
+      Address address = validAddress();
+      address.setComplement("Apto (Fundos)");
+      assertEquals("Apto (Fundos)", address.getComplement());
+    }
   }
 
   @Nested

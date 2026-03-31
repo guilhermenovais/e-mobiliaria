@@ -104,7 +104,7 @@ public class Address {
       if (complement.length() > 100) {
         throw new BusinessException(ErrorMessage.Address.COMPLEMENT_TOO_LONG);
       }
-      if (!complement.matches("[\\p{L}0-9 .,\\-/#]+")) {
+      if (!complement.matches("[\\p{L}0-9 .,\\-/#()]+")) {
         throw new BusinessException(ErrorMessage.Address.COMPLEMENT_INVALID_CHARACTERS);
       }
     }
