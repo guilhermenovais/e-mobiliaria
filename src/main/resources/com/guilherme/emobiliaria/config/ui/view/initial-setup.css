@@ -1,0 +1,277 @@
+/* ============================================================
+   Initial Setup Wizard — CSS
+   All colours from the Paper design "Configuração Inicial".
+   ============================================================ */
+
+/* Background */
+.setup-bg {
+    -fx-background-color: #F2F3F5;
+}
+
+/* Card */
+.setup-card {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+}
+
+/* Header */
+.setup-header {
+    -fx-padding: 28 40 24 40;
+    -fx-spacing: 4;
+}
+
+.setup-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.setup-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+}
+
+/* Stepper */
+.setup-stepper {
+    -fx-padding: 20 40;
+    -fx-alignment: CENTER;
+}
+
+.stepper-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #9CA3AF;
+    -fx-alignment: CENTER;
+}
+
+.stepper-label-active {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2D3D;
+}
+
+.stepper-dot {
+    -fx-min-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-max-height: 28;
+    -fx-background-radius: 14;
+    -fx-alignment: CENTER;
+    -fx-font-size: 12px;
+    -fx-text-fill: #9CA3AF;
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+}
+
+.stepper-dot-active {
+    -fx-min-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-max-height: 28;
+    -fx-background-radius: 14;
+    -fx-alignment: CENTER;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-background-color: #1F2D3D;
+    -fx-border-color: #1F2D3D;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+}
+
+.stepper-dot-completed {
+    -fx-min-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-max-height: 28;
+    -fx-background-radius: 14;
+    -fx-alignment: CENTER;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-background-color: #1F2D3D;
+    -fx-border-color: #1F2D3D;
+    -fx-border-width: 1;
+    -fx-border-radius: 14;
+}
+
+.stepper-connector {
+    -fx-background-color: #D1D5DB;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+    -fx-pref-height: 1;
+}
+
+.stepper-connector-completed {
+    -fx-background-color: #1F2D3D;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+    -fx-pref-height: 1;
+}
+
+/* Dividers */
+.setup-divider {
+    -fx-padding: 0 40;
+}
+
+/* Content area */
+.setup-content {
+    -fx-padding: 32 40;
+    -fx-alignment: TOP_LEFT;
+}
+
+/* Form elements */
+.form-section-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+.form-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #374151;
+}
+
+.form-input {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 7 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #9CA3AF;
+}
+
+.form-input:focused {
+    -fx-border-color: #1F2D3D;
+    -fx-border-width: 1;
+}
+
+.form-input-readonly {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-text-fill: #9CA3AF;
+}
+
+.form-input-error {
+    -fx-border-color: #EF4444;
+    -fx-border-width: 1;
+}
+
+.form-combo {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #111827;
+    -fx-pref-height: 34;
+}
+
+.form-combo .list-view {
+    -fx-font-size: 13px;
+}
+
+.form-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6B7280;
+    -fx-font-style: italic;
+}
+
+.form-error-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #EF4444;
+}
+
+/* Buttons */
+.btn-primary {
+    -fx-background-color: #1F2D3D;
+    -fx-text-fill: white;
+    -fx-padding: 9 24;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #2d3f54;
+}
+
+.btn-primary:disabled {
+    -fx-background-color: #9CA3AF;
+    -fx-opacity: 1;
+}
+
+.btn-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-padding: 8 20;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #F9FAFB;
+}
+
+/* Footer */
+.setup-footer {
+    -fx-padding: 16 40 28 40;
+    -fx-spacing: 12;
+    -fx-alignment: CENTER_RIGHT;
+    -fx-border-color: #E5E7EB transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Type selection cards (step 1) */
+.type-card {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-padding: 24 20;
+    -fx-cursor: hand;
+    -fx-spacing: 8;
+}
+
+.type-card:hover {
+    -fx-background-color: #F9FAFB;
+}
+
+.type-card-selected {
+    -fx-border-color: #1F2D3D;
+    -fx-border-width: 2;
+    -fx-background-color: white;
+}
+
+.type-card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.type-card-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6B7280;
+    -fx-wrap-text: true;
+}
+
+/* Type selection prompt label */
+.step1-prompt {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}

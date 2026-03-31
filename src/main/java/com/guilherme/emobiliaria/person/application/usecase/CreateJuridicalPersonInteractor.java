@@ -10,6 +10,7 @@ import com.guilherme.emobiliaria.person.domain.repository.JuridicalPersonReposit
 import com.guilherme.emobiliaria.person.domain.repository.PhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class CreateJuridicalPersonInteractor {
 
@@ -17,6 +18,7 @@ public class CreateJuridicalPersonInteractor {
   private final PhysicalPersonRepository physicalPersonRepository;
   private final AddressRepository addressRepository;
 
+  @Inject
   public CreateJuridicalPersonInteractor(
       JuridicalPersonRepository juridicalPersonRepository,
       PhysicalPersonRepository physicalPersonRepository,

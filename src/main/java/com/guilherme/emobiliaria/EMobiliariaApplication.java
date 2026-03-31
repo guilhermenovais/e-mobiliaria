@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
 import com.guilherme.emobiliaria.shared.di.AppModule;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import javafx.application.Application;
@@ -9,6 +10,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class EMobiliariaApplication extends Application {
 
@@ -22,11 +25,28 @@ public class EMobiliariaApplication extends Application {
   @Override
   public void start(Stage stage) throws IOException {
     GuiceFxmlLoader fxmlLoader = new GuiceFxmlLoader(injector);
-    Scene scene =
-        new Scene(fxmlLoader.load(EMobiliariaApplication.class.getResource("hello-view.fxml")), 320,
-            240);
-    stage.setTitle("Hello!");
-    stage.setScene(scene);
+    ResourceBundle bundle = ResourceBundle.getBundle("messages", Locale.getDefault(),
+        getClass().getModule());
+
+    var configOutput = injector.getInstance(GetConfigInteractor.class).execute();
+    boolean needsSetup = configOutput.config().getDefaultLandlord() == null;
+
+    if (needsSetup) {
+      Scene scene = new Scene(fxmlLoader.load(
+          EMobiliariaApplication.class.getResource(
+              "/com/guilherme/emobiliaria/config/ui/view/initial-setup-view.fxml")));
+      stage.setTitle(bundle.getString("setup.step.type.title"));
+      stage.setScene(scene);
+      stage.setResizable(false);
+      stage.setWidth(1440);
+      stage.setHeight(900);
+    } else {
+      // TODO: load main view
+      stage.setTitle("e-Mobiliária");
+      stage.setWidth(1440);
+      stage.setHeight(900);
+    }
+
     stage.show();
   }
 }

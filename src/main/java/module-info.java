@@ -19,6 +19,7 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.config.di to com.google.guice;
   opens com.guilherme.emobiliaria.config.application.usecase to com.google.guice;
   opens com.guilherme.emobiliaria.config.infrastructure.repository to com.google.guice;
+  opens com.guilherme.emobiliaria.config.ui.controller to javafx.fxml, com.google.guice;
 
   opens com.guilherme.emobiliaria.person.domain.entity;
   opens com.guilherme.emobiliaria.person.domain.service;
@@ -50,4 +51,6 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.property.infrastructure.repository to com.google.guice;
   opens com.guilherme.emobiliaria.receipt.infrastructure.repository to com.google.guice;
   opens com.guilherme.emobiliaria.receipt.infrastructure.service to com.google.guice;
+
+  opens db.migration;
 }

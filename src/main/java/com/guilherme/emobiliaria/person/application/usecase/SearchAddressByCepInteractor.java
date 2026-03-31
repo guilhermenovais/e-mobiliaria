@@ -6,11 +6,13 @@ import com.guilherme.emobiliaria.person.domain.service.AddressSearchResult;
 import com.guilherme.emobiliaria.person.domain.service.AddressSearchService;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class SearchAddressByCepInteractor {
 
   private final AddressSearchService addressSearchService;
 
+  @Inject
   public SearchAddressByCepInteractor(AddressSearchService addressSearchService) {
     this.addressSearchService = addressSearchService;
   }

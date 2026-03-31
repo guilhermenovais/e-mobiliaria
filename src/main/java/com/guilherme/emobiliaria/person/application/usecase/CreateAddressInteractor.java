@@ -4,11 +4,13 @@ import com.guilherme.emobiliaria.person.application.input.CreateAddressInput;
 import com.guilherme.emobiliaria.person.application.output.CreateAddressOutput;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.repository.AddressRepository;
+import jakarta.inject.Inject;
 
 public class CreateAddressInteractor {
 
   private final AddressRepository addressRepository;
 
+  @Inject
   public CreateAddressInteractor(AddressRepository addressRepository) {
     this.addressRepository = addressRepository;
   }
