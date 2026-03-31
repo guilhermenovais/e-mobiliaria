@@ -37,3 +37,12 @@ build/
 
 ### Mac OS ###
 .DS_Store
+# .claude
+.devcontainer/.env
+.claude/settings.local.json
+.claude/auth.local.md
+.claude-worktrees/
+tasks/
+
+*.mv.db
+*.trace.db
