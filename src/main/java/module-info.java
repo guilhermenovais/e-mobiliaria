@@ -9,6 +9,7 @@ module com.guilherme.emobiliaria {
   requires com.h2database;
   requires flyway.core;
   requires org.slf4j;
+  requires ch.qos.logback.classic;
   requires java.net.http;
 
   opens com.guilherme.emobiliaria to javafx.fxml;

@@ -3,6 +3,8 @@ package com.guilherme.emobiliaria.person.infrastructure.service;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.service.AddressSearchResult;
 import com.guilherme.emobiliaria.person.domain.service.AddressSearchService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,6 +16,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ViaCepAddressSearchService implements AddressSearchService {
+
+  private static final Logger log = LoggerFactory.getLogger(ViaCepAddressSearchService.class);
 
   private final HttpClient httpClient = HttpClient.newHttpClient();
 
@@ -42,6 +46,7 @@ public class ViaCepAddressSearchService implements AddressSearchService {
       BrazilianState state = BrazilianState.valueOf(uf);
       return Optional.of(new AddressSearchResult(state, city, neighborhood, address));
     } catch (IOException | InterruptedException e) {
+      log.warn("Failed to fetch address for CEP {}: {}", cep, e.getMessage());
       return Optional.empty();
     }
   }

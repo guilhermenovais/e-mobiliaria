@@ -46,3 +46,4 @@ tasks/
 
 *.mv.db
 *.trace.db
+*.log

@@ -4,6 +4,14 @@
 - The UI should be tested using TestFX
 - All texts displayed on the UI should be translated (translation message files are located in `src/main/resources/`)
 
+## Error Handling & Logging
+
+- Controllers must never build `Alert` dialogs inline — delegate to `ErrorHandler.handle(t, bundle)`.
+- `ErrorHandler` logs the exception via SLF4J and shows a localized Alert on the FX thread.
+- Use a `private static final Logger log = LoggerFactory.getLogger(Foo.class)` in every controller.
+- Log level guide: `ERROR` for unexpected failures, `WARN` for recoverable/expected failures (e.g. network), `INFO` for
+  lifecycle events.
+
 ## Feedback
 
 - Every action must respond:

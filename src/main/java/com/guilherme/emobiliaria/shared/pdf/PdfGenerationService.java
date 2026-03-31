@@ -7,12 +7,15 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.util.JRLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 public class PdfGenerationService {
+  private static final Logger log = LoggerFactory.getLogger(PdfGenerationService.class);
   private static final String TEMPLATES_BASE_PATH = "/reports/";
   private static final String SUBREPORT_DIR_PARAM = "SUBREPORT_DIR";
   private static final String SUBREPORT_DIR = "reports/";
@@ -44,6 +47,7 @@ public class PdfGenerationService {
           JasperFillManager.fillReport(jasperReport, params, new JREmptyDataSource());
       return JasperExportManager.exportReportToPdf(jasperPrint);
     } catch (Exception e) {
+      log.error("Error generating JasperReport PDF for template {}", templatePath, e);
       throw new RuntimeException("Error generating JasperReport PDF", e);
     }
   }

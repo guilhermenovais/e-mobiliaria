@@ -17,20 +17,21 @@ import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteracto
 import com.guilherme.emobiliaria.person.ui.component.AddressFormPane;
 import com.guilherme.emobiliaria.person.ui.component.CompanyDataFormPane;
 import com.guilherme.emobiliaria.person.ui.component.PhysicalPersonFormPane;
-import com.guilherme.emobiliaria.shared.exception.BusinessException;
+import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.component.WizardStepperBar;
 import jakarta.inject.Inject;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,8 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class InitialSetupController {
+
+  private static final Logger log = LoggerFactory.getLogger(InitialSetupController.class);
 
   // ── Injected use cases ─────────────────────────────────────────────────────
 
@@ -398,17 +401,7 @@ public class InitialSetupController {
     Platform.runLater(() -> {
       nextButton.setDisable(false);
       backButton.setDisable(false);
-      String message;
-      if (t instanceof BusinessException be) {
-        message = bundle.getString(be.getErrorMessage().getTranslationKey());
-      } else {
-        message = bundle.getString("setup.error.generic");
-      }
-      Alert alert = new Alert(Alert.AlertType.ERROR);
-      alert.setTitle("Erro");
-      alert.setHeaderText(null);
-      alert.setContentText(message);
-      alert.showAndWait();
     });
+    ErrorHandler.handle(t, bundle);
   }
 }

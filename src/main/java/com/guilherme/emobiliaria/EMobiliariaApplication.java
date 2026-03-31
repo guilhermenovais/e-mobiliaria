@@ -8,6 +8,8 @@ import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -15,10 +17,15 @@ import java.util.ResourceBundle;
 
 public class EMobiliariaApplication extends Application {
 
+  private static final Logger log = LoggerFactory.getLogger(EMobiliariaApplication.class);
+
   private Injector injector;
 
   @Override
   public void init() {
+    Thread.setDefaultUncaughtExceptionHandler(
+        (thread, throwable) -> log.error("Uncaught exception in thread {}", thread.getName(),
+            throwable));
     injector = Guice.createInjector(new AppModule());
   }
 
