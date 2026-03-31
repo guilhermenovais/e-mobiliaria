@@ -14,7 +14,7 @@ CREATE TABLE physical_persons (
     name           VARCHAR(99)  NOT NULL,
     nationality    VARCHAR(19)  NOT NULL,
     civil_state    VARCHAR(20)  NOT NULL,
-    occupation     VARCHAR(19)  NOT NULL,
+    occupation VARCHAR(100) NOT NULL,
     cpf            VARCHAR(11)  NOT NULL UNIQUE,
     id_card_number VARCHAR(19)  NOT NULL,
     address_id     BIGINT       NOT NULL REFERENCES addresses(id)
