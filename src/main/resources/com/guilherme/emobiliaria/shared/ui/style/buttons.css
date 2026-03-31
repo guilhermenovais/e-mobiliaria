@@ -1,0 +1,40 @@
+/* ============================================================
+   Shared Button Styles
+   ============================================================ */
+
+.btn-primary {
+    -fx-background-color: #1F2D3D;
+    -fx-text-fill: white;
+    -fx-padding: 9 24;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #2d3f54;
+}
+
+.btn-primary:disabled {
+    -fx-background-color: #9CA3AF;
+    -fx-opacity: 1;
+}
+
+.btn-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-padding: 8 20;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #F9FAFB;
+}

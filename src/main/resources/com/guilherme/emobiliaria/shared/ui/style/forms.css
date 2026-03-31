@@ -1,0 +1,70 @@
+/* ============================================================
+   Shared Form Styles
+   ============================================================ */
+
+.form-section-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+}
+
+.form-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #374151;
+}
+
+.form-input {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 7 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #9CA3AF;
+}
+
+.form-input:focused {
+    -fx-border-color: #1F2D3D;
+    -fx-border-width: 1;
+}
+
+.form-input-readonly {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-text-fill: #9CA3AF;
+}
+
+.form-input-error {
+    -fx-border-color: #EF4444;
+    -fx-border-width: 1;
+}
+
+.form-combo {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #111827;
+    -fx-pref-height: 34;
+}
+
+.form-combo .list-view {
+    -fx-font-size: 13px;
+}
+
+.form-hint {
+    -fx-font-size: 11px;
+    -fx-text-fill: #6B7280;
+    -fx-font-style: italic;
+}
+
+.form-error-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #EF4444;
+}

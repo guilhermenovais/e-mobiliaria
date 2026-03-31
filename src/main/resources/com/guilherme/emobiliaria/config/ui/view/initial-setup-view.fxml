@@ -7,7 +7,6 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
-
 <StackPane
     xmlns:fx="http://javafx.com/fxml"
     fx:controller="com.guilherme.emobiliaria.config.ui.controller.InitialSetupController"
@@ -17,6 +16,9 @@
 
     <stylesheets>
         <URL value="@initial-setup.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/forms.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/buttons.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/stepper.css"/>
     </stylesheets>
 
     <VBox styleClass="setup-card" maxWidth="720" StackPane.alignment="CENTER">

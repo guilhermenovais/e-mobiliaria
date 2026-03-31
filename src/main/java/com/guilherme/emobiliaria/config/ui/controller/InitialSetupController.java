@@ -2,43 +2,33 @@ package com.guilherme.emobiliaria.config.ui.controller;
 
 import com.guilherme.emobiliaria.config.application.input.SetConfigInput;
 import com.guilherme.emobiliaria.config.application.usecase.SetConfigInteractor;
-import com.guilherme.emobiliaria.person.application.input.CreateAddressInput;
+import com.guilherme.emobiliaria.config.ui.component.PersonType;
+import com.guilherme.emobiliaria.config.ui.component.PersonTypeSelectionPane;
 import com.guilherme.emobiliaria.person.application.input.CreateJuridicalPersonInput;
-import com.guilherme.emobiliaria.person.application.input.CreatePhysicalPersonInput;
-import com.guilherme.emobiliaria.person.application.input.SearchAddressByCepInput;
 import com.guilherme.emobiliaria.person.application.output.CreateAddressOutput;
 import com.guilherme.emobiliaria.person.application.output.CreateJuridicalPersonOutput;
 import com.guilherme.emobiliaria.person.application.output.CreatePhysicalPersonOutput;
-import com.guilherme.emobiliaria.person.application.output.SearchAddressByCepOutput;
 import com.guilherme.emobiliaria.person.application.usecase.CreateAddressInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.CreateJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.CreatePhysicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.SearchAddressByCepInteractor;
-import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
-import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.ui.component.AddressFormPane;
+import com.guilherme.emobiliaria.person.ui.component.CompanyDataFormPane;
+import com.guilherme.emobiliaria.person.ui.component.PhysicalPersonFormPane;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
+import com.guilherme.emobiliaria.shared.ui.component.WizardStepperBar;
 import jakarta.inject.Inject;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +36,6 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class InitialSetupController {
-
-  private enum PersonType { PHYSICAL, JURIDICAL }
 
   // ── Injected use cases ─────────────────────────────────────────────────────
 
@@ -86,39 +74,20 @@ public class InitialSetupController {
   private PersonType selectedType = null;
   private ResourceBundle bundle;
 
-  // Step 1 — type selection
-  private PersonType typeCardSelection = null;
-  private VBox physicalCard;
-  private VBox juridicalCard;
-  private Label typeErrorLabel;
+  // ── UI components ──────────────────────────────────────────────────────────
 
-  // Step 2A — physical person data
-  private TextField nameField;
-  private TextField nationalityField;
-  private ComboBox<CivilState> civilStateCombo;
-  private TextField occupationField;
-  private TextField cpfField;
-  private TextField idCardField;
+  private static final String[][] STEP_LABELS_PHYSICAL =
+      {{"stepper.label.tipo"}, {"stepper.label.dados"}, {"stepper.label.endereco"}};
+  private static final String[][] STEP_LABELS_JURIDICAL =
+      {{"stepper.label.tipo"}, {"stepper.label.empresa"}, {"stepper.label.end_empresa"},
+          {"stepper.label.representante"}, {"stepper.label.end_repres"}};
+  private final AddressFormPane[] addressPane = new AddressFormPane[2];
+  private PersonTypeSelectionPane typeSelectionPane;
+  private PhysicalPersonFormPane physicalPersonForm;
 
-  // Step 2B — company data
-  private TextField corporateNameField;
-  private TextField cnpjField;
-
-  // Address forms — index 0 = landlord/company, index 1 = representative
-  private final TextField[] cepField = new TextField[2];
-  private final TextField[] streetField = new TextField[2];
-  private final TextField[] numberField = new TextField[2];
-  private final TextField[] complementField = new TextField[2];
-  private final TextField[] neighborhoodField = new TextField[2];
-  private final TextField[] cityField = new TextField[2];
-  @SuppressWarnings("unchecked")
-  private final ComboBox<BrazilianState>[] stateCombo = new ComboBox[2];
-  private final Label[] cepErrorLabel = new Label[2];
-
-  // Stepper dot nodes (max 5 steps)
-  private final List<Label> stepperDots = new ArrayList<>();
-  private final List<Region> stepperConnectors = new ArrayList<>();
-  private final List<Label> stepperLabels = new ArrayList<>();
+  // ── Step label keys ────────────────────────────────────────────────────────
+  private CompanyDataFormPane companyDataForm;
+  private WizardStepperBar stepperBar;
 
   // ── Initialization ─────────────────────────────────────────────────────────
 
@@ -126,6 +95,18 @@ public class InitialSetupController {
   public void initialize() {
     bundle = ResourceBundle.getBundle("messages", Locale.getDefault(),
         getClass().getModule());
+
+    typeSelectionPane = new PersonTypeSelectionPane(bundle);
+    physicalPersonForm = new PhysicalPersonFormPane(bundle);
+    companyDataForm = new CompanyDataFormPane(bundle);
+    addressPane[0] = new AddressFormPane(searchByCep, bundle);
+    addressPane[1] = new AddressFormPane(searchByCep, bundle);
+
+    addressPane[0].setDisableNextCallback(() -> nextButton.setDisable(true),
+        () -> nextButton.setDisable(false));
+    addressPane[1].setDisableNextCallback(() -> nextButton.setDisable(true),
+        () -> nextButton.setDisable(false));
+
     buildStepper();
     showStep(1);
     backButton.setOnAction(e -> handleBack());
@@ -134,95 +115,22 @@ public class InitialSetupController {
 
   // ── Stepper ────────────────────────────────────────────────────────────────
 
-  private static final String[][] STEP_LABELS_PHYSICAL = {
-      {"stepper.label.tipo"},
-      {"stepper.label.dados"},
-      {"stepper.label.endereco"}
-  };
-
-  private static final String[][] STEP_LABELS_JURIDICAL = {
-      {"stepper.label.tipo"},
-      {"stepper.label.empresa"},
-      {"stepper.label.end_empresa"},
-      {"stepper.label.representante"},
-      {"stepper.label.end_repres"}
-  };
-
   private void buildStepper() {
-    stepperContainer.getChildren().clear();
-    stepperDots.clear();
-    stepperConnectors.clear();
-    stepperLabels.clear();
-
-    int totalSteps = (selectedType == PersonType.PHYSICAL) ? 3
-        : (selectedType == PersonType.JURIDICAL) ? 5 : 3;
-
-    String[][] labelKeys = (selectedType == PersonType.JURIDICAL)
-        ? STEP_LABELS_JURIDICAL : STEP_LABELS_PHYSICAL;
-
-    for (int i = 0; i < totalSteps; i++) {
-      // Dot + label in a VBox
-      Label dot = new Label(String.valueOf(i + 1));
-      dot.getStyleClass().add("stepper-dot");
-      dot.setMinSize(28, 28);
-      dot.setMaxSize(28, 28);
-      dot.setAlignment(Pos.CENTER);
-
-      String labelText = bundle.getString(labelKeys[i][0]);
-      Label label = new Label(labelText);
-      label.getStyleClass().add("stepper-label");
-
-      VBox dotBox = new VBox(5, dot, label);
-      dotBox.setAlignment(Pos.CENTER);
-
-      stepperDots.add(dot);
-      stepperLabels.add(label);
-      stepperContainer.getChildren().add(dotBox);
-
-      if (i < totalSteps - 1) {
-        Region connector = new Region();
-        connector.getStyleClass().add("stepper-connector");
-        HBox.setHgrow(connector, Priority.ALWAYS);
-        connector.setTranslateY(-8); // align vertically with dot center
-        stepperConnectors.add(connector);
-        stepperContainer.getChildren().add(connector);
-      }
-    }
-
-    updateStepperState();
+    List<String> labelTexts = getStepperLabelTexts();
+    stepperBar = new WizardStepperBar(labelTexts);
+    HBox.setHgrow(stepperBar, Priority.ALWAYS);
+    stepperContainer.getChildren().setAll(stepperBar);
+    stepperBar.setCurrentStep(currentStep);
   }
 
-  private void updateStepperState() {
-    int totalSteps = stepperDots.size();
-    for (int i = 0; i < totalSteps; i++) {
-      Label dot = stepperDots.get(i);
-      Label label = stepperLabels.get(i);
-      dot.getStyleClass().removeAll("stepper-dot", "stepper-dot-active", "stepper-dot-completed");
-      label.getStyleClass().removeAll("stepper-label", "stepper-label-active");
-
-      if (i + 1 < currentStep) {
-        dot.setText("✓");
-        dot.getStyleClass().add("stepper-dot-completed");
-        label.getStyleClass().add("stepper-label-active");
-      } else if (i + 1 == currentStep) {
-        dot.setText(String.valueOf(i + 1));
-        dot.getStyleClass().add("stepper-dot-active");
-        label.getStyleClass().add("stepper-label-active");
-      } else {
-        dot.setText(String.valueOf(i + 1));
-        dot.getStyleClass().add("stepper-dot");
-        label.getStyleClass().add("stepper-label");
-      }
+  private List<String> getStepperLabelTexts() {
+    String[][] keys = (selectedType == PersonType.JURIDICAL)
+        ? STEP_LABELS_JURIDICAL : STEP_LABELS_PHYSICAL;
+    List<String> texts = new ArrayList<>();
+    for (String[] key : keys) {
+      texts.add(bundle.getString(key[0]));
     }
-    for (int i = 0; i < stepperConnectors.size(); i++) {
-      Region connector = stepperConnectors.get(i);
-      connector.getStyleClass().removeAll("stepper-connector", "stepper-connector-completed");
-      if (i + 1 < currentStep) {
-        connector.getStyleClass().add("stepper-connector-completed");
-      } else {
-        connector.getStyleClass().add("stepper-connector");
-      }
-    }
+    return texts;
   }
 
   // ── Step navigation ────────────────────────────────────────────────────────
@@ -230,10 +138,8 @@ public class InitialSetupController {
   private void showStep(int step) {
     contentPane.getChildren().clear();
 
-    String titleKey = titleKeyForStep(step);
-    String subtitleKey = subtitleKeyForStep(step);
-    stepTitleLabel.setText(bundle.getString(titleKey));
-    stepSubtitleLabel.setText(bundle.getString(subtitleKey));
+    stepTitleLabel.setText(bundle.getString(titleKeyForStep(step)));
+    stepSubtitleLabel.setText(bundle.getString(subtitleKeyForStep(step)));
 
     backButton.setVisible(step > 1);
     backButton.setManaged(step > 1);
@@ -245,7 +151,7 @@ public class InitialSetupController {
         : bundle.getString("setup.button.next"));
 
     contentPane.getChildren().add(buildStepContent(step));
-    updateStepperState();
+    stepperBar.setCurrentStep(step);
   }
 
   private String titleKeyForStep(int step) {
@@ -291,20 +197,21 @@ public class InitialSetupController {
   }
 
   private Node buildStepContent(int step) {
-    if (step == 1) return buildStep1();
+    if (step == 1)
+      return typeSelectionPane;
     if (selectedType == PersonType.JURIDICAL) {
       return switch (step) {
-        case 2 -> buildStepCompanyData();
-        case 3 -> buildStepAddress(0);
-        case 4 -> buildStepPersonalData(true);
-        case 5 -> buildStepAddress(1);
-        default -> new VBox();
+        case 2 -> companyDataForm;
+        case 3 -> addressPane[0];
+        case 4 -> physicalPersonForm;
+        case 5 -> addressPane[1];
+        default -> typeSelectionPane;
       };
     }
     return switch (step) {
-      case 2 -> buildStepPersonalData(false);
-      case 3 -> buildStepAddress(0);
-      default -> new VBox();
+      case 2 -> physicalPersonForm;
+      case 3 -> addressPane[0];
+      default -> typeSelectionPane;
     };
   }
 
@@ -312,7 +219,7 @@ public class InitialSetupController {
     if (!validateCurrentStep()) return;
 
     if (currentStep == 1) {
-      selectedType = typeCardSelection;
+      selectedType = typeSelectionPane.getSelectedType();
       buildStepper();
     }
 
@@ -334,380 +241,23 @@ public class InitialSetupController {
   // ── Validation ─────────────────────────────────────────────────────────────
 
   private boolean validateCurrentStep() {
-    if (currentStep == 1) {
-      if (typeCardSelection == null) {
-        if (typeErrorLabel != null) {
-          typeErrorLabel.setVisible(true);
-          typeErrorLabel.setManaged(true);
-        }
-        return false;
-      }
-      return true;
-    }
+    if (currentStep == 1)
+      return typeSelectionPane.validate();
 
     if (selectedType == PersonType.JURIDICAL) {
       return switch (currentStep) {
-        case 2 -> validateCompanyData();
-        case 3 -> validateAddress(0);
-        case 4 -> validatePersonalData(true);
-        case 5 -> validateAddress(1);
+        case 2 -> companyDataForm.validate();
+        case 3 -> addressPane[0].validate();
+        case 4 -> physicalPersonForm.validate();
+        case 5 -> addressPane[1].validate();
         default -> true;
       };
     }
     return switch (currentStep) {
-      case 2 -> validatePersonalData(false);
-      case 3 -> validateAddress(0);
+      case 2 -> physicalPersonForm.validate();
+      case 3 -> addressPane[0].validate();
       default -> true;
     };
-  }
-
-  private boolean validatePersonalData(boolean isRepresentative) {
-    boolean valid = true;
-    if (isEmpty(nameField)) { markError(nameField); valid = false; }
-    if (isEmpty(nationalityField)) { markError(nationalityField); valid = false; }
-    if (civilStateCombo != null && civilStateCombo.getValue() == null) { markComboError(civilStateCombo); valid = false; }
-    if (isEmpty(occupationField)) { markError(occupationField); valid = false; }
-    if (isEmpty(cpfField)) { markError(cpfField); valid = false; }
-    if (isEmpty(idCardField)) { markError(idCardField); valid = false; }
-    return valid;
-  }
-
-  private boolean validateCompanyData() {
-    boolean valid = true;
-    if (isEmpty(corporateNameField)) { markError(corporateNameField); valid = false; }
-    if (isEmpty(cnpjField)) { markError(cnpjField); valid = false; }
-    return valid;
-  }
-
-  private boolean validateAddress(int idx) {
-    boolean valid = true;
-    if (isEmpty(cepField[idx])) { markError(cepField[idx]); valid = false; }
-    if (isEmpty(streetField[idx])) { markError(streetField[idx]); valid = false; }
-    if (isEmpty(numberField[idx])) { markError(numberField[idx]); valid = false; }
-    if (isEmpty(neighborhoodField[idx])) { markError(neighborhoodField[idx]); valid = false; }
-    if (isEmpty(cityField[idx])) { markError(cityField[idx]); valid = false; }
-    if (stateCombo[idx] != null && stateCombo[idx].getValue() == null) { markComboError(stateCombo[idx]); valid = false; }
-    return valid;
-  }
-
-  private boolean isEmpty(TextField field) {
-    return field == null || field.getText() == null || field.getText().isBlank();
-  }
-
-  private void markError(TextField field) {
-    if (field == null) return;
-    field.getStyleClass().removeAll("form-input-error");
-    field.getStyleClass().add("form-input-error");
-    field.textProperty().addListener((obs, o, n) ->
-        field.getStyleClass().removeAll("form-input-error"));
-  }
-
-  private void markComboError(ComboBox<?> combo) {
-    if (combo == null) return;
-    combo.getStyleClass().removeAll("form-input-error");
-    combo.getStyleClass().add("form-input-error");
-    combo.valueProperty().addListener((obs, o, n) ->
-        combo.getStyleClass().removeAll("form-input-error"));
-  }
-
-  // ── Step 1: Type Selection ─────────────────────────────────────────────────
-
-  private Node buildStep1() {
-    VBox root = new VBox(20);
-
-    Label prompt = new Label(bundle.getString("setup.step.type.subtitle"));
-    prompt.getStyleClass().add("step1-prompt");
-
-    physicalCard = buildTypeCard(
-        bundle.getString("setup.type.physical"),
-        bundle.getString("setup.type.physical.description"),
-        PersonType.PHYSICAL
-    );
-    juridicalCard = buildTypeCard(
-        bundle.getString("setup.type.juridical"),
-        bundle.getString("setup.type.juridical.description"),
-        PersonType.JURIDICAL
-    );
-
-    HBox cards = new HBox(16, physicalCard, juridicalCard);
-    HBox.setHgrow(physicalCard, Priority.ALWAYS);
-    HBox.setHgrow(juridicalCard, Priority.ALWAYS);
-
-    typeErrorLabel = new Label(bundle.getString("setup.error.type_not_selected"));
-    typeErrorLabel.getStyleClass().add("form-error-label");
-    typeErrorLabel.setVisible(false);
-    typeErrorLabel.setManaged(false);
-
-    root.getChildren().addAll(prompt, cards, typeErrorLabel);
-
-    // Restore selection if user navigated back
-    if (typeCardSelection == PersonType.PHYSICAL) {
-      applyCardSelection(physicalCard, juridicalCard);
-    } else if (typeCardSelection == PersonType.JURIDICAL) {
-      applyCardSelection(juridicalCard, physicalCard);
-    }
-
-    return root;
-  }
-
-  private VBox buildTypeCard(String title, String description, PersonType type) {
-    Label titleLabel = new Label(title);
-    titleLabel.getStyleClass().add("type-card-title");
-    Label descLabel = new Label(description);
-    descLabel.getStyleClass().add("type-card-description");
-    descLabel.setWrapText(true);
-
-    VBox card = new VBox(8, titleLabel, descLabel);
-    card.getStyleClass().add("type-card");
-
-    card.setOnMouseClicked(e -> {
-      typeCardSelection = type;
-      if (typeErrorLabel != null) {
-        typeErrorLabel.setVisible(false);
-        typeErrorLabel.setManaged(false);
-      }
-      VBox other = (type == PersonType.PHYSICAL) ? juridicalCard : physicalCard;
-      applyCardSelection(card, other);
-    });
-
-    return card;
-  }
-
-  private void applyCardSelection(VBox selected, VBox deselected) {
-    selected.getStyleClass().removeAll("type-card", "type-card-selected");
-    selected.getStyleClass().add("type-card-selected");
-    deselected.getStyleClass().removeAll("type-card-selected");
-    if (!deselected.getStyleClass().contains("type-card")) {
-      deselected.getStyleClass().add("type-card");
-    }
-  }
-
-  // ── Step 2A / 4B: Personal Data ────────────────────────────────────────────
-
-  private Node buildStepPersonalData(boolean unused) {
-    // Reuse existing fields if already built (preserves state on back navigation)
-    if (nameField == null) {
-      nameField = styledInput();
-      nationalityField = styledInput();
-      civilStateCombo = buildCivilStateCombo();
-      occupationField = styledInput();
-      cpfField = styledInput();
-      idCardField = styledInput();
-    }
-
-    GridPane grid = new GridPane();
-    grid.setHgap(16);
-    grid.setVgap(16);
-    ColumnConstraints col1 = new ColumnConstraints();
-    col1.setHgrow(Priority.ALWAYS);
-    ColumnConstraints col2 = new ColumnConstraints();
-    col2.setHgrow(Priority.ALWAYS);
-    grid.getColumnConstraints().addAll(col1, col2);
-
-    int row = 0;
-    grid.add(formField(bundle.getString("setup.field.name"), nameField), 0, row, 2, 1);
-    row++;
-    grid.add(formField(bundle.getString("setup.field.nationality"), nationalityField), 0, row);
-    grid.add(formField(bundle.getString("setup.field.civil_state"), civilStateCombo), 1, row);
-    row++;
-    grid.add(formField(bundle.getString("setup.field.occupation"), occupationField), 0, row, 2, 1);
-    row++;
-    grid.add(formField(bundle.getString("setup.field.cpf"), cpfField), 0, row);
-    grid.add(formField(bundle.getString("setup.field.id_card"), idCardField), 1, row);
-
-    return grid;
-  }
-
-  private ComboBox<CivilState> buildCivilStateCombo() {
-    ComboBox<CivilState> combo = new ComboBox<>(
-        FXCollections.observableArrayList(CivilState.values()));
-    combo.getStyleClass().add("form-combo");
-    combo.setMaxWidth(Double.MAX_VALUE);
-    combo.setConverter(new StringConverter<>() {
-      @Override public String toString(CivilState cs) {
-        if (cs == null) return "";
-        return bundle.getString("civil_state." + cs.name());
-      }
-      @Override public CivilState fromString(String s) { return null; }
-    });
-    return combo;
-  }
-
-  // ── Step 2B: Company Data ──────────────────────────────────────────────────
-
-  private Node buildStepCompanyData() {
-    if (corporateNameField == null) {
-      corporateNameField = styledInput();
-      cnpjField = styledInput();
-    }
-
-    GridPane grid = new GridPane();
-    grid.setHgap(16);
-    grid.setVgap(16);
-    ColumnConstraints col = new ColumnConstraints();
-    col.setHgrow(Priority.ALWAYS);
-    grid.getColumnConstraints().add(col);
-
-    grid.add(formField(bundle.getString("setup.field.corporate_name"), corporateNameField), 0, 0);
-    grid.add(formField(bundle.getString("setup.field.cnpj"), cnpjField), 0, 1);
-
-    return grid;
-  }
-
-  // ── Address Step ───────────────────────────────────────────────────────────
-
-  private Node buildStepAddress(int idx) {
-    if (cepField[idx] == null) {
-      cepField[idx] = styledInput();
-      streetField[idx] = styledInput();
-      numberField[idx] = styledInput();
-      complementField[idx] = styledInput();
-      neighborhoodField[idx] = styledInput();
-      cityField[idx] = styledInput();
-      stateCombo[idx] = buildStateCombo();
-      cepErrorLabel[idx] = new Label();
-      cepErrorLabel[idx].getStyleClass().add("form-error-label");
-      cepErrorLabel[idx].setVisible(false);
-      cepErrorLabel[idx].setManaged(false);
-
-      // Auto-filled fields start as readonly placeholders
-      setReadonly(streetField[idx], true);
-      setReadonly(neighborhoodField[idx], true);
-      setReadonly(cityField[idx], true);
-      setReadonlyCombo(stateCombo[idx], true);
-
-      setupCepListener(idx);
-    }
-
-    GridPane grid = new GridPane();
-    grid.setHgap(16);
-    grid.setVgap(16);
-
-    ColumnConstraints colWide = new ColumnConstraints();
-    colWide.setHgrow(Priority.ALWAYS);
-    colWide.setPercentWidth(50);
-    ColumnConstraints colNarrow = new ColumnConstraints();
-    colNarrow.setHgrow(Priority.ALWAYS);
-    colNarrow.setPercentWidth(50);
-    grid.getColumnConstraints().addAll(colWide, colNarrow);
-
-    int row = 0;
-    // CEP row with hint
-    HBox cepRow = new HBox(10, cepField[idx], cepErrorLabel[idx]);
-    cepRow.setAlignment(Pos.CENTER_LEFT);
-    HBox.setHgrow(cepField[idx], Priority.NEVER);
-    cepField[idx].setPrefWidth(140);
-    VBox cepBox = formField(bundle.getString("setup.field.cep"), cepRow);
-    Label hint = new Label(bundle.getString("setup.field.cep.hint"));
-    hint.getStyleClass().add("form-hint");
-    cepBox.getChildren().add(hint);
-    grid.add(cepBox, 0, row, 2, 1);
-    row++;
-
-    // Street + Number
-    grid.add(formField(bundle.getString("setup.field.street"), streetField[idx]), 0, row);
-    grid.add(formField(bundle.getString("setup.field.number"), numberField[idx]), 1, row);
-    row++;
-
-    // Complement (full width)
-    grid.add(formField(bundle.getString("setup.field.complement"), complementField[idx]), 0, row, 2, 1);
-    row++;
-
-    // Neighborhood + City + State
-    ColumnConstraints c1 = new ColumnConstraints();
-    c1.setHgrow(Priority.ALWAYS);
-    c1.setPercentWidth(35);
-    ColumnConstraints c2 = new ColumnConstraints();
-    c2.setHgrow(Priority.ALWAYS);
-    c2.setPercentWidth(40);
-    ColumnConstraints c3 = new ColumnConstraints();
-    c3.setHgrow(Priority.ALWAYS);
-    c3.setPercentWidth(25);
-
-    GridPane bottomRow = new GridPane();
-    bottomRow.setHgap(16);
-    bottomRow.getColumnConstraints().addAll(c1, c2, c3);
-    bottomRow.add(formField(bundle.getString("setup.field.neighborhood"), neighborhoodField[idx]), 0, 0);
-    bottomRow.add(formField(bundle.getString("setup.field.city"), cityField[idx]), 1, 0);
-    bottomRow.add(formField(bundle.getString("setup.field.state"), stateCombo[idx]), 2, 0);
-
-    grid.add(bottomRow, 0, row, 2, 1);
-
-    return grid;
-  }
-
-  private ComboBox<BrazilianState> buildStateCombo() {
-    ComboBox<BrazilianState> combo = new ComboBox<>(
-        FXCollections.observableArrayList(BrazilianState.values()));
-    combo.getStyleClass().add("form-combo");
-    combo.setMaxWidth(Double.MAX_VALUE);
-    return combo;
-  }
-
-  private void setupCepListener(int idx) {
-    cepField[idx].textProperty().addListener((obs, oldVal, newVal) -> {
-      String digits = newVal.replaceAll("\\D", "");
-      if (digits.length() == 8) {
-        cepErrorLabel[idx].setVisible(false);
-        cepErrorLabel[idx].setManaged(false);
-        nextButton.setDisable(true);
-
-        Task<SearchAddressByCepOutput> task = new Task<>() {
-          @Override protected SearchAddressByCepOutput call() {
-            return searchByCep.execute(new SearchAddressByCepInput(digits));
-          }
-        };
-
-        task.setOnSucceeded(e -> {
-          SearchAddressByCepOutput result = task.getValue();
-          streetField[idx].setText(result.result().address());
-          neighborhoodField[idx].setText(result.result().neighborhood());
-          cityField[idx].setText(result.result().city());
-          stateCombo[idx].setValue(result.result().state());
-          setReadonly(streetField[idx], true);
-          setReadonly(neighborhoodField[idx], true);
-          setReadonly(cityField[idx], true);
-          setReadonlyCombo(stateCombo[idx], true);
-          nextButton.setDisable(false);
-        });
-
-        task.setOnFailed(e -> {
-          clearAutoFilledFields(idx);
-          String msg = bundle.getString("setup.error.cep_not_found");
-          cepErrorLabel[idx].setText(msg);
-          cepErrorLabel[idx].setVisible(true);
-          cepErrorLabel[idx].setManaged(true);
-          nextButton.setDisable(false);
-        });
-
-        new Thread(task).start();
-      } else if (digits.length() < 8) {
-        clearAutoFilledFields(idx);
-      }
-    });
-  }
-
-  private void clearAutoFilledFields(int idx) {
-    streetField[idx].clear();
-    neighborhoodField[idx].clear();
-    cityField[idx].clear();
-    stateCombo[idx].setValue(null);
-    setReadonly(streetField[idx], false);
-    setReadonly(neighborhoodField[idx], false);
-    setReadonly(cityField[idx], false);
-    setReadonlyCombo(stateCombo[idx], false);
-  }
-
-  private void setReadonly(TextField field, boolean readonly) {
-    field.setEditable(!readonly);
-    field.getStyleClass().removeAll("form-input-readonly");
-    if (readonly) field.getStyleClass().add("form-input-readonly");
-  }
-
-  private void setReadonlyCombo(ComboBox<?> combo, boolean readonly) {
-    combo.setDisable(readonly);
-    combo.getStyleClass().removeAll("form-input-readonly");
-    if (readonly) combo.getStyleClass().add("form-input-readonly");
   }
 
   // ── Submission ─────────────────────────────────────────────────────────────
@@ -724,11 +274,9 @@ public class InitialSetupController {
   }
 
   private void submitPhysicalFlow() {
-    CreateAddressInput addressInput = buildAddressInput(0);
-
     Task<CreateAddressOutput> addressTask = new Task<>() {
       @Override protected CreateAddressOutput call() {
-        return createAddress.execute(addressInput);
+        return createAddress.execute(addressPane[0].buildInput());
       }
     };
 
@@ -737,7 +285,7 @@ public class InitialSetupController {
 
       Task<CreatePhysicalPersonOutput> personTask = new Task<>() {
         @Override protected CreatePhysicalPersonOutput call() {
-          return createPhysicalPerson.execute(buildPhysicalPersonInput(addressId));
+          return createPhysicalPerson.execute(physicalPersonForm.buildInput(addressId));
         }
       };
 
@@ -765,12 +313,9 @@ public class InitialSetupController {
   }
 
   private void submitJuridicalFlow() {
-    CreateAddressInput companyAddressInput = buildAddressInput(0);
-    CreateAddressInput reprAddressInput = buildAddressInput(1);
-
     Task<CreateAddressOutput> companyAddrTask = new Task<>() {
       @Override protected CreateAddressOutput call() {
-        return createAddress.execute(companyAddressInput);
+        return createAddress.execute(addressPane[0].buildInput());
       }
     };
 
@@ -779,7 +324,7 @@ public class InitialSetupController {
 
       Task<CreateAddressOutput> reprAddrTask = new Task<>() {
         @Override protected CreateAddressOutput call() {
-          return createAddress.execute(reprAddressInput);
+          return createAddress.execute(addressPane[1].buildInput());
         }
       };
 
@@ -788,7 +333,7 @@ public class InitialSetupController {
 
         Task<CreatePhysicalPersonOutput> reprPersonTask = new Task<>() {
           @Override protected CreatePhysicalPersonOutput call() {
-            return createPhysicalPerson.execute(buildPhysicalPersonInput(reprAddressId));
+            return createPhysicalPerson.execute(physicalPersonForm.buildInput(reprAddressId));
           }
         };
 
@@ -798,8 +343,7 @@ public class InitialSetupController {
           Task<CreateJuridicalPersonOutput> juridicalTask = new Task<>() {
             @Override protected CreateJuridicalPersonOutput call() {
               return createJuridicalPerson.execute(new CreateJuridicalPersonInput(
-                  corporateNameField.getText().trim(),
-                  cnpjField.getText().trim(),
+                  companyDataForm.getCorporateName(), companyDataForm.getCnpj(),
                   reprPersonId,
                   companyAddressId
               ));
@@ -837,30 +381,6 @@ public class InitialSetupController {
     new Thread(companyAddrTask).start();
   }
 
-  private CreateAddressInput buildAddressInput(int idx) {
-    return new CreateAddressInput(
-        cepField[idx].getText().replaceAll("\\D", ""),
-        streetField[idx].getText().trim(),
-        numberField[idx].getText().trim(),
-        complementField[idx].getText().trim(),
-        neighborhoodField[idx].getText().trim(),
-        cityField[idx].getText().trim(),
-        stateCombo[idx].getValue()
-    );
-  }
-
-  private CreatePhysicalPersonInput buildPhysicalPersonInput(long addressId) {
-    return new CreatePhysicalPersonInput(
-        nameField.getText().trim(),
-        nationalityField.getText().trim(),
-        civilStateCombo.getValue(),
-        occupationField.getText().trim(),
-        cpfField.getText().trim(),
-        idCardField.getText().trim(),
-        addressId
-    );
-  }
-
   private void navigateToMain() {
     Stage stage = (Stage) nextButton.getScene().getWindow();
     stage.setResizable(true);
@@ -884,20 +404,5 @@ public class InitialSetupController {
       alert.setContentText(message);
       alert.showAndWait();
     });
-  }
-
-  // ── Form helpers ───────────────────────────────────────────────────────────
-
-  private TextField styledInput() {
-    TextField field = new TextField();
-    field.getStyleClass().add("form-input");
-    field.setMaxWidth(Double.MAX_VALUE);
-    return field;
-  }
-
-  private VBox formField(String labelText, Node input) {
-    Label label = new Label(labelText);
-    label.getStyleClass().add("form-label");
-    return new VBox(4, label, input);
   }
 }
