@@ -1,5 +1,7 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
+import com.guilherme.emobiliaria.person.application.usecase.ValidateCnpjInteractor;
+import com.guilherme.emobiliaria.person.domain.service.CnpjValidationService;
 import javafx.application.Platform;
 import javafx.scene.control.TextField;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,6 +48,10 @@ class CompanyDataFormPaneTest {
     return future.get(5, TimeUnit.SECONDS);
   }
 
+  private static CompanyDataFormPane createPane() {
+    return new CompanyDataFormPane(bundle, new ValidateCnpjInteractor(new CnpjValidationService()));
+  }
+
   @Nested
   class Validate {
 
@@ -53,7 +59,7 @@ class CompanyDataFormPaneTest {
     @DisplayName("When all fields are empty, should return false")
     void shouldReturnFalseWhenAllFieldsAreEmpty() throws Exception {
       Boolean result = onFX(() -> {
-        CompanyDataFormPane pane = new CompanyDataFormPane(bundle);
+        CompanyDataFormPane pane = createPane();
         return pane.validate();
       });
 
@@ -64,12 +70,12 @@ class CompanyDataFormPaneTest {
     @DisplayName("When all fields are filled, should return true")
     void shouldReturnTrueWhenAllFieldsAreFilled() throws Exception {
       Boolean result = onFX(() -> {
-        CompanyDataFormPane pane = new CompanyDataFormPane(bundle);
+        CompanyDataFormPane pane = createPane();
         List<TextField> fields =
             pane.lookupAll(".form-input").stream().filter(n -> n instanceof TextField)
                 .map(n -> (TextField) n).toList();
         fields.get(0).setText("Empresa Ltda");
-        fields.get(1).setText("12.345.678/0001-90");
+        fields.get(1).setText("11.444.777/0001-61");
         return pane.validate();
       });
 
@@ -85,7 +91,7 @@ class CompanyDataFormPaneTest {
     @DisplayName("When field has value with whitespace, should return trimmed value")
     void shouldReturnTrimmedCorporateName() throws Exception {
       String name = onFX(() -> {
-        CompanyDataFormPane pane = new CompanyDataFormPane(bundle);
+        CompanyDataFormPane pane = createPane();
         List<TextField> fields =
             pane.lookupAll(".form-input").stream().filter(n -> n instanceof TextField)
                 .map(n -> (TextField) n).toList();
@@ -105,7 +111,7 @@ class CompanyDataFormPaneTest {
     @DisplayName("When field has value with whitespace, should return trimmed value")
     void shouldReturnTrimmedCnpj() throws Exception {
       String cnpj = onFX(() -> {
-        CompanyDataFormPane pane = new CompanyDataFormPane(bundle);
+        CompanyDataFormPane pane = createPane();
         List<TextField> fields =
             pane.lookupAll(".form-input").stream().filter(n -> n instanceof TextField)
                 .map(n -> (TextField) n).toList();

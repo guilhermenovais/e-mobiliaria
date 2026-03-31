@@ -1,7 +1,9 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
 import com.guilherme.emobiliaria.person.application.input.CreatePhysicalPersonInput;
+import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.service.CpfValidationService;
 import javafx.application.Platform;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
@@ -55,6 +57,11 @@ class PhysicalPersonFormPaneTest {
     });
   }
 
+  private static PhysicalPersonFormPane createPane() {
+    return new PhysicalPersonFormPane(bundle,
+        new ValidateCpfInteractor(new CpfValidationService()));
+  }
+
   private static void fillAllFields(PhysicalPersonFormPane pane) {
     fillTextField(pane, 0, "João Silva");
     fillTextField(pane, 1, "Brasileiro");
@@ -88,7 +95,7 @@ class PhysicalPersonFormPaneTest {
     @DisplayName("When all fields are empty, should return false")
     void shouldReturnFalseWhenAllFieldsAreEmpty() throws Exception {
       Boolean result = onFX(() -> {
-        PhysicalPersonFormPane pane = new PhysicalPersonFormPane(bundle);
+        PhysicalPersonFormPane pane = createPane();
         return pane.validate();
       });
 
@@ -99,7 +106,7 @@ class PhysicalPersonFormPaneTest {
     @DisplayName("When all required fields are filled, should return true")
     void shouldReturnTrueWhenAllFieldsAreFilled() throws Exception {
       Boolean result = onFX(() -> {
-        PhysicalPersonFormPane pane = new PhysicalPersonFormPane(bundle);
+        PhysicalPersonFormPane pane = createPane();
         fillAllFields(pane);
         return pane.validate();
       });
@@ -111,7 +118,7 @@ class PhysicalPersonFormPaneTest {
     @DisplayName("When civil state is not selected, should return false")
     void shouldReturnFalseWhenCivilStateNotSelected() throws Exception {
       Boolean result = onFX(() -> {
-        PhysicalPersonFormPane pane = new PhysicalPersonFormPane(bundle);
+        PhysicalPersonFormPane pane = createPane();
         fillTextField(pane, 0, "João Silva");
         fillTextField(pane, 1, "Brasileiro");
         // skip civil state
@@ -133,7 +140,7 @@ class PhysicalPersonFormPaneTest {
     @DisplayName("When fields are filled, should build input with trimmed values")
     void shouldBuildInputWithTrimmedValues() throws Exception {
       CreatePhysicalPersonInput input = onFX(() -> {
-        PhysicalPersonFormPane pane = new PhysicalPersonFormPane(bundle);
+        PhysicalPersonFormPane pane = createPane();
         fillAllFields(pane);
         return pane.buildInput(42L);
       });

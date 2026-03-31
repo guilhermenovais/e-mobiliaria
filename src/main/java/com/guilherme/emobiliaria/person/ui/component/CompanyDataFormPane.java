@@ -72,7 +72,7 @@ public class CompanyDataFormPane extends GridPane {
   }
 
   public String getCnpj() {
-    return cnpjField.getValue();
+    return cnpjField.getText().trim();
   }
 
   private void runCnpjValidation() {

@@ -109,7 +109,7 @@ public class PhysicalPersonFormPane extends GridPane {
   public CreatePhysicalPersonInput buildInput(long addressId) {
     return new CreatePhysicalPersonInput(nameField.getText().trim(),
         nationalityField.getText().trim(), civilStateCombo.getValue(),
-        occupationField.getText().trim(), cpfField.getValue(), idCardField.getText().trim(),
+        occupationField.getText().trim(), cpfField.getText().trim(), idCardField.getText().trim(),
         addressId);
   }
 
