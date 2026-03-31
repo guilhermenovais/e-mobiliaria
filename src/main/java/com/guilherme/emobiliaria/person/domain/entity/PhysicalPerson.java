@@ -85,7 +85,7 @@ public class PhysicalPerson extends Person {
     if (occupation == null || occupation.isBlank()) {
       throw new BusinessException(ErrorMessage.PhysicalPerson.OCCUPATION_EMPTY);
     }
-    if (occupation.length() >= 20) {
+    if (occupation.length() >= 100) {
       throw new BusinessException(ErrorMessage.PhysicalPerson.OCCUPATION_TOO_LONG);
     }
     this.occupation = occupation;

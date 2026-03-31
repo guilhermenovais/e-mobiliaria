@@ -13,7 +13,7 @@ public interface ErrorMessage {
         "Nationality must contain less than 20 characters"),
     OCCUPATION_EMPTY("physical_person.occupation_empty", "Occupation must not be empty"),
     OCCUPATION_TOO_LONG("physical_person.occupation_too_long",
-        "Occupation must contain less than 20 characters"),
+        "Occupation must contain less than 100 characters"),
     CPF_INVALID("physical_person.cpf_invalid", "CPF is invalid"),
     ID_CARD_NUMBER_EMPTY("physical_person.id_card_number_empty",
         "ID card number must not be empty"),

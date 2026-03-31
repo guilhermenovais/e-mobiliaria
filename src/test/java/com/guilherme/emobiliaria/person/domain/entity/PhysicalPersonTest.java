@@ -1,10 +1,5 @@
 package com.guilherme.emobiliaria.person.domain.entity;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +7,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PhysicalPersonTest {
 
@@ -184,11 +184,11 @@ class PhysicalPersonTest {
     }
 
     @Test
-    @DisplayName("When occupation has 20 or more characters, should throw BusinessException")
+    @DisplayName("When occupation has 100 or more characters, should throw BusinessException")
     void shouldThrowWhenOccupationExceedsLimit() {
       PhysicalPerson person = validPerson();
       BusinessException ex =
-          assertThrows(BusinessException.class, () -> person.setOccupation("A".repeat(20)));
+          assertThrows(BusinessException.class, () -> person.setOccupation("A".repeat(100)));
       assertEquals(ErrorMessage.PhysicalPerson.OCCUPATION_TOO_LONG, ex.getErrorMessage());
     }
 
