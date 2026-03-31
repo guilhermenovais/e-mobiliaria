@@ -1,7 +1,9 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
 import com.guilherme.emobiliaria.person.application.input.CreatePhysicalPersonInput;
+import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.shared.ui.component.MaskedTextField;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -18,22 +20,30 @@ import java.util.ResourceBundle;
 public class PhysicalPersonFormPane extends GridPane {
 
   private final ResourceBundle bundle;
+  private final ValidateCpfInteractor validateCpf;
   private final TextField nameField;
   private final TextField nationalityField;
   private final ComboBox<CivilState> civilStateCombo;
   private final TextField occupationField;
-  private final TextField cpfField;
+  private final MaskedTextField cpfField;
   private final TextField idCardField;
+  private final Label cpfErrorLabel;
 
-  public PhysicalPersonFormPane(ResourceBundle bundle) {
+  public PhysicalPersonFormPane(ResourceBundle bundle, ValidateCpfInteractor validateCpf) {
     this.bundle = bundle;
+    this.validateCpf = validateCpf;
 
     nameField = styledInput();
     nationalityField = styledInput();
     civilStateCombo = buildCivilStateCombo();
     occupationField = styledInput();
-    cpfField = styledInput();
+    cpfField = new MaskedTextField("000.000.000-00");
     idCardField = styledInput();
+
+    cpfErrorLabel = new Label();
+    cpfErrorLabel.getStyleClass().add("form-error-label");
+    cpfErrorLabel.setVisible(false);
+    cpfErrorLabel.setManaged(false);
 
     setHgap(16);
     setVgap(16);
@@ -51,8 +61,14 @@ public class PhysicalPersonFormPane extends GridPane {
     row++;
     add(formField(bundle.getString("setup.field.occupation"), occupationField), 0, row, 2, 1);
     row++;
-    add(formField(bundle.getString("setup.field.cpf"), cpfField), 0, row);
+    add(formFieldWithError(bundle.getString("setup.field.cpf"), cpfField, cpfErrorLabel), 0, row);
     add(formField(bundle.getString("setup.field.id_card"), idCardField), 1, row);
+
+    cpfField.focusedProperty().addListener((obs, wasFocused, isNow) -> {
+      if (!isNow && !cpfField.getValue().isEmpty()) {
+        runCpfValidation();
+      }
+    });
   }
 
   public boolean validate() {
@@ -73,9 +89,15 @@ public class PhysicalPersonFormPane extends GridPane {
       markError(occupationField);
       valid = false;
     }
-    if (isEmpty(cpfField)) {
+    if (cpfField.getValue().isEmpty()) {
       markError(cpfField);
       valid = false;
+    } else {
+      var error = validateCpf.execute(cpfField.getValue());
+      if (error.isPresent()) {
+        showCpfError(bundle.getString(error.get().getTranslationKey()));
+        valid = false;
+      }
     }
     if (isEmpty(idCardField)) {
       markError(idCardField);
@@ -87,7 +109,7 @@ public class PhysicalPersonFormPane extends GridPane {
   public CreatePhysicalPersonInput buildInput(long addressId) {
     return new CreatePhysicalPersonInput(nameField.getText().trim(),
         nationalityField.getText().trim(), civilStateCombo.getValue(),
-        occupationField.getText().trim(), cpfField.getText().trim(), idCardField.getText().trim(),
+        occupationField.getText().trim(), cpfField.getValue(), idCardField.getText().trim(),
         addressId);
   }
 
@@ -97,7 +119,28 @@ public class PhysicalPersonFormPane extends GridPane {
     civilStateCombo.getStyleClass().removeAll("form-input-error");
     occupationField.getStyleClass().removeAll("form-input-error");
     cpfField.getStyleClass().removeAll("form-input-error");
+    cpfErrorLabel.setVisible(false);
+    cpfErrorLabel.setManaged(false);
     idCardField.getStyleClass().removeAll("form-input-error");
+  }
+
+  private void runCpfValidation() {
+    var error = validateCpf.execute(cpfField.getValue());
+    if (error.isPresent()) {
+      showCpfError(bundle.getString(error.get().getTranslationKey()));
+    } else {
+      cpfField.getStyleClass().removeAll("form-input-error");
+      cpfErrorLabel.setVisible(false);
+      cpfErrorLabel.setManaged(false);
+    }
+  }
+
+  private void showCpfError(String message) {
+    cpfField.getStyleClass().removeAll("form-input-error");
+    cpfField.getStyleClass().add("form-input-error");
+    cpfErrorLabel.setText(message);
+    cpfErrorLabel.setVisible(true);
+    cpfErrorLabel.setManaged(true);
   }
 
   private ComboBox<CivilState> buildCivilStateCombo() {
@@ -132,6 +175,12 @@ public class PhysicalPersonFormPane extends GridPane {
     Label label = new Label(labelText);
     label.getStyleClass().add("form-label");
     return new VBox(4, label, input);
+  }
+
+  private VBox formFieldWithError(String labelText, Node input, Label errorLabel) {
+    Label label = new Label(labelText);
+    label.getStyleClass().add("form-label");
+    return new VBox(4, label, input, errorLabel);
   }
 
   private boolean isEmpty(TextField field) {

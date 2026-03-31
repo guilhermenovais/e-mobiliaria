@@ -1,5 +1,7 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
+import com.guilherme.emobiliaria.person.application.usecase.ValidateCnpjInteractor;
+import com.guilherme.emobiliaria.shared.ui.component.MaskedTextField;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -12,12 +14,23 @@ import java.util.ResourceBundle;
 
 public class CompanyDataFormPane extends GridPane {
 
+  private final ResourceBundle bundle;
+  private final ValidateCnpjInteractor validateCnpj;
   private final TextField corporateNameField;
-  private final TextField cnpjField;
+  private final MaskedTextField cnpjField;
+  private final Label cnpjErrorLabel;
 
-  public CompanyDataFormPane(ResourceBundle bundle) {
+  public CompanyDataFormPane(ResourceBundle bundle, ValidateCnpjInteractor validateCnpj) {
+    this.bundle = bundle;
+    this.validateCnpj = validateCnpj;
+
     corporateNameField = styledInput();
-    cnpjField = styledInput();
+    cnpjField = new MaskedTextField("00.000.000/0000-00");
+
+    cnpjErrorLabel = new Label();
+    cnpjErrorLabel.getStyleClass().add("form-error-label");
+    cnpjErrorLabel.setVisible(false);
+    cnpjErrorLabel.setManaged(false);
 
     setHgap(16);
     setVgap(16);
@@ -26,7 +39,13 @@ public class CompanyDataFormPane extends GridPane {
     getColumnConstraints().add(col);
 
     add(formField(bundle.getString("setup.field.corporate_name"), corporateNameField), 0, 0);
-    add(formField(bundle.getString("setup.field.cnpj"), cnpjField), 0, 1);
+    add(formFieldWithError(bundle.getString("setup.field.cnpj"), cnpjField, cnpjErrorLabel), 0, 1);
+
+    cnpjField.focusedProperty().addListener((obs, wasFocused, isNow) -> {
+      if (!isNow && !cnpjField.getValue().isEmpty()) {
+        runCnpjValidation();
+      }
+    });
   }
 
   public boolean validate() {
@@ -35,9 +54,15 @@ public class CompanyDataFormPane extends GridPane {
       markError(corporateNameField);
       valid = false;
     }
-    if (isEmpty(cnpjField)) {
+    if (cnpjField.getValue().isEmpty()) {
       markError(cnpjField);
       valid = false;
+    } else {
+      var error = validateCnpj.execute(cnpjField.getValue());
+      if (error.isPresent()) {
+        showCnpjError(bundle.getString(error.get().getTranslationKey()));
+        valid = false;
+      }
     }
     return valid;
   }
@@ -47,7 +72,26 @@ public class CompanyDataFormPane extends GridPane {
   }
 
   public String getCnpj() {
-    return cnpjField.getText().trim();
+    return cnpjField.getValue();
+  }
+
+  private void runCnpjValidation() {
+    var error = validateCnpj.execute(cnpjField.getValue());
+    if (error.isPresent()) {
+      showCnpjError(bundle.getString(error.get().getTranslationKey()));
+    } else {
+      cnpjField.getStyleClass().removeAll("form-input-error");
+      cnpjErrorLabel.setVisible(false);
+      cnpjErrorLabel.setManaged(false);
+    }
+  }
+
+  private void showCnpjError(String message) {
+    cnpjField.getStyleClass().removeAll("form-input-error");
+    cnpjField.getStyleClass().add("form-input-error");
+    cnpjErrorLabel.setText(message);
+    cnpjErrorLabel.setVisible(true);
+    cnpjErrorLabel.setManaged(true);
   }
 
   private TextField styledInput() {
@@ -61,6 +105,12 @@ public class CompanyDataFormPane extends GridPane {
     Label label = new Label(labelText);
     label.getStyleClass().add("form-label");
     return new VBox(4, label, input);
+  }
+
+  private VBox formFieldWithError(String labelText, Node input, Label errorLabel) {
+    Label label = new Label(labelText);
+    label.getStyleClass().add("form-label");
+    return new VBox(4, label, input, errorLabel);
   }
 
   private boolean isEmpty(TextField field) {

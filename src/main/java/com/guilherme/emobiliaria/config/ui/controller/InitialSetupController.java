@@ -12,6 +12,8 @@ import com.guilherme.emobiliaria.person.application.usecase.CreateAddressInterac
 import com.guilherme.emobiliaria.person.application.usecase.CreateJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.CreatePhysicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.SearchAddressByCepInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.ValidateCnpjInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteractor;
 import com.guilherme.emobiliaria.person.ui.component.AddressFormPane;
 import com.guilherme.emobiliaria.person.ui.component.CompanyDataFormPane;
 import com.guilherme.emobiliaria.person.ui.component.PhysicalPersonFormPane;
@@ -44,19 +46,23 @@ public class InitialSetupController {
   private final CreatePhysicalPersonInteractor createPhysicalPerson;
   private final CreateJuridicalPersonInteractor createJuridicalPerson;
   private final SetConfigInteractor setConfig;
+  private final ValidateCpfInteractor validateCpf;
+  private final ValidateCnpjInteractor validateCnpj;
 
   @Inject
   public InitialSetupController(
       CreateAddressInteractor createAddress,
       SearchAddressByCepInteractor searchByCep,
       CreatePhysicalPersonInteractor createPhysicalPerson,
-      CreateJuridicalPersonInteractor createJuridicalPerson,
-      SetConfigInteractor setConfig) {
+      CreateJuridicalPersonInteractor createJuridicalPerson, SetConfigInteractor setConfig,
+      ValidateCpfInteractor validateCpf, ValidateCnpjInteractor validateCnpj) {
     this.createAddress = createAddress;
     this.searchByCep = searchByCep;
     this.createPhysicalPerson = createPhysicalPerson;
     this.createJuridicalPerson = createJuridicalPerson;
     this.setConfig = setConfig;
+    this.validateCpf = validateCpf;
+    this.validateCnpj = validateCnpj;
   }
 
   // ── FXML fields ────────────────────────────────────────────────────────────
@@ -97,8 +103,8 @@ public class InitialSetupController {
         getClass().getModule());
 
     typeSelectionPane = new PersonTypeSelectionPane(bundle);
-    physicalPersonForm = new PhysicalPersonFormPane(bundle);
-    companyDataForm = new CompanyDataFormPane(bundle);
+    physicalPersonForm = new PhysicalPersonFormPane(bundle, validateCpf);
+    companyDataForm = new CompanyDataFormPane(bundle, validateCnpj);
     addressPane[0] = new AddressFormPane(searchByCep, bundle);
     addressPane[1] = new AddressFormPane(searchByCep, bundle);
 

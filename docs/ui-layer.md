@@ -45,6 +45,23 @@
 - Every FXML that uses shared classes must reference all relevant shared CSS files via `<stylesheets>`.
 - Never duplicate a rule across files — add it once in the most appropriate stylesheet.
 
+## Form Input Masks
+
+- Use `MaskedTextField` (`shared/ui/component/`) for any field with a fixed digit format (CPF, CNPJ, CEP, phone, etc.).
+- Mask syntax: `0` = digit slot, any other character = literal (e.g. `"000.000.000-00"`).
+- Always call `getValue()` (digits only) when passing the value to the application layer — never `getText()`.
+
+## Form Validation
+
+- **Real-time (focus-loss):** fields backed by a domain rule (CPF, CNPJ) must validate on focus-loss via their
+  corresponding `Validate*Interactor`. Show the error inline (label below the field) — never an Alert dialog.
+- **On submit:** `validate()` in every form pane must re-run all checks, including domain rules, and aggregate
+  results into a single boolean. Navigation is blocked if `validate()` returns `false`.
+- **Error display:** add a `Label` with style class `form-error-label` directly below the field (`managed=false`
+  when hidden). Toggle `form-input-error` on the field and show/hide the label together.
+- Domain validation must flow through an application-layer use case (e.g. `ValidateCpfInteractor`) that returns
+  `Optional<ErrorMessage>`. The UI resolves the translation key via the resource bundle.
+
 ## JavaFX-specific
 
 - Prefer `VBox/HBox/GridPane` over absolute positioning.

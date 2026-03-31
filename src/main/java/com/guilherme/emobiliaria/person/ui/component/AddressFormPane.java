@@ -5,6 +5,7 @@ import com.guilherme.emobiliaria.person.application.input.SearchAddressByCepInpu
 import com.guilherme.emobiliaria.person.application.output.SearchAddressByCepOutput;
 import com.guilherme.emobiliaria.person.application.usecase.SearchAddressByCepInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
+import com.guilherme.emobiliaria.shared.ui.component.MaskedTextField;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.geometry.Pos;
@@ -25,7 +26,7 @@ public class AddressFormPane extends VBox {
   private final SearchAddressByCepInteractor searchByCep;
   private final ResourceBundle bundle;
 
-  private final TextField cepField;
+  private final MaskedTextField cepField;
   private final TextField streetField;
   private final TextField numberField;
   private final TextField complementField;
@@ -43,7 +44,7 @@ public class AddressFormPane extends VBox {
     this.searchByCep = searchByCep;
     this.bundle = bundle;
 
-    cepField = styledInput();
+    cepField = new MaskedTextField("00000-000");
     streetField = styledInput();
     numberField = styledInput();
     complementField = styledInput();
