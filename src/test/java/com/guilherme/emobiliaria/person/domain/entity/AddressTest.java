@@ -1,10 +1,5 @@
 package com.guilherme.emobiliaria.person.domain.entity;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +7,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class AddressTest {
 
@@ -294,6 +294,14 @@ class AddressTest {
       Address address = validAddress();
       address.setNeighborhood("Vila Madalena");
       assertEquals("Vila Madalena", address.getNeighborhood());
+    }
+
+    @Test
+    @DisplayName("When neighborhood contains parenthesis, should set neighborhood")
+    void shouldSetNeighborhoodWhenContainsParenthesis() {
+      Address address = validAddress();
+      address.setNeighborhood("Vila (Nova)");
+      assertEquals("Vila (Nova)", address.getNeighborhood());
     }
   }
 

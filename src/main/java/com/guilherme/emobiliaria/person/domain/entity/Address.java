@@ -122,7 +122,7 @@ public class Address {
     if (neighborhood.length() < 2 || neighborhood.length() > 100) {
       throw new BusinessException(ErrorMessage.Address.NEIGHBORHOOD_INVALID_LENGTH);
     }
-    if (!neighborhood.matches("[\\p{L} \\-']+")) {
+    if (!neighborhood.matches("[\\p{L} ()\\-']+")) {
       throw new BusinessException(ErrorMessage.Address.NEIGHBORHOOD_INVALID_CHARACTERS);
     }
     this.neighborhood = neighborhood;
