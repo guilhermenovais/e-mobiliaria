@@ -11,8 +11,8 @@
     xmlns:fx="http://javafx.com/fxml"
     fx:controller="com.guilherme.emobiliaria.config.ui.controller.InitialSetupController"
     styleClass="setup-bg"
-    prefWidth="1440"
-    prefHeight="900">
+    prefWidth="1000"
+    prefHeight="700">
 
     <stylesheets>
         <URL value="@initial-setup.css"/>

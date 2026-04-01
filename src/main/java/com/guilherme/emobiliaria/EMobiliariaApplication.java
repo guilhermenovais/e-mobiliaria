@@ -44,16 +44,12 @@ public class EMobiliariaApplication extends Application {
               "/com/guilherme/emobiliaria/config/ui/view/initial-setup-view.fxml")));
       stage.setTitle(bundle.getString("setup.step.type.title"));
       stage.setScene(scene);
-      stage.setResizable(false);
-      stage.setWidth(1440);
-      stage.setHeight(900);
     } else {
       // TODO: load main view
       stage.setTitle("e-Mobiliária");
-      stage.setWidth(1440);
-      stage.setHeight(900);
     }
 
+    stage.setMaximized(true);
     stage.show();
   }
 }
