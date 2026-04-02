@@ -44,6 +44,18 @@ public class FakePhysicalPersonRepository extends FakeImplementation
   }
 
   @Override
+  public Optional<PhysicalPerson> findByCpf(String cpf) {
+    maybeFail();
+    String normalizedCpf = cpf == null ? null : cpf.replaceAll("[^0-9]", "");
+    if (normalizedCpf == null || normalizedCpf.isBlank()) {
+      return Optional.empty();
+    }
+    return store.values().stream()
+        .filter(p -> normalizedCpf.equals(p.getCpf()))
+        .findFirst();
+  }
+
+  @Override
   public PagedResult<PhysicalPerson> findAll(PaginationInput pagination) {
     maybeFail();
     List<PhysicalPerson> all = new ArrayList<>(store.values());

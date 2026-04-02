@@ -22,6 +22,7 @@ class SearchPhysicalPeopleByNameInteractorTest {
   private FakePhysicalPersonRepository physicalPersonRepository;
   private FakeAddressRepository addressRepository;
   private SearchPhysicalPeopleByNameInteractor interactor;
+  private int cpfSeed = 0;
 
   @BeforeEach
   void setUp() {
@@ -31,13 +32,23 @@ class SearchPhysicalPeopleByNameInteractorTest {
   }
 
   private void createPhysicalPerson(String name) {
+    String[] validCpfs = {
+        "52998224725",
+        "11144477735",
+        "16899535009",
+        "45317828791",
+        "39053344705",
+        "98765432100",
+        "70548445052"
+    };
+    String cpf = validCpfs[cpfSeed++];
     Long addressId = new CreateAddressInteractor(addressRepository)
         .execute(new CreateAddressInput("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo",
             BrazilianState.SP))
         .address().getId();
     new CreatePhysicalPersonInteractor(physicalPersonRepository, addressRepository)
         .execute(new CreatePhysicalPersonInput(name, "Brasileiro", CivilState.SINGLE,
-            "Engenheiro", "529.982.247-25", "MG-1234567", addressId));
+            "Engenheiro", cpf, "MG-1234567", addressId));
   }
 
   @Nested

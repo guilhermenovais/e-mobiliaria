@@ -107,6 +107,27 @@ public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
   }
 
   @Override
+  public Optional<PhysicalPerson> findByCpf(String cpf) {
+    String normalizedCpf = cpf == null ? null : cpf.replaceAll("[^0-9]", "");
+    if (normalizedCpf == null || normalizedCpf.isBlank()) {
+      return Optional.empty();
+    }
+    String sql = "SELECT id, name, nationality, civil_state, occupation, cpf, id_card_number, address_id FROM physical_persons WHERE cpf=?";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setString(1, normalizedCpf);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (!rs.next()) {
+          return Optional.empty();
+        }
+        return Optional.of(map(rs, conn));
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.PhysicalPerson.NOT_FOUND, e);
+    }
+  }
+
+  @Override
   public PagedResult<PhysicalPerson> findAll(PaginationInput pagination) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;

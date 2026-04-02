@@ -14,6 +14,8 @@ public interface PhysicalPersonRepository {
 
   Optional<PhysicalPerson> findById(Long id);
 
+  Optional<PhysicalPerson> findByCpf(String cpf);
+
   PagedResult<PhysicalPerson> findAll(PaginationInput pagination);
 
   PagedResult<PhysicalPerson> findByName(String name, PaginationInput pagination);

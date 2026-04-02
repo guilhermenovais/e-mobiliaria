@@ -75,6 +75,14 @@ public class CompanyDataFormPane extends GridPane {
     return cnpjField.getText().trim();
   }
 
+  public void setCorporateName(String corporateName) {
+    corporateNameField.setText(corporateName == null ? "" : corporateName);
+  }
+
+  public void setCnpj(String cnpj) {
+    cnpjField.setText(cnpj == null ? "" : cnpj);
+  }
+
   private void runCnpjValidation() {
     var error = validateCnpj.execute(cnpjField.getValue());
     if (error.isPresent()) {

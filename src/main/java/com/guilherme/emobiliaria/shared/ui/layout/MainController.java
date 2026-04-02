@@ -24,9 +24,12 @@ public class MainController {
 
   private static final String PHYSICAL_PERSON_LIST_FXML =
       "/com/guilherme/emobiliaria/person/ui/view/physical-person-list-view.fxml";
+  private static final String JURIDICAL_PERSON_LIST_FXML =
+      "/com/guilherme/emobiliaria/person/ui/view/juridical-person-list-view.fxml";
 
   private final NavigationService navigationService;
   private final GuiceFxmlLoader fxmlLoader;
+  private SidebarPane sidebarPane;
 
   @Inject
   public MainController(NavigationService navigationService, GuiceFxmlLoader fxmlLoader) {
@@ -45,10 +48,11 @@ public class MainController {
     ResourceBundle bundle = ResourceBundle.getBundle("messages", Locale.getDefault(),
         getClass().getModule());
 
-    SidebarPane sidebar = new SidebarPane(bundle);
-    sidebar.setOnPhysicalPeopleAction(() -> navigateToPhysicalPersonList());
-    sidebar.setActiveItem("sidebar.physical_people");
-    sidebarContainer.getChildren().add(sidebar);
+    sidebarPane = new SidebarPane(bundle);
+    sidebarPane.setOnPhysicalPeopleAction(() -> navigateToPhysicalPersonList());
+    sidebarPane.setOnJuridicalPeopleAction(() -> navigateToJuridicalPersonList());
+    sidebarPane.setActiveItem("sidebar.physical_people");
+    sidebarContainer.getChildren().add(sidebarPane);
 
     navigationService.setContentPane(contentPane);
     navigationService.setOnNavigationChanged(this::updateNavButtons);
@@ -65,7 +69,17 @@ public class MainController {
   }
 
   private void navigateToPhysicalPersonList() {
+    if (sidebarPane != null) {
+      sidebarPane.setActiveItem("sidebar.physical_people");
+    }
     navigationService.navigate(() -> loadPhysicalPersonList());
+  }
+
+  private void navigateToJuridicalPersonList() {
+    if (sidebarPane != null) {
+      sidebarPane.setActiveItem("sidebar.juridical_people");
+    }
+    navigationService.navigate(() -> loadJuridicalPersonList());
   }
 
   private Node loadPhysicalPersonList() {
@@ -79,6 +93,21 @@ public class MainController {
       return fxmlLoader.load(resource);
     } catch (IOException e) {
       log.error("Failed to load physical person list view", e);
+      return new StackPane();
+    }
+  }
+
+  private Node loadJuridicalPersonList() {
+    URL resource = getClass().getResource(JURIDICAL_PERSON_LIST_FXML);
+    if (resource == null) {
+      log.warn("juridical-person-list-view.fxml not found at {}, returning empty pane",
+          JURIDICAL_PERSON_LIST_FXML);
+      return new StackPane();
+    }
+    try {
+      return fxmlLoader.load(resource);
+    } catch (IOException e) {
+      log.error("Failed to load juridical person list view", e);
       return new StackPane();
     }
   }

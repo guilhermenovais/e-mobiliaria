@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<ScrollPane
+    xmlns:fx="http://javafx.com/fxml"
+    fitToWidth="true">
+
+    <stylesheets>
+        <URL value="@person-form-view.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/forms.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/buttons.css"/>
+    </stylesheets>
+
+    <VBox styleClass="form-view-root">
+
+        <VBox styleClass="form-view-header">
+            <Label fx:id="titleLabel" styleClass="form-view-title"/>
+            <Label fx:id="subtitleLabel" styleClass="form-view-subtitle"/>
+        </VBox>
+
+        <Separator/>
+
+        <Label fx:id="companySectionLabel" styleClass="form-section-label"/>
+        <StackPane fx:id="companyFormContainer"/>
+
+        <Separator/>
+
+        <Label fx:id="companyAddressSectionLabel" styleClass="form-section-label"/>
+        <StackPane fx:id="companyAddressFormContainer"/>
+
+        <Separator/>
+
+        <Label fx:id="representativeSectionLabel" styleClass="form-section-label"/>
+        <StackPane fx:id="representativeFormContainer"/>
+
+        <Separator/>
+
+        <Label fx:id="representativeAddressSectionLabel" styleClass="form-section-label"/>
+        <StackPane fx:id="representativeAddressFormContainer"/>
+
+        <HBox styleClass="form-view-footer">
+            <Button fx:id="cancelButton" styleClass="btn-secondary"/>
+            <Button fx:id="saveButton" styleClass="btn-primary"/>
+        </HBox>
+
+    </VBox>
+
+</ScrollPane>
