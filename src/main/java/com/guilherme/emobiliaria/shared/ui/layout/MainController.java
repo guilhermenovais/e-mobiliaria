@@ -47,13 +47,16 @@ public class MainController {
 
     SidebarPane sidebar = new SidebarPane(bundle);
     sidebar.setOnPhysicalPeopleAction(() -> navigateToPhysicalPersonList());
+    sidebar.setActiveItem("sidebar.physical_people");
     sidebarContainer.getChildren().add(sidebar);
 
     navigationService.setContentPane(contentPane);
     navigationService.setOnNavigationChanged(this::updateNavButtons);
 
-    backButton.setText(bundle.getString("nav.back"));
-    forwardButton.setText(bundle.getString("nav.forward"));
+    backButton.setText(bundle.getString("nav.back.icon"));
+    forwardButton.setText(bundle.getString("nav.forward.icon"));
+    backButton.getStyleClass().add("nav-icon-button");
+    forwardButton.getStyleClass().add("nav-icon-button");
 
     backButton.setOnAction(e -> navigationService.goBack());
     forwardButton.setOnAction(e -> navigationService.goForward());

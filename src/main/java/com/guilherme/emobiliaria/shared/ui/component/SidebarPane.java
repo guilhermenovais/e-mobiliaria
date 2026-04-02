@@ -1,7 +1,10 @@
 package com.guilherme.emobiliaria.shared.ui.component;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import java.util.LinkedHashMap;
@@ -12,7 +15,11 @@ public class SidebarPane extends VBox {
 
   private static final String CSS_SIDEBAR_ITEM = "sidebar-item";
   private static final String CSS_SIDEBAR_ITEM_ACTIVE = "sidebar-item-active";
+  private static final String CSS_SIDEBAR_BRAND_CONTAINER = "sidebar-brand-container";
+  private static final String CSS_SIDEBAR_BRAND = "sidebar-brand";
+  private static final String CSS_SIDEBAR_MENU = "sidebar-menu";
 
+  private static final String KEY_BRAND = "sidebar.brand";
   private static final String KEY_PHYSICAL_PEOPLE = "sidebar.physical_people";
   private static final String KEY_JURIDICAL_PEOPLE = "sidebar.juridical_people";
   private static final String KEY_PROPERTIES = "sidebar.properties";
@@ -24,6 +31,17 @@ public class SidebarPane extends VBox {
 
   public SidebarPane(ResourceBundle bundle) {
     getStyleClass().add("sidebar");
+
+    Label brandLabel = new Label(bundle.getString(KEY_BRAND));
+    brandLabel.getStyleClass().add(CSS_SIDEBAR_BRAND);
+    VBox brandContainer = new VBox(brandLabel);
+    brandContainer.getStyleClass().add(CSS_SIDEBAR_BRAND_CONTAINER);
+
+    VBox menuContainer = new VBox();
+    menuContainer.getStyleClass().add(CSS_SIDEBAR_MENU);
+    VBox.setVgrow(menuContainer, Priority.ALWAYS);
+
+    getChildren().addAll(brandContainer, menuContainer);
 
     String[] keys = {
         KEY_PHYSICAL_PEOPLE,
@@ -44,7 +62,8 @@ public class SidebarPane extends VBox {
       button.setDisable(!enabled);
 
       entries.put(key, button);
-      getChildren().add(button);
+      VBox.setMargin(button, new Insets(2, 8, 2, 8));
+      menuContainer.getChildren().add(button);
     }
   }
 

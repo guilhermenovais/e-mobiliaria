@@ -9,7 +9,6 @@ import com.guilherme.emobiliaria.person.application.output.SearchPhysicalPeopleB
 import com.guilherme.emobiliaria.person.application.usecase.DeletePhysicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllPhysicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.SearchPhysicalPeopleByNameInteractor;
-import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -19,6 +18,7 @@ import jakarta.inject.Inject;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -27,8 +27,8 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -63,6 +63,7 @@ public class PhysicalPersonListController {
   // ── FXML fields ────────────────────────────────────────────────────────────
 
   @FXML private Label titleLabel;
+  @FXML private Label subtitleLabel;
   @FXML private Button newButton;
   @FXML private TextField searchField;
   @FXML private TableView<PhysicalPerson> tableView;
@@ -75,6 +76,7 @@ public class PhysicalPersonListController {
   private int currentPage = 1;
   private static final int PAGE_SIZE = 20;
   private int totalPages = 1;
+  private long totalResults = 0;
   private ResourceBundle bundle;
 
   // ── Initialization ─────────────────────────────────────────────────────────
@@ -106,8 +108,18 @@ public class PhysicalPersonListController {
     if (titleLabel == null) {
       titleLabel = new Label();
     }
+    if (subtitleLabel == null) {
+      subtitleLabel = new Label();
+    }
 
     titleLabel.setText(bundle.getString("physical_person.list.title"));
+    subtitleLabel.setText(bundle.getString("physical_person.list.subtitle"));
+    newButton.setText(bundle.getString("physical_person.list.button.new"));
+    searchField.setPromptText(bundle.getString("physical_person.list.search_prompt"));
+    prevButton.setText(bundle.getString("physical_person.list.button.prev"));
+    nextButton.setText(bundle.getString("physical_person.list.button.next"));
+
+    tableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
     buildTableColumns();
 
@@ -126,13 +138,6 @@ public class PhysicalPersonListController {
       currentPage = 1;
       loadPage(1);
     });
-    tableView.setOnMouseClicked(event -> {
-      PhysicalPerson selected = tableView.getSelectionModel().getSelectedItem();
-      if (selected != null) {
-        navigateToEdit(selected.getId());
-      }
-    });
-
     loadPage(1);
   }
 
@@ -150,18 +155,32 @@ public class PhysicalPersonListController {
     cpfCol.setCellValueFactory(
         c -> new SimpleStringProperty(formatCpf(c.getValue().getCpf())));
 
-    TableColumn<PhysicalPerson, String> civilStateCol = new TableColumn<>(
-        bundle.getString("physical_person.list.column.civil_state"));
-    civilStateCol.setCellValueFactory(c -> {
-      CivilState cs = c.getValue().getCivilState();
-      return new SimpleStringProperty(bundle.getString("civil_state." + cs.name()));
-    });
+    TableColumn<PhysicalPerson, String> idCardCol = new TableColumn<>(
+        bundle.getString("physical_person.list.column.id_card"));
+    idCardCol.setCellValueFactory(
+        c -> new SimpleStringProperty(c.getValue().getIdCardNumber()));
 
     TableColumn<PhysicalPerson, Void> actionsCol = new TableColumn<>(
         bundle.getString("physical_person.list.column.actions"));
-    actionsCol.setCellFactory(col -> new DeleteButtonCell());
+    actionsCol.setCellFactory(col -> new ActionsCell());
+    actionsCol.setStyle("-fx-alignment: CENTER-RIGHT;");
 
-    tableView.getColumns().setAll(nameCol, cpfCol, civilStateCol, actionsCol);
+    nameCol.setReorderable(false);
+    cpfCol.setReorderable(false);
+    idCardCol.setReorderable(false);
+    actionsCol.setReorderable(false);
+
+    nameCol.setResizable(true);
+    cpfCol.setResizable(true);
+    idCardCol.setResizable(true);
+    actionsCol.setResizable(true);
+
+    nameCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.34));
+    cpfCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.22));
+    idCardCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.28));
+    actionsCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.16));
+
+    tableView.getColumns().setAll(nameCol, cpfCol, idCardCol, actionsCol);
   }
 
   // ── Load page ──────────────────────────────────────────────────────────────
@@ -188,6 +207,7 @@ public class PhysicalPersonListController {
     task.setOnSucceeded(e -> {
       PagedResult<PhysicalPerson> result = task.getValue();
       currentPage = page;
+      totalResults = result.total();
       totalPages = (int) Math.ceil((double) result.total() / PAGE_SIZE);
       if (totalPages < 1) totalPages = 1;
 
@@ -203,9 +223,10 @@ public class PhysicalPersonListController {
   // ── Pagination ─────────────────────────────────────────────────────────────
 
   private void updatePagination() {
-    pageLabel.setText(
-        bundle.getString("physical_person.list.page_label")
-            .formatted(currentPage, totalPages));
+    long from = totalResults == 0 ? 0 : ((long) (currentPage - 1) * PAGE_SIZE) + 1;
+    long to = totalResults == 0 ? 0 : Math.min((long) currentPage * PAGE_SIZE, totalResults);
+    pageLabel.setText(bundle.getString("physical_person.list.results_label")
+        .formatted(from, to, totalResults));
     prevButton.setDisable(currentPage == 1);
     nextButton.setDisable(currentPage >= totalPages);
   }
@@ -282,27 +303,36 @@ public class PhysicalPersonListController {
 
   // ── Inner cell class ───────────────────────────────────────────────────────
 
-  private class DeleteButtonCell extends TableCell<PhysicalPerson, Void> {
+  private class ActionsCell extends TableCell<PhysicalPerson, Void> {
 
-    private final Button deleteBtn = new Button(
-        bundle.getString("physical_person.list.button.delete"));
+    private final HBox actionsBox = new HBox();
+    private final Button editBtn = new Button(bundle.getString("physical_person.list.button.edit"));
+    private final Button deleteBtn = new Button(bundle.getString("physical_person.list.button.delete"));
 
-    DeleteButtonCell() {
-      deleteBtn.getStyleClass().add("btn-secondary");
+    ActionsCell() {
+      actionsBox.setAlignment(Pos.CENTER_RIGHT);
+      actionsBox.setSpacing(6);
+      actionsBox.getStyleClass().add("list-actions-box");
+
+      editBtn.getStyleClass().add("list-row-edit-button");
+      deleteBtn.getStyleClass().add("list-row-delete-button");
+
+      editBtn.setOnAction(e -> {
+        PhysicalPerson person = getTableView().getItems().get(getIndex());
+        navigateToEdit(person.getId());
+      });
       deleteBtn.setOnAction(e -> {
         PhysicalPerson person = getTableView().getItems().get(getIndex());
         handleDelete(person);
       });
+
+      actionsBox.getChildren().setAll(editBtn, deleteBtn);
     }
 
     @Override
     protected void updateItem(Void item, boolean empty) {
       super.updateItem(item, empty);
-      if (empty) {
-        setGraphic(null);
-      } else {
-        setGraphic(deleteBtn);
-      }
+      setGraphic(empty ? null : actionsBox);
     }
   }
 }

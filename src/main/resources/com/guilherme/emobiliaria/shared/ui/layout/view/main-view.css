@@ -1,43 +1,92 @@
 .main-root {
-    -fx-background-color: #F2F3F5;
+    -fx-background-color: #F9FAFB;
 }
 
 .sidebar {
     -fx-pref-width: 220;
-    -fx-background-color: #1F2D3D;
-    -fx-padding: 16 0;
+    -fx-background-color: white;
+    -fx-border-color: transparent #E5E7EB transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar-brand-container {
+    -fx-pref-height: 60;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 24;
+    -fx-border-color: transparent transparent #E5E7EB transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.sidebar-brand {
+    -fx-font-size: 16px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #111827;
+}
+
+.sidebar-menu {
+    -fx-padding: 8 0 0 0;
 }
 
 .sidebar-item {
     -fx-background-color: transparent;
-    -fx-text-fill: white;
-    -fx-padding: 10 20;
+    -fx-text-fill: #6B7280;
+    -fx-padding: 10 16;
+    -fx-font-size: 12px;
     -fx-alignment: CENTER_LEFT;
-    -fx-background-radius: 0;
-    -fx-border-radius: 0;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-font-weight: 400;
     -fx-cursor: hand;
 }
 
 .sidebar-item:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-color: #F3F4F6;
+    -fx-text-fill: #111827;
 }
 
 .sidebar-item-active {
-    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-background-color: #1F2D3D;
+    -fx-text-fill: white;
 }
 
 .sidebar-item:disabled {
-    -fx-opacity: 0.4;
+    -fx-opacity: 1;
 }
 
 .nav-bar {
     -fx-background-color: white;
-    -fx-padding: 8 16;
+    -fx-min-height: 48;
+    -fx-pref-height: 48;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 0 20;
+    -fx-spacing: 6;
     -fx-border-color: #E5E7EB;
     -fx-border-width: 0 0 1 0;
 }
 
+.nav-icon-button {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 0;
+    -fx-min-width: 28;
+    -fx-pref-width: 28;
+    -fx-max-width: 28;
+    -fx-min-height: 28;
+    -fx-pref-height: 28;
+    -fx-max-height: 28;
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER;
+}
+
+.nav-icon-button:hover {
+    -fx-background-color: #F9FAFB;
+}
+
 .content-area {
-    -fx-background-color: #F2F3F5;
-    -fx-padding: 24;
+    -fx-background-color: #F9FAFB;
+    -fx-padding: 0;
 }

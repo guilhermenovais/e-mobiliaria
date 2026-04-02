@@ -19,8 +19,8 @@
 
     <top>
         <HBox fx:id="navBar" styleClass="nav-bar">
-            <Button fx:id="backButton" styleClass="btn-secondary"/>
-            <Button fx:id="forwardButton" styleClass="btn-secondary"/>
+            <Button fx:id="backButton"/>
+            <Button fx:id="forwardButton"/>
         </HBox>
     </top>
 

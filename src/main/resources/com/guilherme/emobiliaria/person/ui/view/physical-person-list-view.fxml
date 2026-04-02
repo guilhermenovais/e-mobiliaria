@@ -5,35 +5,42 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
 <VBox
     xmlns:fx="http://javafx.com/fxml"
     fx:controller="com.guilherme.emobiliaria.person.ui.controller.PhysicalPersonListController"
-    styleClass="list-view-root">
+    styleClass="physical-person-list-root">
 
     <stylesheets>
+        <URL value="@physical-person-list-view.css"/>
         <URL value="@/com/guilherme/emobiliaria/shared/ui/style/forms.css"/>
         <URL value="@/com/guilherme/emobiliaria/shared/ui/style/buttons.css"/>
     </stylesheets>
 
     <!-- HEADER -->
-    <HBox styleClass="list-view-header">
-        <Label fx:id="titleLabel" styleClass="list-view-title"/>
+    <HBox styleClass="list-view-header-row">
+        <VBox styleClass="list-view-header-texts">
+            <Label fx:id="titleLabel" styleClass="list-view-title"/>
+            <Label fx:id="subtitleLabel" styleClass="list-view-subtitle"/>
+        </VBox>
         <Region HBox.hgrow="ALWAYS"/>
-        <TextField fx:id="searchField"/>
+        <TextField fx:id="searchField" styleClass="form-input list-search-field"/>
         <Button fx:id="newButton" styleClass="btn-primary"/>
     </HBox>
 
     <!-- TABLE -->
-    <TableView fx:id="tableView" VBox.vgrow="ALWAYS"/>
+    <StackPane styleClass="list-table-container" VBox.vgrow="ALWAYS">
+        <TableView fx:id="tableView" styleClass="list-table-view"/>
+    </StackPane>
 
     <!-- PAGINATION -->
     <HBox styleClass="list-view-pagination">
-        <Button fx:id="prevButton" styleClass="btn-secondary"/>
         <Label fx:id="pageLabel"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="prevButton" styleClass="btn-secondary"/>
         <Button fx:id="nextButton" styleClass="btn-secondary"/>
     </HBox>
 
