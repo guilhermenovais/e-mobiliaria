@@ -31,7 +31,7 @@ public class EMobiliariaApplication extends Application {
 
   @Override
   public void start(Stage stage) throws IOException {
-    GuiceFxmlLoader fxmlLoader = new GuiceFxmlLoader(injector);
+    GuiceFxmlLoader fxmlLoader = injector.getInstance(GuiceFxmlLoader.class);
     ResourceBundle bundle = ResourceBundle.getBundle("messages", Locale.getDefault(),
         getClass().getModule());
 
@@ -45,8 +45,11 @@ public class EMobiliariaApplication extends Application {
       stage.setTitle(bundle.getString("setup.step.type.title"));
       stage.setScene(scene);
     } else {
-      // TODO: load main view
+      Scene scene = new Scene(fxmlLoader.load(
+          EMobiliariaApplication.class.getResource(
+              "/com/guilherme/emobiliaria/shared/ui/layout/view/main-view.fxml")));
       stage.setTitle("e-Mobiliária");
+      stage.setScene(scene);
     }
 
     stage.setMaximized(true);

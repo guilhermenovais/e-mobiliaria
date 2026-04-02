@@ -1,0 +1,43 @@
+/* ============================================================
+   Person Form View — layout styles shared by create and edit screens.
+   Shared form, button rules live in:
+     shared/ui/style/forms.css
+     shared/ui/style/buttons.css
+   ============================================================ */
+
+.form-view-root {
+    -fx-padding: 32;
+    -fx-spacing: 16;
+    -fx-max-width: 800;
+    -fx-alignment: TOP_LEFT;
+}
+
+.form-view-header {
+    -fx-spacing: 4;
+}
+
+.form-view-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.form-view-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+}
+
+.form-section-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+    -fx-padding: 8 0 4 0;
+}
+
+.form-view-footer {
+    -fx-alignment: CENTER_RIGHT;
+    -fx-spacing: 12;
+    -fx-padding: 16 0 0 0;
+    -fx-border-color: #E5E7EB transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}

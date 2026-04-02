@@ -6,11 +6,13 @@ import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.PhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class FindPhysicalPersonByIdInteractor {
 
   private final PhysicalPersonRepository physicalPersonRepository;
 
+  @Inject
   public FindPhysicalPersonByIdInteractor(PhysicalPersonRepository physicalPersonRepository) {
     this.physicalPersonRepository = physicalPersonRepository;
   }

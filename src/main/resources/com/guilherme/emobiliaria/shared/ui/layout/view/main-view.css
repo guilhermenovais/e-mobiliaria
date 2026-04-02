@@ -1,0 +1,43 @@
+.main-root {
+    -fx-background-color: #F2F3F5;
+}
+
+.sidebar {
+    -fx-pref-width: 220;
+    -fx-background-color: #1F2D3D;
+    -fx-padding: 16 0;
+}
+
+.sidebar-item {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-padding: 10 20;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+}
+
+.sidebar-item:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-item-active {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-item:disabled {
+    -fx-opacity: 0.4;
+}
+
+.nav-bar {
+    -fx-background-color: white;
+    -fx-padding: 8 16;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 0 0 1 0;
+}
+
+.content-area {
+    -fx-background-color: #F2F3F5;
+    -fx-padding: 24;
+}

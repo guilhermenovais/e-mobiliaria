@@ -55,6 +55,19 @@ public class FakePhysicalPersonRepository extends FakeImplementation
   }
 
   @Override
+  public PagedResult<PhysicalPerson> findByName(String name, PaginationInput pagination) {
+    maybeFail();
+    List<PhysicalPerson> matched = store.values().stream()
+        .filter(p -> p.getName().toLowerCase().contains(name.toLowerCase()))
+        .toList();
+    long total = matched.size();
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    int limit = pagination.limit() != null ? pagination.limit() : matched.size();
+    List<PhysicalPerson> page = matched.stream().skip(offset).limit(limit).toList();
+    return new PagedResult<>(page, total);
+  }
+
+  @Override
   public void delete(Long id) {
     maybeFail();
     if (!store.containsKey(id)) {

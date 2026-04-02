@@ -16,5 +16,7 @@ public interface PhysicalPersonRepository {
 
   PagedResult<PhysicalPerson> findAll(PaginationInput pagination);
 
+  PagedResult<PhysicalPerson> findByName(String name, PaginationInput pagination);
+
   void delete(Long id);
 }

@@ -19,4 +19,10 @@ public class GuiceFxmlLoader {
     loader.setControllerFactory(injector::getInstance);
     return loader.load();
   }
+
+  public <T> T load(URL fxmlResource, Object controller) throws IOException {
+    FXMLLoader loader = new FXMLLoader(fxmlResource);
+    loader.setController(controller);
+    return loader.load();
+  }
 }

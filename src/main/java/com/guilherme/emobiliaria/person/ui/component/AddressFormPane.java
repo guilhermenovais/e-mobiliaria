@@ -1,9 +1,11 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
 import com.guilherme.emobiliaria.person.application.input.CreateAddressInput;
+import com.guilherme.emobiliaria.person.application.input.EditAddressInput;
 import com.guilherme.emobiliaria.person.application.input.SearchAddressByCepInput;
 import com.guilherme.emobiliaria.person.application.output.SearchAddressByCepOutput;
 import com.guilherme.emobiliaria.person.application.usecase.SearchAddressByCepInteractor;
+import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.shared.ui.component.MaskedTextField;
 import javafx.collections.FXCollections;
@@ -39,6 +41,7 @@ public class AddressFormPane extends VBox {
   };
   private Runnable enableNext = () -> {
   };
+  private boolean populating = false;
 
   public AddressFormPane(SearchAddressByCepInteractor searchByCep, ResourceBundle bundle) {
     this.searchByCep = searchByCep;
@@ -100,9 +103,38 @@ public class AddressFormPane extends VBox {
   }
 
   public CreateAddressInput buildInput() {
+    String complement = complementField.getText().trim();
     return new CreateAddressInput(cepField.getText().replaceAll("\\D", ""),
         streetField.getText().trim(), numberField.getText().trim(),
-        complementField.getText().trim(), neighborhoodField.getText().trim(),
+        complement.isEmpty() ? null : complement, neighborhoodField.getText().trim(),
+        cityField.getText().trim(), stateCombo.getValue());
+  }
+
+  public void populate(Address address) {
+    populating = true;
+    cepField.setText(address.getCep());
+    populating = false;
+    setReadonly(streetField, false);
+    streetField.setText(address.getAddress());
+    setReadonly(streetField, true);
+    numberField.setText(address.getNumber());
+    complementField.setText(address.getComplement() != null ? address.getComplement() : "");
+    setReadonly(neighborhoodField, false);
+    neighborhoodField.setText(address.getNeighborhood());
+    setReadonly(neighborhoodField, true);
+    setReadonly(cityField, false);
+    cityField.setText(address.getCity());
+    setReadonly(cityField, true);
+    setReadonlyCombo(stateCombo, false);
+    stateCombo.setValue(address.getState());
+    setReadonlyCombo(stateCombo, true);
+  }
+
+  public EditAddressInput buildEditInput(long id) {
+    String complement = complementField.getText().trim();
+    return new EditAddressInput(id, cepField.getText().replaceAll("\\D", ""),
+        streetField.getText().trim(), numberField.getText().trim(),
+        complement.isEmpty() ? null : complement, neighborhoodField.getText().trim(),
         cityField.getText().trim(), stateCombo.getValue());
   }
 
@@ -163,7 +195,11 @@ public class AddressFormPane extends VBox {
   private void setupCepListener() {
     cepField.textProperty().addListener((obs, oldVal, newVal) -> {
       String digits = newVal.replaceAll("\\D", "");
+      final boolean triggeredByPopulate = populating;
       if (digits.length() == 8) {
+        if (triggeredByPopulate) {
+          return;
+        }
         cepErrorLabel.setVisible(false);
         cepErrorLabel.setManaged(false);
         disableNext.run();
@@ -197,7 +233,7 @@ public class AddressFormPane extends VBox {
         });
 
         new Thread(task).start();
-      } else if (digits.length() < 8) {
+      } else if (digits.length() < 8 && !triggeredByPopulate) {
         clearAutoFilledFields();
       }
     });

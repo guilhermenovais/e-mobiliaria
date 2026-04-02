@@ -8,12 +8,14 @@ import com.guilherme.emobiliaria.person.domain.repository.AddressRepository;
 import com.guilherme.emobiliaria.person.domain.repository.PhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class EditPhysicalPersonInteractor {
 
   private final PhysicalPersonRepository physicalPersonRepository;
   private final AddressRepository addressRepository;
 
+  @Inject
   public EditPhysicalPersonInteractor(
       PhysicalPersonRepository physicalPersonRepository,
       AddressRepository addressRepository

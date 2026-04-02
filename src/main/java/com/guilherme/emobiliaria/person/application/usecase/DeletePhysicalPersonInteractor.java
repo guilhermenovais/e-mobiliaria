@@ -5,11 +5,13 @@ import com.guilherme.emobiliaria.person.application.output.DeletePhysicalPersonO
 import com.guilherme.emobiliaria.person.domain.repository.PhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class DeletePhysicalPersonInteractor {
 
   private final PhysicalPersonRepository physicalPersonRepository;
 
+  @Inject
   public DeletePhysicalPersonInteractor(PhysicalPersonRepository physicalPersonRepository) {
     this.physicalPersonRepository = physicalPersonRepository;
   }

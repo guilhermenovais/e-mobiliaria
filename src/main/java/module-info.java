@@ -23,6 +23,7 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.config.ui.controller to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.config.ui.component to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.person.ui.component to javafx.fxml, com.google.guice;
+  opens com.guilherme.emobiliaria.person.ui.controller to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.shared.ui.component to javafx.fxml, com.google.guice;
 
   opens com.guilherme.emobiliaria.person.domain.entity;
@@ -37,6 +38,8 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.shared.pdf;
   opens com.guilherme.emobiliaria.shared.pdf.templates;
 
+  opens com.guilherme.emobiliaria.shared.ui to com.google.guice;
+  opens com.guilherme.emobiliaria.shared.ui.layout to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.shared.di to com.google.guice;
   opens com.guilherme.emobiliaria.person.di to com.google.guice;
   opens com.guilherme.emobiliaria.contract.di to com.google.guice;

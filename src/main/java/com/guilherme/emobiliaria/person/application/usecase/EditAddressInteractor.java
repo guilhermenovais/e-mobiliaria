@@ -6,11 +6,13 @@ import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.repository.AddressRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class EditAddressInteractor {
 
   private final AddressRepository addressRepository;
 
+  @Inject
   public EditAddressInteractor(AddressRepository addressRepository) {
     this.addressRepository = addressRepository;
   }

@@ -1,8 +1,10 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
 import com.guilherme.emobiliaria.person.application.input.CreatePhysicalPersonInput;
+import com.guilherme.emobiliaria.person.application.input.EditPhysicalPersonInput;
 import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.ui.component.MaskedTextField;
 import javafx.collections.FXCollections;
 import javafx.scene.Node;
@@ -111,6 +113,22 @@ public class PhysicalPersonFormPane extends GridPane {
         nationalityField.getText().trim(), civilStateCombo.getValue(),
         occupationField.getText().trim(), cpfField.getText().trim(), idCardField.getText().trim(),
         addressId);
+  }
+
+  public void populate(PhysicalPerson person) {
+    nameField.setText(person.getName());
+    nationalityField.setText(person.getNationality());
+    civilStateCombo.setValue(person.getCivilState());
+    occupationField.setText(person.getOccupation());
+    cpfField.setText(person.getCpf());
+    idCardField.setText(person.getIdCardNumber());
+  }
+
+  public EditPhysicalPersonInput buildEditInput(long id, long addressId) {
+    return new EditPhysicalPersonInput(id, nameField.getText().trim(),
+        nationalityField.getText().trim(), civilStateCombo.getValue(),
+        occupationField.getText().trim(), cpfField.getText().trim(),
+        idCardField.getText().trim(), addressId);
   }
 
   public void clearErrors() {

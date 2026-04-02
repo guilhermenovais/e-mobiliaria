@@ -5,11 +5,13 @@ import com.guilherme.emobiliaria.person.application.output.FindAllPhysicalPeople
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.PhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
+import jakarta.inject.Inject;
 
 public class FindAllPhysicalPeopleInteractor {
 
   private final PhysicalPersonRepository physicalPersonRepository;
 
+  @Inject
   public FindAllPhysicalPeopleInteractor(PhysicalPersonRepository physicalPersonRepository) {
     this.physicalPersonRepository = physicalPersonRepository;
   }

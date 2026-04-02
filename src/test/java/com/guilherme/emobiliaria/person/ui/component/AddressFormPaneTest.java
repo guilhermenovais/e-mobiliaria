@@ -1,7 +1,9 @@
 package com.guilherme.emobiliaria.person.ui.component;
 
 import com.guilherme.emobiliaria.person.application.input.CreateAddressInput;
+import com.guilherme.emobiliaria.person.application.input.EditAddressInput;
 import com.guilherme.emobiliaria.person.application.usecase.SearchAddressByCepInteractor;
+import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.service.FakeAddressSearchService;
 import javafx.application.Platform;
@@ -133,6 +135,73 @@ class AddressFormPaneTest {
       assertEquals("01001000", input.cep());
       assertEquals("Praça da Sé", input.address());
       assertEquals("1", input.number());
+      assertEquals("Sé", input.neighborhood());
+      assertEquals("São Paulo", input.city());
+      assertEquals(BrazilianState.SP, input.state());
+    }
+  }
+
+  @Nested
+  class Populate {
+
+    @Test
+    @DisplayName("Should fill all fields when populated with an Address")
+    void shouldFillAllFieldsWhenPopulatedWithAddress() throws Exception {
+      Address address = Address.restore(3L, "01001000", "Praça da Sé", "S/N", "Apto 1",
+          "Sé", "São Paulo", BrazilianState.SP);
+
+      onFX(() -> {
+        AddressFormPane pane = new AddressFormPane(stubSearch, bundle);
+        pane.populate(address);
+
+        List<TextField> fields = pane.lookupAll(".form-input").stream()
+            .filter(n -> n instanceof TextField).map(n -> (TextField) n).toList();
+        // street
+        assertEquals("Praça da Sé", fields.get(1).getText());
+        // number
+        assertEquals("S/N", fields.get(2).getText());
+        // complement
+        assertEquals("Apto 1", fields.get(3).getText());
+        // neighborhood
+        assertEquals("Sé", fields.get(4).getText());
+        // city
+        assertEquals("São Paulo", fields.get(5).getText());
+
+        @SuppressWarnings("unchecked")
+        ComboBox<BrazilianState> stateCombo = (ComboBox<BrazilianState>) pane.lookupAll(".form-combo")
+            .stream().filter(n -> n instanceof ComboBox).findFirst().orElseThrow();
+        assertEquals(BrazilianState.SP, stateCombo.getValue());
+
+        // readonly fields should still be non-editable after populate
+        assertFalse(fields.get(1).isEditable());
+        assertFalse(fields.get(4).isEditable());
+        assertFalse(fields.get(5).isEditable());
+        assertTrue(stateCombo.isDisable());
+
+        return null;
+      });
+    }
+  }
+
+  @Nested
+  class BuildEditInput {
+
+    @Test
+    @DisplayName("Should return EditAddressInput with digits-only CEP when populated")
+    void shouldReturnEditAddressInputWithDigitsOnlyCepWhenPopulated() throws Exception {
+      Address address = Address.restore(5L, "01001000", "Praça da Sé", "S/N", null,
+          "Sé", "São Paulo", BrazilianState.SP);
+
+      EditAddressInput input = onFX(() -> {
+        AddressFormPane pane = new AddressFormPane(stubSearch, bundle);
+        pane.populate(address);
+        return pane.buildEditInput(5L);
+      });
+
+      assertEquals(5L, input.id());
+      assertEquals("01001000", input.cep());
+      assertEquals("Praça da Sé", input.address());
+      assertEquals("S/N", input.number());
       assertEquals("Sé", input.neighborhood());
       assertEquals("São Paulo", input.city());
       assertEquals(BrazilianState.SP, input.state());
