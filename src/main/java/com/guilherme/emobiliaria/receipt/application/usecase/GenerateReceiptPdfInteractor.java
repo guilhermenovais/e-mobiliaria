@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.receipt.application.usecase;
 
+import com.google.inject.Inject;
 import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInput;
 import com.guilherme.emobiliaria.receipt.application.output.GenerateReceiptPdfOutput;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
@@ -13,6 +14,7 @@ public class GenerateReceiptPdfInteractor {
   private final ReceiptRepository receiptRepository;
   private final ReceiptFileService receiptFileService;
 
+  @Inject
   public GenerateReceiptPdfInteractor(ReceiptRepository receiptRepository,
       ReceiptFileService receiptFileService) {
     this.receiptRepository = receiptRepository;

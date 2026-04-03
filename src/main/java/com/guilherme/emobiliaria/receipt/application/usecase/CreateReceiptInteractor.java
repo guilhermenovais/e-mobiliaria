@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.receipt.application.usecase;
 
+import com.google.inject.Inject;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.repository.ContractRepository;
 import com.guilherme.emobiliaria.receipt.application.input.CreateReceiptInput;
@@ -14,6 +15,7 @@ public class CreateReceiptInteractor {
   private final ReceiptRepository receiptRepository;
   private final ContractRepository contractRepository;
 
+  @Inject
   public CreateReceiptInteractor(ReceiptRepository receiptRepository,
       ContractRepository contractRepository) {
     this.receiptRepository = receiptRepository;

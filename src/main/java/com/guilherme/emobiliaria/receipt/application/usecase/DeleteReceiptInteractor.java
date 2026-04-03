@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.receipt.application.usecase;
 
+import com.google.inject.Inject;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.output.DeleteReceiptOutput;
 import com.guilherme.emobiliaria.receipt.domain.repository.ReceiptRepository;
@@ -10,6 +11,7 @@ public class DeleteReceiptInteractor {
 
   private final ReceiptRepository receiptRepository;
 
+  @Inject
   public DeleteReceiptInteractor(ReceiptRepository receiptRepository) {
     this.receiptRepository = receiptRepository;
   }

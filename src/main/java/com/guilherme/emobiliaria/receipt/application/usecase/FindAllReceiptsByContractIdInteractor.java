@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.receipt.application.usecase;
 
+import com.google.inject.Inject;
 import com.guilherme.emobiliaria.receipt.application.input.FindAllReceiptsByContractIdInput;
 import com.guilherme.emobiliaria.receipt.application.output.FindAllReceiptsByContractIdOutput;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
@@ -10,6 +11,7 @@ public class FindAllReceiptsByContractIdInteractor {
 
   private final ReceiptRepository receiptRepository;
 
+  @Inject
   public FindAllReceiptsByContractIdInteractor(ReceiptRepository receiptRepository) {
     this.receiptRepository = receiptRepository;
   }
