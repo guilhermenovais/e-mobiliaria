@@ -5,11 +5,13 @@ import com.guilherme.emobiliaria.contract.application.output.FindAllPaymentAccou
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.contract.domain.repository.PaymentAccountRepository;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
+import com.google.inject.Inject;
 
 public class FindAllPaymentAccountsInteractor {
 
   private final PaymentAccountRepository paymentAccountRepository;
 
+  @Inject
   public FindAllPaymentAccountsInteractor(PaymentAccountRepository paymentAccountRepository) {
     this.paymentAccountRepository = paymentAccountRepository;
   }

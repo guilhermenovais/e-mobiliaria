@@ -59,7 +59,7 @@ public class SidebarPane extends VBox {
       button.setAlignment(Pos.CENTER_LEFT);
 
       boolean enabled = KEY_PHYSICAL_PEOPLE.equals(key) || KEY_JURIDICAL_PEOPLE.equals(key)
-          || KEY_PROPERTIES.equals(key);
+          || KEY_PROPERTIES.equals(key) || KEY_CONTRACTS.equals(key);
       button.setDisable(!enabled);
 
       entries.put(key, button);
@@ -93,6 +93,13 @@ public class SidebarPane extends VBox {
 
   public void setOnPropertiesAction(Runnable r) {
     Button button = entries.get(KEY_PROPERTIES);
+    if (button != null) {
+      button.setOnAction(e -> r.run());
+    }
+  }
+
+  public void setOnContractsAction(Runnable r) {
+    Button button = entries.get(KEY_CONTRACTS);
     if (button != null) {
       button.setOnAction(e -> r.run());
     }

@@ -4,11 +4,13 @@ import com.guilherme.emobiliaria.contract.application.input.CreatePaymentAccount
 import com.guilherme.emobiliaria.contract.application.output.CreatePaymentAccountOutput;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.contract.domain.repository.PaymentAccountRepository;
+import com.google.inject.Inject;
 
 public class CreatePaymentAccountInteractor {
 
   private final PaymentAccountRepository paymentAccountRepository;
 
+  @Inject
   public CreatePaymentAccountInteractor(PaymentAccountRepository paymentAccountRepository) {
     this.paymentAccountRepository = paymentAccountRepository;
   }

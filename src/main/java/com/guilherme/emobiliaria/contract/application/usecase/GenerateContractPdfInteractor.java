@@ -7,12 +7,14 @@ import com.guilherme.emobiliaria.contract.domain.repository.ContractRepository;
 import com.guilherme.emobiliaria.contract.domain.service.ContractFileService;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.google.inject.Inject;
 
 public class GenerateContractPdfInteractor {
 
   private final ContractRepository contractRepository;
   private final ContractFileService contractFileService;
 
+  @Inject
   public GenerateContractPdfInteractor(
       ContractRepository contractRepository,
       ContractFileService contractFileService

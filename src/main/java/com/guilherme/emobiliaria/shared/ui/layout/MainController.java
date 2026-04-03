@@ -28,6 +28,8 @@ public class MainController {
       "/com/guilherme/emobiliaria/person/ui/view/juridical-person-list-view.fxml";
   private static final String PROPERTY_LIST_FXML =
       "/com/guilherme/emobiliaria/property/ui/view/property-list-view.fxml";
+  private static final String CONTRACT_LIST_FXML =
+      "/com/guilherme/emobiliaria/contract/ui/view/contract-list-view.fxml";
 
   private final NavigationService navigationService;
   private final GuiceFxmlLoader fxmlLoader;
@@ -54,6 +56,7 @@ public class MainController {
     sidebarPane.setOnPhysicalPeopleAction(() -> navigateToPhysicalPersonList());
     sidebarPane.setOnJuridicalPeopleAction(() -> navigateToJuridicalPersonList());
     sidebarPane.setOnPropertiesAction(() -> navigateToPropertyList());
+    sidebarPane.setOnContractsAction(() -> navigateToContractList());
     sidebarPane.setActiveItem("sidebar.physical_people");
     sidebarContainer.getChildren().add(sidebarPane);
 
@@ -90,6 +93,27 @@ public class MainController {
       sidebarPane.setActiveItem("sidebar.properties");
     }
     navigationService.navigate(() -> loadPropertyList());
+  }
+
+  private void navigateToContractList() {
+    if (sidebarPane != null) {
+      sidebarPane.setActiveItem("sidebar.contracts");
+    }
+    navigationService.navigate(() -> loadContractList());
+  }
+
+  private Node loadContractList() {
+    URL resource = getClass().getResource(CONTRACT_LIST_FXML);
+    if (resource == null) {
+      log.warn("contract-list-view.fxml not found at {}, returning empty pane", CONTRACT_LIST_FXML);
+      return new StackPane();
+    }
+    try {
+      return fxmlLoader.load(resource);
+    } catch (IOException e) {
+      log.error("Failed to load contract list view", e);
+      return new StackPane();
+    }
   }
 
   private Node loadPropertyList() {

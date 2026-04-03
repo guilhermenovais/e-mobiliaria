@@ -14,6 +14,7 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.repository.PropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import com.google.inject.Inject;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class CreateContractInteractor {
   private final PhysicalPersonRepository physicalPersonRepository;
   private final JuridicalPersonRepository juridicalPersonRepository;
 
+  @Inject
   public CreateContractInteractor(
       ContractRepository contractRepository,
       PaymentAccountRepository paymentAccountRepository,

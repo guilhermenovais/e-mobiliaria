@@ -1,0 +1,82 @@
+/* Contract wizard inherits all styles from initial-setup.css via FXML imports.
+   Override card width for the wider 6-step wizard. */
+.setup-card {
+    -fx-min-width: 720;
+    -fx-pref-width: 860;
+}
+
+.wizard-detail-panel {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-spacing: 6;
+}
+
+.wizard-detail-panel-header {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #374151;
+}
+
+.wizard-detail-panel-row {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6B7280;
+}
+
+.wizard-section-header {
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111827;
+}
+
+.wizard-section-value {
+    -fx-font-size: 13px;
+    -fx-text-fill: #374151;
+    -fx-wrap-text: true;
+}
+
+.wizard-tenant-list {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-pref-height: 280;
+}
+
+.wizard-transfer-button {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-font-size: 14px;
+    -fx-pref-width: 40;
+    -fx-pref-height: 32;
+}
+
+.wizard-transfer-button:hover {
+    -fx-background-color: #F9FAFB;
+}
+
+.wizard-hint-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #9CA3AF;
+    -fx-font-style: italic;
+}
+
+.wizard-review-section {
+    -fx-spacing: 4;
+    -fx-padding: 16;
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 0 0 1 0;
+}
+
+.wizard-review-section:last-child {
+    -fx-border-width: 0;
+}
+
+.wizard-review-container {
+    -fx-background-color: white;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+}
