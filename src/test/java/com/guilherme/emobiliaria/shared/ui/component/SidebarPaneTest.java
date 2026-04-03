@@ -60,7 +60,7 @@ class SidebarPaneTest {
             {"sidebar.brand", "e-mobiliaria"},
             {"sidebar.physical_people", "Pessoas Físicas"},
             {"sidebar.juridical_people", "Pessoas Jurídicas"},
-            {"sidebar.properties", "Propriedades"},
+            {"sidebar.properties", "Imóveis"},
             {"sidebar.contracts", "Contratos"},
             {"sidebar.receipts", "Recibos"},
             {"sidebar.config", "Configurações"},
