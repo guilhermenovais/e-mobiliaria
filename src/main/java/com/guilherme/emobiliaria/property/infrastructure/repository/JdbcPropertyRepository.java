@@ -32,17 +32,16 @@ public class JdbcPropertyRepository implements PropertyRepository {
 
   @Override
   public Property create(Property property) {
-    String sql = "INSERT INTO properties (name, type, purpose, rent, cemig, copasa, iptu, address_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    String sql = "INSERT INTO properties (name, type, purpose, cemig, copasa, iptu, address_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setString(1, property.getName());
       stmt.setString(2, property.getType());
       stmt.setString(3, property.getPurpose().name());
-      stmt.setInt(4, property.getRent());
-      stmt.setString(5, property.getCemig());
-      stmt.setString(6, property.getCopasa());
-      stmt.setString(7, property.getIptu());
-      stmt.setLong(8, property.getAddress().getId());
+      stmt.setString(4, property.getCemig());
+      stmt.setString(5, property.getCopasa());
+      stmt.setString(6, property.getIptu());
+      stmt.setLong(7, property.getAddress().getId());
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
@@ -56,18 +55,17 @@ public class JdbcPropertyRepository implements PropertyRepository {
 
   @Override
   public Property update(Property property) {
-    String sql = "UPDATE properties SET name=?, type=?, purpose=?, rent=?, cemig=?, copasa=?, iptu=?, address_id=? WHERE id=?";
+    String sql = "UPDATE properties SET name=?, type=?, purpose=?, cemig=?, copasa=?, iptu=?, address_id=? WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setString(1, property.getName());
       stmt.setString(2, property.getType());
       stmt.setString(3, property.getPurpose().name());
-      stmt.setInt(4, property.getRent());
-      stmt.setString(5, property.getCemig());
-      stmt.setString(6, property.getCopasa());
-      stmt.setString(7, property.getIptu());
-      stmt.setLong(8, property.getAddress().getId());
-      stmt.setLong(9, property.getId());
+      stmt.setString(4, property.getCemig());
+      stmt.setString(5, property.getCopasa());
+      stmt.setString(6, property.getIptu());
+      stmt.setLong(7, property.getAddress().getId());
+      stmt.setLong(8, property.getId());
       if (stmt.executeUpdate() == 0) {
         throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, null);
       }
@@ -94,7 +92,7 @@ public class JdbcPropertyRepository implements PropertyRepository {
   @Override
   public Optional<Property> findById(Long id) {
     String sql = """
-        SELECT p.id, p.name, p.type, p.purpose, p.rent, p.cemig, p.copasa, p.iptu,
+        SELECT p.id, p.name, p.type, p.purpose, p.cemig, p.copasa, p.iptu,
                a.id AS address_id, a.cep, a.address, a.number, a.complement, a.neighborhood, a.city, a.state
         FROM properties p
         JOIN addresses a ON a.id = p.address_id
@@ -126,7 +124,7 @@ public class JdbcPropertyRepository implements PropertyRepository {
         total = countRs.getLong(1);
       }
       String sql = """
-          SELECT p.id, p.name, p.type, p.purpose, p.rent, p.cemig, p.copasa, p.iptu,
+          SELECT p.id, p.name, p.type, p.purpose, p.cemig, p.copasa, p.iptu,
                  a.id AS address_id, a.cep, a.address, a.number, a.complement, a.neighborhood, a.city, a.state
           FROM properties p
           JOIN addresses a ON a.id = p.address_id
@@ -164,7 +162,7 @@ public class JdbcPropertyRepository implements PropertyRepository {
         }
       }
       String sql = """
-          SELECT p.id, p.name, p.type, p.purpose, p.rent, p.cemig, p.copasa, p.iptu,
+          SELECT p.id, p.name, p.type, p.purpose, p.cemig, p.copasa, p.iptu,
                  a.id AS address_id, a.cep, a.address, a.number, a.complement, a.neighborhood, a.city, a.state
           FROM properties p
           JOIN addresses a ON a.id = p.address_id
@@ -204,7 +202,6 @@ public class JdbcPropertyRepository implements PropertyRepository {
         rs.getString("name"),
         rs.getString("type"),
         Purpose.valueOf(rs.getString("purpose")),
-        rs.getInt("rent"),
         rs.getString("cemig"),
         rs.getString("copasa"),
         rs.getString("iptu"),

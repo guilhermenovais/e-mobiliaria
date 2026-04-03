@@ -49,10 +49,10 @@ class PdfGenerationServiceTest {
 
   private Contract validContract() {
     Property property =
-        Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, 150000, "CEMIG-001",
+        Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, "CEMIG-001",
             "COPASA-001", "IPTU-001", validAddress());
     PaymentAccount account = PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null);
-    return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, account, property,
+    return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, account, property,
         validLandlord(), List.of(validTenant()));
   }
 

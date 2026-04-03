@@ -7,7 +7,6 @@ public record EditPropertyInput(
     String name,
     String type,
     Purpose purpose,
-    int rent,
     String cemig,
     String copasa,
     String iptu,

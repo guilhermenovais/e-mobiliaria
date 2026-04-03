@@ -76,8 +76,7 @@ public interface ErrorMessage {
   enum Property implements ErrorMessage {
     NAME_EMPTY("property.name_empty", "Name must not be empty"), TYPE_EMPTY("property.type_empty",
         "Type must not be empty"), PURPOSE_NULL("property.purpose_null",
-        "Purpose must not be null"), RENT_NEGATIVE("property.rent_negative",
-        "Rent must not be negative"), CEMIG_EMPTY("property.cemig_empty",
+        "Purpose must not be null"), CEMIG_EMPTY("property.cemig_empty",
         "CEMIG must not be empty"), COPASA_EMPTY("property.copasa_empty",
         "COPASA must not be empty"), IPTU_EMPTY("property.iptu_empty",
         "IPTU must not be empty"), ADDRESS_NULL("property.address_null",
@@ -107,7 +106,8 @@ public interface ErrorMessage {
     START_DATE_NULL("contract.start_date_null", "Start date must not be null"), DURATION_NULL(
         "contract.duration_null", "Duration must not be null"), PAYMENT_DAY_INVALID(
         "contract.payment_day_invalid",
-        "Payment day must be between 1 and 31"), PAYMENT_ACCOUNT_NULL(
+        "Payment day must be between 1 and 31"), RENT_NEGATIVE("contract.rent_negative",
+        "Rent must not be negative"), PAYMENT_ACCOUNT_NULL(
         "contract.payment_account_null", "Payment account must not be null"), PROPERTY_NULL(
         "contract.property_null", "Property must not be null"), LANDLORD_NULL(
         "contract.landlord_null", "Landlord must not be null"), TENANTS_EMPTY(

@@ -61,7 +61,7 @@ class FindContractByIdInteractorTest {
     Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository)
         .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
-    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
         "1234567890", "0987654321", "IPTU-001", validAddress());
     Long propertyId = propertyRepository.create(property).getId();
     PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
@@ -69,7 +69,7 @@ class FindContractByIdInteractorTest {
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, paymentAccountId, propertyId, personRef, List.of(personRef));
+        Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef, List.of(personRef));
     return createInteractor.execute(input).contract().getId();
   }
 

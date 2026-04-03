@@ -39,12 +39,13 @@ class ReceiptTemplateTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    return Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
         "CEMIG-001", "COPASA-001", "IPTU-001", validAddress());
   }
 
   private Contract validContract() {
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+        150000,
         PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null),
         validProperty(), validLandlord(), List.of(validTenant()));
   }

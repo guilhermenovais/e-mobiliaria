@@ -40,8 +40,7 @@ class CreatePropertyInteractorTest {
   }
 
   private CreatePropertyInput validInput(Long addressId) {
-    return new CreatePropertyInput("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL,
-        150000, "1234567890", "0987654321", "1122334455", addressId);
+    return new CreatePropertyInput("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL, "1234567890", "0987654321", "1122334455", addressId);
   }
 
   @Nested

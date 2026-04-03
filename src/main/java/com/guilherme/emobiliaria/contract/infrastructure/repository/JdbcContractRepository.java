@@ -40,16 +40,17 @@ public class JdbcContractRepository implements ContractRepository {
 
   @Override
   public Contract create(Contract contract) {
-    String sql = "INSERT INTO contracts (start_date, duration, payment_day, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    String sql = "INSERT INTO contracts (start_date, duration, payment_day, rent, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setDate(1, Date.valueOf(contract.getStartDate()));
       stmt.setString(2, contract.getDuration().toString());
       stmt.setInt(3, contract.getPaymentDay());
-      stmt.setLong(4, contract.getPaymentAccount().getId());
-      stmt.setLong(5, contract.getProperty().getId());
-      stmt.setLong(6, contract.getLandlord().getId());
-      stmt.setString(7, personType(contract.getLandlord()));
+      stmt.setInt(4, contract.getRent());
+      stmt.setLong(5, contract.getPaymentAccount().getId());
+      stmt.setLong(6, contract.getProperty().getId());
+      stmt.setLong(7, contract.getLandlord().getId());
+      stmt.setString(8, personType(contract.getLandlord()));
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
@@ -64,17 +65,18 @@ public class JdbcContractRepository implements ContractRepository {
 
   @Override
   public Contract update(Contract contract) {
-    String sql = "UPDATE contracts SET start_date=?, duration=?, payment_day=?, payment_account_id=?, property_id=?, landlord_id=?, landlord_type=? WHERE id=?";
+    String sql = "UPDATE contracts SET start_date=?, duration=?, payment_day=?, rent=?, payment_account_id=?, property_id=?, landlord_id=?, landlord_type=? WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setDate(1, Date.valueOf(contract.getStartDate()));
       stmt.setString(2, contract.getDuration().toString());
       stmt.setInt(3, contract.getPaymentDay());
-      stmt.setLong(4, contract.getPaymentAccount().getId());
-      stmt.setLong(5, contract.getProperty().getId());
-      stmt.setLong(6, contract.getLandlord().getId());
-      stmt.setString(7, personType(contract.getLandlord()));
-      stmt.setLong(8, contract.getId());
+      stmt.setInt(4, contract.getRent());
+      stmt.setLong(5, contract.getPaymentAccount().getId());
+      stmt.setLong(6, contract.getProperty().getId());
+      stmt.setLong(7, contract.getLandlord().getId());
+      stmt.setString(8, personType(contract.getLandlord()));
+      stmt.setLong(9, contract.getId());
       if (stmt.executeUpdate() == 0) {
         throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, null);
       }
@@ -102,7 +104,7 @@ public class JdbcContractRepository implements ContractRepository {
 
   @Override
   public Optional<Contract> findById(Long id) {
-    String sql = "SELECT id, start_date, duration, payment_day, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
+    String sql = "SELECT id, start_date, duration, payment_day, rent, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
@@ -128,7 +130,7 @@ public class JdbcContractRepository implements ContractRepository {
         countRs.next();
         total = countRs.getLong(1);
       }
-      String sql = "SELECT id, start_date, duration, payment_day, payment_account_id, property_id, landlord_id, landlord_type FROM contracts LIMIT ? OFFSET ?";
+      String sql = "SELECT id, start_date, duration, payment_day, rent, payment_account_id, property_id, landlord_id, landlord_type FROM contracts LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setInt(1, limit);
         stmt.setInt(2, offset);
@@ -158,7 +160,7 @@ public class JdbcContractRepository implements ContractRepository {
           total = countRs.getLong(1);
         }
       }
-      String sql = "SELECT id, start_date, duration, payment_day, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE property_id=? LIMIT ? OFFSET ?";
+      String sql = "SELECT id, start_date, duration, payment_day, rent, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE property_id=? LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setLong(1, propertyId);
         stmt.setInt(2, limit);
@@ -188,6 +190,7 @@ public class JdbcContractRepository implements ContractRepository {
         rs.getDate("start_date").toLocalDate(),
         duration,
         rs.getInt("payment_day"),
+        rs.getInt("rent"),
         paymentAccount,
         property,
         landlord,
@@ -213,7 +216,7 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   private Property loadProperty(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, name, type, purpose, rent, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
+    String sql = "SELECT id, name, type, purpose, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -224,7 +227,6 @@ public class JdbcContractRepository implements ContractRepository {
             rs.getString("name"),
             rs.getString("type"),
             Purpose.valueOf(rs.getString("purpose")),
-            rs.getInt("rent"),
             rs.getString("cemig"),
             rs.getString("copasa"),
             rs.getString("iptu"),

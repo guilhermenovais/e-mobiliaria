@@ -27,6 +27,7 @@ class ContractTest {
   private static final LocalDate VALID_START_DATE = LocalDate.of(2026, 1, 1);
   private static final Period VALID_DURATION = Period.ofMonths(12);
   private static final int VALID_PAYMENT_DAY = 10;
+  private static final int VALID_RENT = 150000;
 
   private Address validAddress() {
     return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo",
@@ -38,7 +39,7 @@ class ContractTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    return Property.create("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL,
         "1234567890", "0987654321", "IPTU-001", validAddress());
   }
 
@@ -49,6 +50,7 @@ class ContractTest {
 
   private Contract validContract() {
     return Contract.create(VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
+        VALID_RENT,
         validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()));
   }
 
@@ -64,6 +66,7 @@ class ContractTest {
       assertEquals(VALID_START_DATE, contract.getStartDate());
       assertEquals(VALID_DURATION, contract.getDuration());
       assertEquals(VALID_PAYMENT_DAY, contract.getPaymentDay());
+      assertEquals(VALID_RENT, contract.getRent());
     }
   }
 
@@ -75,6 +78,7 @@ class ContractTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       Contract contract = Contract.restore(42L, VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
+          VALID_RENT,
           validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()));
 
       assertEquals(42L, contract.getId());
@@ -162,6 +166,35 @@ class ContractTest {
       Contract contract = validContract();
       assertDoesNotThrow(() -> contract.setPaymentDay(31));
       assertEquals(31, contract.getPaymentDay());
+    }
+  }
+
+
+  @Nested
+  class SetRent {
+
+    @Test
+    @DisplayName("When rent is negative, should throw BusinessException")
+    void shouldThrowWhenRentIsNegative() {
+      Contract contract = validContract();
+      BusinessException ex = assertThrows(BusinessException.class, () -> contract.setRent(-1));
+      assertEquals(ErrorMessage.Contract.RENT_NEGATIVE, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("When rent is zero, should set rent")
+    void shouldSetRentWhenZero() {
+      Contract contract = validContract();
+      assertDoesNotThrow(() -> contract.setRent(0));
+      assertEquals(0, contract.getRent());
+    }
+
+    @Test
+    @DisplayName("When rent is positive, should set rent")
+    void shouldSetRentWhenPositive() {
+      Contract contract = validContract();
+      assertDoesNotThrow(() -> contract.setRent(200000));
+      assertEquals(200000, contract.getRent());
     }
   }
 

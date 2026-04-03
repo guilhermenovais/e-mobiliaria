@@ -63,7 +63,7 @@ class CreateContractInteractorTest {
   }
 
   private Long createProperty() {
-    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
         "1234567890", "0987654321", "IPTU-001", validAddress());
     return propertyRepository.create(property).getId();
   }
@@ -77,6 +77,7 @@ class CreateContractInteractorTest {
   private CreateContractInput validInput(Long paymentAccountId, Long propertyId, Long personId) {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     return new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+        150000,
         paymentAccountId, propertyId, personRef, List.of(personRef));
   }
 
@@ -127,7 +128,7 @@ class CreateContractInteractorTest {
       Long propertyId = createProperty();
       PersonReference missingPerson = new PersonReference(999L, PersonType.PHYSICAL);
       CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, paymentAccountId, propertyId, missingPerson,
+          Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, missingPerson,
           List.of(missingPerson));
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
@@ -143,7 +144,7 @@ class CreateContractInteractorTest {
       PersonReference landlord = new PersonReference(landlordId, PersonType.PHYSICAL);
       PersonReference missingTenant = new PersonReference(999L, PersonType.PHYSICAL);
       CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, paymentAccountId, propertyId, landlord,
+          Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, landlord,
           List.of(missingTenant));
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));

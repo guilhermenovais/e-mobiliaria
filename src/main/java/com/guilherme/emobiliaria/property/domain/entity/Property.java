@@ -9,7 +9,6 @@ public class Property {
   private String name;
   private String type;
   private Purpose purpose;
-  private int rent;
   private String cemig;
   private String copasa;
   private String iptu;
@@ -18,13 +17,12 @@ public class Property {
   private Property() {
   }
 
-  public static Property create(String name, String type, Purpose purpose, int rent, String cemig,
+  public static Property create(String name, String type, Purpose purpose, String cemig,
       String copasa, String iptu, Address address) {
     Property property = new Property();
     property.setName(name);
     property.setType(type);
     property.setPurpose(purpose);
-    property.setRent(rent);
     property.setCemig(cemig);
     property.setCopasa(copasa);
     property.setIptu(iptu);
@@ -32,9 +30,9 @@ public class Property {
     return property;
   }
 
-  public static Property restore(Long id, String name, String type, Purpose purpose, int rent,
+  public static Property restore(Long id, String name, String type, Purpose purpose,
       String cemig, String copasa, String iptu, Address address) {
-    Property property = create(name, type, purpose, rent, cemig, copasa, iptu, address);
+    Property property = create(name, type, purpose, cemig, copasa, iptu, address);
     property.setId(id);
     return property;
   }
@@ -78,17 +76,6 @@ public class Property {
       throw new BusinessException(ErrorMessage.Property.PURPOSE_NULL);
     }
     this.purpose = purpose;
-  }
-
-  public int getRent() {
-    return rent;
-  }
-
-  public void setRent(int rent) {
-    if (rent < 0) {
-      throw new BusinessException(ErrorMessage.Property.RENT_NEGATIVE);
-    }
-    this.rent = rent;
   }
 
   public String getCemig() {

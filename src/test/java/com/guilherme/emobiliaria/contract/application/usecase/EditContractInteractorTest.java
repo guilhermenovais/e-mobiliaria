@@ -67,7 +67,7 @@ class EditContractInteractorTest {
   }
 
   private Long createProperty() {
-    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
         "1234567890", "0987654321", "IPTU-001", validAddress());
     return propertyRepository.create(property).getId();
   }
@@ -81,7 +81,7 @@ class EditContractInteractorTest {
   private Long createContract(Long paymentAccountId, Long propertyId, Long personId) {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, paymentAccountId, propertyId, personRef, List.of(personRef));
+        Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef, List.of(personRef));
     CreateContractOutput output = createInteractor.execute(input);
     return output.contract().getId();
   }
@@ -98,7 +98,7 @@ class EditContractInteractorTest {
       Long contractId = createContract(paymentAccountId, propertyId, personId);
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 6, 1),
-          Period.ofYears(2), 15, paymentAccountId, propertyId, personRef, List.of(personRef));
+          Period.ofYears(2), 15, 150000, paymentAccountId, propertyId, personRef, List.of(personRef));
 
       EditContractOutput output = interactor.execute(input);
 
@@ -116,7 +116,7 @@ class EditContractInteractorTest {
       Long personId = createPhysicalPerson();
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(999L, LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, paymentAccountId, propertyId, personRef, List.of(personRef));
+          Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef, List.of(personRef));
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.Contract.NOT_FOUND, ex.getErrorMessage());
@@ -131,7 +131,7 @@ class EditContractInteractorTest {
       Long contractId = createContract(paymentAccountId, propertyId, personId);
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, 999L, propertyId, personRef, List.of(personRef));
+          Period.ofMonths(12), 10, 150000, 999L, propertyId, personRef, List.of(personRef));
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.PaymentAccount.NOT_FOUND, ex.getErrorMessage());
@@ -146,7 +146,7 @@ class EditContractInteractorTest {
       Long contractId = createContract(paymentAccountId, propertyId, personId);
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, paymentAccountId, 999L, personRef, List.of(personRef));
+          Period.ofMonths(12), 10, 150000, paymentAccountId, 999L, personRef, List.of(personRef));
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.Property.NOT_FOUND, ex.getErrorMessage());

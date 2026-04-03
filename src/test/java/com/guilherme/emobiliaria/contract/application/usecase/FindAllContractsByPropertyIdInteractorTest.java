@@ -56,7 +56,7 @@ class FindAllContractsByPropertyIdInteractorTest {
   }
 
   private Long createProperty(String name) {
-    Property property = Property.create(name, "Apartamento", Purpose.RESIDENTIAL, 150000,
+    Property property = Property.create(name, "Apartamento", Purpose.RESIDENTIAL,
         "1234567890", "0987654321", "IPTU-001", validAddress());
     return propertyRepository.create(property).getId();
   }
@@ -70,7 +70,7 @@ class FindAllContractsByPropertyIdInteractorTest {
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     createInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12),
-        10, paymentAccountId, propertyId, personRef, List.of(personRef)));
+        10, 150000, paymentAccountId, propertyId, personRef, List.of(personRef)));
   }
 
   @Nested

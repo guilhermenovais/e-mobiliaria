@@ -8,6 +8,7 @@ public record CreateContractInput(
     LocalDate startDate,
     Period duration,
     int paymentDay,
+    int rent,
     Long paymentAccountId,
     Long propertyId,
     PersonReference landlord,

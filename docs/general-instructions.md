@@ -91,7 +91,6 @@ class Property {
 string name
 string type
 Purpose purpose /' RESIDENTIAL, COMMERCIAL '/
-int rent
 string CEMIG
 string COPASA
 string IPTU
@@ -110,6 +109,7 @@ class Contract {
 date startDAte
 time duration
 int paymentDay
+int rent
 }
 
 Contract "*" <-- "1" Person : is landlord

@@ -28,7 +28,7 @@ public class ReceiptTemplate extends PdfTemplate<ReceiptTemplate.ReceiptParamete
   public EnumMap<ReceiptParameters, Object> getParameters() {
     EnumMap<ReceiptParameters, Object> params = new EnumMap<>(ReceiptParameters.class);
     Contract contract = receipt.getContract();
-    int rent = contract.getProperty().getRent();
+    int rent = contract.getRent();
     int payedValue = rent - receipt.getDiscount() + receipt.getFine();
 
     params.put(ReceiptParameters.PAYER_IDENTIFICATION, contract.getTenants().stream()

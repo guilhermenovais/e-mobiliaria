@@ -47,7 +47,7 @@ public class ContractTemplate extends PdfTemplate<ContractTemplate.ContractParam
     params.put(ContractParameters.PROPERTY_TYPE, property.getType());
     params.put(ContractParameters.PROPERTY_ADDRESS, TemplateFormatter.formatAddress(property.getAddress()));
     params.put(ContractParameters.PROPERTY_PURPOSE, purposeInPortuguese(property.getPurpose()));
-    params.put(ContractParameters.PROPERTY_RENT_VALUE, TemplateFormatter.formatCurrency(property.getRent()));
+    params.put(ContractParameters.PROPERTY_RENT_VALUE, TemplateFormatter.formatCurrency(contract.getRent()));
     params.put(ContractParameters.PROPERTY_CEMIG, property.getCemig());
     params.put(ContractParameters.PROPERTY_IPTU, property.getIptu());
     params.put(ContractParameters.CONTRACT_PERIOD, TemplateFormatter.formatPeriod(contract.getDuration()));

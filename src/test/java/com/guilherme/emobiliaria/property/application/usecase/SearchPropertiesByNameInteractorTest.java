@@ -36,8 +36,7 @@ class SearchPropertiesByNameInteractorTest {
             BrazilianState.SP))
         .address().getId();
     new CreatePropertyInteractor(propertyRepository, addressRepository)
-        .execute(new CreatePropertyInput(name, "Apartamento", Purpose.RESIDENTIAL,
-            150000, "1234567890", "0987654321", "1122334455", addressId));
+        .execute(new CreatePropertyInput(name, "Apartamento", Purpose.RESIDENTIAL, "1234567890", "0987654321", "1122334455", addressId));
   }
 
   @Nested

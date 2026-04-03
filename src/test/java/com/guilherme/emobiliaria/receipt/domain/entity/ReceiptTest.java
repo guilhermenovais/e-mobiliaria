@@ -41,14 +41,14 @@ class ReceiptTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    return Property.create("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL,
         "1234567890", "0987654321", "IPTU-001", validAddress());
   }
 
   private Contract validContract() {
     PaymentAccount paymentAccount =
         PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null);
-    return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, paymentAccount,
+    return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, paymentAccount,
         validProperty(), validPerson(), List.of(validPerson()));
   }
 

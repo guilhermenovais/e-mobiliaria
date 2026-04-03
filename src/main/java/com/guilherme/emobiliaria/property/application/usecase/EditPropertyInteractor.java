@@ -30,7 +30,6 @@ public class EditPropertyInteractor {
     property.setName(input.name());
     property.setType(input.type());
     property.setPurpose(input.purpose());
-    property.setRent(input.rent());
     property.setCemig(input.cemig());
     property.setCopasa(input.copasa());
     property.setIptu(input.iptu());

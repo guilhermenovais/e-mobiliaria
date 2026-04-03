@@ -29,7 +29,6 @@ public class CreatePropertyInteractor {
         input.name(),
         input.type(),
         input.purpose(),
-        input.rent(),
         input.cemig(),
         input.copasa(),
         input.iptu(),

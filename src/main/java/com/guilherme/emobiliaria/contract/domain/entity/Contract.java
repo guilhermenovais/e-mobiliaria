@@ -14,6 +14,7 @@ public class Contract {
   private LocalDate startDate;
   private Period duration;
   private int paymentDay;
+  private int rent;
   private PaymentAccount paymentAccount;
   private Property property;
   private Person landlord;
@@ -22,12 +23,13 @@ public class Contract {
   private Contract() {
   }
 
-  public static Contract create(LocalDate startDate, Period duration, int paymentDay,
+  public static Contract create(LocalDate startDate, Period duration, int paymentDay, int rent,
       PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants) {
     Contract contract = new Contract();
     contract.setStartDate(startDate);
     contract.setDuration(duration);
     contract.setPaymentDay(paymentDay);
+    contract.setRent(rent);
     contract.setPaymentAccount(paymentAccount);
     contract.setProperty(property);
     contract.setLandlord(landlord);
@@ -36,9 +38,10 @@ public class Contract {
   }
 
   public static Contract restore(Long id, LocalDate startDate, Period duration, int paymentDay,
+      int rent,
       PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants) {
     Contract contract =
-        create(startDate, duration, paymentDay, paymentAccount, property, landlord, tenants);
+        create(startDate, duration, paymentDay, rent, paymentAccount, property, landlord, tenants);
     contract.setId(id);
     return contract;
   }
@@ -82,6 +85,17 @@ public class Contract {
       throw new BusinessException(ErrorMessage.Contract.PAYMENT_DAY_INVALID);
     }
     this.paymentDay = paymentDay;
+  }
+
+  public int getRent() {
+    return rent;
+  }
+
+  public void setRent(int rent) {
+    if (rent < 0) {
+      throw new BusinessException(ErrorMessage.Contract.RENT_NEGATIVE);
+    }
+    this.rent = rent;
   }
 
   public PaymentAccount getPaymentAccount() {

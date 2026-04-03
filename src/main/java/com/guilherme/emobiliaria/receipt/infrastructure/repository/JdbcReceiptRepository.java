@@ -158,7 +158,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
   }
 
   private Contract loadContract(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, start_date, duration, payment_day, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
+    String sql = "SELECT id, start_date, duration, payment_day, rent, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -172,6 +172,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
             rs.getDate("start_date").toLocalDate(),
             Period.parse(rs.getString("duration")),
             rs.getInt("payment_day"),
+            rs.getInt("rent"),
             paymentAccount,
             property,
             landlord,
@@ -199,7 +200,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
   }
 
   private Property loadProperty(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, name, type, purpose, rent, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
+    String sql = "SELECT id, name, type, purpose, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -210,7 +211,6 @@ public class JdbcReceiptRepository implements ReceiptRepository {
             rs.getString("name"),
             rs.getString("type"),
             Purpose.valueOf(rs.getString("purpose")),
-            rs.getInt("rent"),
             rs.getString("cemig"),
             rs.getString("copasa"),
             rs.getString("iptu"),

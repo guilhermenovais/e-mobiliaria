@@ -39,7 +39,7 @@ class ContractTemplateTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL, 150000,
+    return Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
         "CEMIG-001", "COPASA-001", "IPTU-001", validAddress());
   }
 
@@ -49,6 +49,7 @@ class ContractTemplateTest {
 
   private Contract validContract(PhysicalPerson landlord, PhysicalPerson tenant) {
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+        150000,
         validPaymentAccount(), validProperty(), landlord, List.of(tenant));
   }
 
@@ -183,6 +184,7 @@ class ContractTemplateTest {
     void shouldReturnPaymentMethodWithPix() {
       PaymentAccount accountWithPix = PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", "pix@key.com");
       Contract contract = Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+          150000,
           accountWithPix, validProperty(), validLandlord(), List.of(validTenant()));
       ContractTemplate template = new ContractTemplate(contract);
 
@@ -239,6 +241,7 @@ class ContractTemplateTest {
       PhysicalPerson tenant2 = PhysicalPerson.create("Ana Lima", "Brasileira", CivilState.MARRIED,
           "Médica", "529.982.247-25", "SP-9999999", validAddress());
       Contract contract = Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+          150000,
           validPaymentAccount(), validProperty(), validLandlord(), List.of(validTenant(), tenant2));
       ContractTemplate template = new ContractTemplate(contract);
 
@@ -253,6 +256,7 @@ class ContractTemplateTest {
       JuridicalPerson juridicalLandlord = JuridicalPerson.create("Empresa LTDA", "11.222.333/0001-81",
           validLandlord(), validAddress());
       Contract contract = Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+          150000,
           validPaymentAccount(), validProperty(), juridicalLandlord, List.of(validTenant()));
       ContractTemplate template = new ContractTemplate(contract);
 
@@ -284,6 +288,7 @@ class ContractTemplateTest {
       PhysicalPerson tenant2 = PhysicalPerson.create("Ana Lima", "Brasileira", CivilState.MARRIED,
           "Médica", "529.982.247-25", "SP-9999999", validAddress());
       Contract contract = Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
+          150000,
           validPaymentAccount(), validProperty(), validLandlord(), List.of(validTenant(), tenant2));
       ContractTemplate template = new ContractTemplate(contract);
 

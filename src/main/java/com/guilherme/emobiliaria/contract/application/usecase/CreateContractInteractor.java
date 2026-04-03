@@ -52,6 +52,7 @@ public class CreateContractInteractor {
         input.startDate(),
         input.duration(),
         input.paymentDay(),
+        input.rent(),
         paymentAccount,
         property,
         landlord,

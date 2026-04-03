@@ -41,8 +41,7 @@ class EditPropertyInteractorTest {
 
   private Long createProperty(Long addressId) {
     return new CreatePropertyInteractor(propertyRepository, addressRepository)
-        .execute(new CreatePropertyInput("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL,
-            150000, "1234567890", "0987654321", "1122334455", addressId))
+        .execute(new CreatePropertyInput("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL, "1234567890", "0987654321", "1122334455", addressId))
         .property().getId();
   }
 
@@ -56,8 +55,7 @@ class EditPropertyInteractorTest {
       Long propertyId = createProperty(addressId);
 
       EditPropertyOutput output = interactor.execute(new EditPropertyInput(
-          propertyId, "Sala Comercial", "Sala", Purpose.COMMERCIAL,
-          200000, "1111111111", "2222222222", "3333333333", addressId));
+          propertyId, "Sala Comercial", "Sala", Purpose.COMMERCIAL, "1111111111", "2222222222", "3333333333", addressId));
 
       assertEquals("Sala Comercial", output.property().getName());
       assertEquals(Purpose.COMMERCIAL, output.property().getPurpose());
@@ -70,8 +68,7 @@ class EditPropertyInteractorTest {
 
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(new EditPropertyInput(
-              999L, "Sala Comercial", "Sala", Purpose.COMMERCIAL,
-              200000, "1111111111", "2222222222", "3333333333", addressId)));
+              999L, "Sala Comercial", "Sala", Purpose.COMMERCIAL, "1111111111", "2222222222", "3333333333", addressId)));
       assertEquals(ErrorMessage.Property.NOT_FOUND, ex.getErrorMessage());
     }
 
@@ -83,8 +80,7 @@ class EditPropertyInteractorTest {
 
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(new EditPropertyInput(
-              propertyId, "Sala Comercial", "Sala", Purpose.COMMERCIAL,
-              200000, "1111111111", "2222222222", "3333333333", 999L)));
+              propertyId, "Sala Comercial", "Sala", Purpose.COMMERCIAL, "1111111111", "2222222222", "3333333333", 999L)));
       assertEquals(ErrorMessage.Address.NOT_FOUND, ex.getErrorMessage());
     }
   }

@@ -20,7 +20,6 @@ class PropertyTest {
   private static final String VALID_NAME = "Apartamento Centro";
   private static final String VALID_TYPE = "Apartamento";
   private static final Purpose VALID_PURPOSE = Purpose.RESIDENTIAL;
-  private static final int VALID_RENT = 150000;
   private static final String VALID_CEMIG = "1234567890";
   private static final String VALID_COPASA = "0987654321";
   private static final String VALID_IPTU = "IPTU-001";
@@ -31,7 +30,7 @@ class PropertyTest {
   }
 
   private Property validProperty() {
-    return Property.create(VALID_NAME, VALID_TYPE, VALID_PURPOSE, VALID_RENT, VALID_CEMIG,
+    return Property.create(VALID_NAME, VALID_TYPE, VALID_PURPOSE, VALID_CEMIG,
         VALID_COPASA, VALID_IPTU, validAddress());
   }
 
@@ -47,7 +46,6 @@ class PropertyTest {
       assertEquals(VALID_NAME, property.getName());
       assertEquals(VALID_TYPE, property.getType());
       assertEquals(VALID_PURPOSE, property.getPurpose());
-      assertEquals(VALID_RENT, property.getRent());
       assertEquals(VALID_CEMIG, property.getCemig());
       assertEquals(VALID_COPASA, property.getCopasa());
       assertEquals(VALID_IPTU, property.getIptu());
@@ -62,7 +60,7 @@ class PropertyTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       Property property =
-          Property.restore(42L, VALID_NAME, VALID_TYPE, VALID_PURPOSE, VALID_RENT, VALID_CEMIG,
+          Property.restore(42L, VALID_NAME, VALID_TYPE, VALID_PURPOSE, VALID_CEMIG,
               VALID_COPASA, VALID_IPTU, validAddress());
 
       assertEquals(42L, property.getId());
@@ -147,35 +145,6 @@ class PropertyTest {
       Purpose purpose = Purpose.valueOf(purposeValue);
       assertDoesNotThrow(() -> property.setPurpose(purpose));
       assertEquals(purpose, property.getPurpose());
-    }
-  }
-
-
-  @Nested
-  class SetRent {
-
-    @Test
-    @DisplayName("When rent is negative, should throw BusinessException")
-    void shouldThrowWhenRentIsNegative() {
-      Property property = validProperty();
-      BusinessException ex = assertThrows(BusinessException.class, () -> property.setRent(-1));
-      assertEquals(ErrorMessage.Property.RENT_NEGATIVE, ex.getErrorMessage());
-    }
-
-    @Test
-    @DisplayName("When rent is zero, should set rent")
-    void shouldSetRentWhenZero() {
-      Property property = validProperty();
-      assertDoesNotThrow(() -> property.setRent(0));
-      assertEquals(0, property.getRent());
-    }
-
-    @Test
-    @DisplayName("When rent is positive, should set rent")
-    void shouldSetRentWhenPositive() {
-      Property property = validProperty();
-      assertDoesNotThrow(() -> property.setRent(200000));
-      assertEquals(200000, property.getRent());
     }
   }
 
