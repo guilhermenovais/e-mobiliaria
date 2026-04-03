@@ -3,7 +3,6 @@ package com.guilherme.emobiliaria.contract.ui.component;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
@@ -27,8 +26,7 @@ public class ContractReviewStepPane extends VBox {
 
   public ContractReviewStepPane(ResourceBundle bundle) {
     this.bundle = bundle;
-    setSpacing(0);
-    setPadding(new Insets(24, 24, 24, 24));
+    getStyleClass().add("wizard-step-pane");
     buildLayout();
   }
 

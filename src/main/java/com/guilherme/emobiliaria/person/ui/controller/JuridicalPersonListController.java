@@ -1,8 +1,10 @@
 package com.guilherme.emobiliaria.person.ui.controller;
 
 import com.google.inject.Provider;
+import com.guilherme.emobiliaria.person.application.input.DeleteJuridicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllJuridicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.output.FindAllJuridicalPeopleOutput;
+import com.guilherme.emobiliaria.person.application.usecase.DeleteJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
@@ -14,30 +16,35 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class JuridicalPersonListController {
 
   private final FindAllJuridicalPeopleInteractor findAll;
+  private final DeleteJuridicalPersonInteractor deleteJuridicalPerson;
   private final NavigationService navigationService;
   private final Provider<JuridicalPersonController> juridicalControllerProvider;
 
   @Inject
   public JuridicalPersonListController(
       FindAllJuridicalPeopleInteractor findAll,
+      DeleteJuridicalPersonInteractor deleteJuridicalPerson,
       NavigationService navigationService,
       Provider<JuridicalPersonController> juridicalControllerProvider) {
     this.findAll = findAll;
+    this.deleteJuridicalPerson = deleteJuridicalPerson;
     this.navigationService = navigationService;
     this.juridicalControllerProvider = juridicalControllerProvider;
   }
@@ -184,6 +191,36 @@ public class JuridicalPersonListController {
     nextButton.setDisable(currentPage >= totalPages);
   }
 
+  private void handleDelete(JuridicalPerson person) {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.setHeaderText(null);
+    alert.setContentText(bundle.getString("juridical_person.list.delete_confirm.message")
+        .formatted(person.getCorporateName()));
+    alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+    Optional<ButtonType> result = alert.showAndWait();
+    boolean confirmed = result.filter(b -> b == ButtonType.OK).isPresent();
+    handleDelete(person, confirmed);
+  }
+
+  void handleDelete(JuridicalPerson person, boolean confirmed) {
+    if (!confirmed) {
+      return;
+    }
+
+    Task<Void> task = new Task<>() {
+      @Override
+      protected Void call() {
+        deleteJuridicalPerson.execute(new DeleteJuridicalPersonInput(person.getId()));
+        return null;
+      }
+    };
+
+    task.setOnSucceeded(e -> loadPage(currentPage));
+    task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
+
+    new Thread(task).start();
+  }
+
   private void navigateToCreate() {
     JuridicalPersonController ctrl = juridicalControllerProvider.get();
     ctrl.setJuridicalPersonId(null);
@@ -219,6 +256,8 @@ public class JuridicalPersonListController {
   private class ActionsCell extends TableCell<JuridicalPerson, Void> {
     private final HBox actionsBox = new HBox();
     private final Button editBtn = new Button(bundle.getString("juridical_person.list.button.edit"));
+    private final Button deleteBtn =
+        new Button(bundle.getString("juridical_person.list.button.delete"));
 
     ActionsCell() {
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
@@ -229,12 +268,17 @@ public class JuridicalPersonListController {
       actionsBox.getStyleClass().add("list-actions-box");
 
       editBtn.getStyleClass().add("list-row-edit-button");
+      deleteBtn.getStyleClass().add("list-row-delete-button");
       editBtn.setOnAction(e -> {
         JuridicalPerson person = getTableView().getItems().get(getIndex());
         navigateToEdit(person.getId());
       });
+      deleteBtn.setOnAction(e -> {
+        JuridicalPerson person = getTableView().getItems().get(getIndex());
+        handleDelete(person);
+      });
 
-      actionsBox.getChildren().setAll(editBtn);
+      actionsBox.getChildren().setAll(editBtn, deleteBtn);
     }
 
     @Override

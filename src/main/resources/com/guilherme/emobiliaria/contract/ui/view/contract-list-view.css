@@ -99,22 +99,22 @@
 }
 
 .list-actions-box {
-    -fx-padding: 0;
+    -fx-padding: 8 16;
 }
 .list-table-view .table-cell.list-actions-cell {
     -fx-alignment: CENTER-RIGHT;
-    -fx-padding: 0 16;
+    -fx-padding: 0;
 }
 
 .list-row-edit-button {
     -fx-background-color: white;
-    -fx-text-fill: #6B7280;
+    -fx-text-fill: #000000;
     -fx-border-color: #E5E7EB;
     -fx-border-width: 1;
-    -fx-border-radius: 0;
-    -fx-background-radius: 0;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
     -fx-font-size: 13px;
-    -fx-padding: 6 12;
+    -fx-padding: 5 8;
 }
 
 .list-row-edit-button:hover {
@@ -122,18 +122,18 @@
 }
 
 .list-row-delete-button {
-    -fx-background-color: white;
-    -fx-text-fill: #B45353;
-    -fx-border-color: #E7CDCD;
+    -fx-background-color: #FFF5F5;
+    -fx-text-fill: #991B1B;
+    -fx-border-color: #FCA5A5;
     -fx-border-width: 1;
-    -fx-border-radius: 0;
-    -fx-background-radius: 0;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
     -fx-font-size: 13px;
-    -fx-padding: 6 12;
+    -fx-padding: 5 8;
 }
 
 .list-row-delete-button:hover {
-    -fx-background-color: #FEF2F2;
+    -fx-background-color: #FEE2E2;
 }
 
 .list-row-receipts-button {
@@ -141,10 +141,10 @@
     -fx-text-fill: white;
     -fx-border-color: transparent;
     -fx-border-width: 0;
-    -fx-border-radius: 0;
-    -fx-background-radius: 0;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
     -fx-font-size: 13px;
-    -fx-padding: 6 12;
+    -fx-padding: 5 10;
 }
 
 .list-row-receipts-button:hover {

@@ -1,8 +1,130 @@
-/* Contract wizard inherits all styles from initial-setup.css via FXML imports.
-   Override card width for the wider 6-step wizard. */
-.setup-card {
-    -fx-min-width: 720;
-    -fx-pref-width: 860;
+.contract-wizard-root {
+    -fx-background-color: #F9FAFB;
+}
+
+.contract-wizard-root .setup-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-min-width: -1;
+    -fx-pref-width: -1;
+}
+
+.contract-wizard-root .wizard-header {
+    -fx-padding: 28 40 24 40;
+    -fx-spacing: 4;
+    -fx-border-color: transparent transparent #E5E7EB transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.contract-wizard-root .setup-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #111827;
+}
+
+.contract-wizard-root .setup-subtitle {
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #6B7280;
+}
+
+.contract-wizard-root .wizard-stepper-row {
+    -fx-padding: 32 40 24 40;
+}
+
+.contract-wizard-root .wizard-content {
+    -fx-padding: 0 40 32 40;
+    -fx-alignment: TOP_LEFT;
+}
+
+.contract-wizard-root .wizard-footer {
+    -fx-padding: 16 40 28 40;
+    -fx-spacing: 12;
+    -fx-border-color: #E5E7EB transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.contract-wizard-root .setup-stepper {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.contract-wizard-root .stepper-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #6B7280;
+}
+
+.contract-wizard-root .stepper-label-active {
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #1F2D3D;
+}
+
+.contract-wizard-root .stepper-dot {
+    -fx-min-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-max-height: 24;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-background-color: #E5E7EB;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #6B7280;
+}
+
+.contract-wizard-root .stepper-dot-active {
+    -fx-min-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-max-height: 24;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-background-color: #1F2D3D;
+    -fx-border-color: #1F2D3D;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #FFFFFF;
+}
+
+.contract-wizard-root .stepper-dot-completed {
+    -fx-min-width: 24;
+    -fx-max-width: 24;
+    -fx-min-height: 24;
+    -fx-max-height: 24;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-background-color: #9CA3AF;
+    -fx-border-color: #9CA3AF;
+    -fx-border-width: 1;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #FFFFFF;
+}
+
+.contract-wizard-root .stepper-connector {
+    -fx-background-color: #D1D5DB;
+}
+
+.contract-wizard-root .stepper-connector-completed {
+    -fx-background-color: #9CA3AF;
+}
+
+.wizard-step-pane {
+    -fx-padding: 0;
+    -fx-spacing: 24;
+}
+
+.wizard-section-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E5E7EB;
+    -fx-border-width: 1;
+    -fx-padding: 24;
+    -fx-spacing: 20;
 }
 
 .wizard-detail-panel {
@@ -10,23 +132,24 @@
     -fx-border-color: #E5E7EB;
     -fx-border-width: 1;
     -fx-padding: 16;
-    -fx-spacing: 6;
+    -fx-spacing: 10;
 }
 
 .wizard-detail-panel-header {
-    -fx-font-size: 13px;
-    -fx-font-weight: 700;
-    -fx-text-fill: #374151;
+    -fx-font-size: 14px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #1F2D3D;
 }
 
 .wizard-detail-panel-row {
-    -fx-font-size: 12px;
-    -fx-text-fill: #6B7280;
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #374151;
 }
 
 .wizard-section-header {
     -fx-font-size: 14px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 400;
     -fx-text-fill: #111827;
 }
 
@@ -37,20 +160,22 @@
 }
 
 .wizard-tenant-list {
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
     -fx-border-color: #E5E7EB;
     -fx-border-width: 1;
     -fx-pref-height: 280;
 }
 
 .wizard-transfer-button {
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
     -fx-text-fill: #374151;
     -fx-border-color: #D1D5DB;
     -fx-border-width: 1;
     -fx-font-size: 14px;
     -fx-pref-width: 40;
     -fx-pref-height: 32;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
 }
 
 .wizard-transfer-button:hover {
@@ -66,17 +191,13 @@
 .wizard-review-section {
     -fx-spacing: 4;
     -fx-padding: 16;
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
     -fx-border-color: #E5E7EB;
     -fx-border-width: 0 0 1 0;
 }
 
-.wizard-review-section:last-child {
-    -fx-border-width: 0;
-}
-
 .wizard-review-container {
-    -fx-background-color: white;
+    -fx-background-color: #FFFFFF;
     -fx-border-color: #E5E7EB;
     -fx-border-width: 1;
 }

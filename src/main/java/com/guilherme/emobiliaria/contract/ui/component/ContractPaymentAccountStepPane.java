@@ -2,7 +2,6 @@ package com.guilherme.emobiliaria.contract.ui.component;
 
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -31,8 +30,7 @@ public class ContractPaymentAccountStepPane extends VBox {
 
   public ContractPaymentAccountStepPane(ResourceBundle bundle) {
     this.bundle = bundle;
-    setSpacing(16);
-    setPadding(new Insets(24, 24, 24, 24));
+    getStyleClass().add("wizard-step-pane");
     buildLayout();
   }
 
@@ -117,7 +115,9 @@ public class ContractPaymentAccountStepPane extends VBox {
     errorLabel.setManaged(false);
     errorLabel.setText(bundle.getString("contract.wizard.step5.error.account_required"));
 
-    getChildren().addAll(comboGroup, newAccountCheckBox, newAccountForm, errorLabel);
+    VBox card = new VBox(20, comboGroup, newAccountCheckBox, newAccountForm);
+    card.getStyleClass().add("wizard-section-card");
+    getChildren().addAll(card, errorLabel);
   }
 
   public void setAccounts(List<PaymentAccount> accounts) {

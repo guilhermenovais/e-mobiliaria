@@ -4,7 +4,6 @@ import com.guilherme.emobiliaria.person.domain.entity.Person;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -33,8 +32,7 @@ public class ContractTenantsStepPane extends VBox {
 
   public ContractTenantsStepPane(ResourceBundle bundle) {
     this.bundle = bundle;
-    setSpacing(12);
-    setPadding(new Insets(24, 24, 24, 24));
+    getStyleClass().add("wizard-step-pane");
     buildLayout();
   }
 
@@ -67,7 +65,6 @@ public class ContractTenantsStepPane extends VBox {
 
     VBox transferBox = new VBox(8, addBtn, removeBtn);
     transferBox.setAlignment(Pos.CENTER);
-    transferBox.setPadding(new Insets(0, 4, 0, 4));
 
     // Selected list
     Label selectedHeader = new Label(bundle.getString("contract.wizard.step3.selected"));
@@ -91,7 +88,9 @@ public class ContractTenantsStepPane extends VBox {
     errorLabel.setManaged(false);
     errorLabel.setText(bundle.getString("contract.wizard.step3.error.tenants_required"));
 
-    getChildren().addAll(hint, listsRow, errorLabel);
+    VBox card = new VBox(20, hint, listsRow);
+    card.getStyleClass().add("wizard-section-card");
+    getChildren().addAll(card, errorLabel);
 
     // Wire search filter
     searchField.textProperty().addListener((obs, old, text) -> applyFilter(text));

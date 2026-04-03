@@ -53,7 +53,7 @@ public class WizardStepperBar extends HBox {
       label.getStyleClass().removeAll("stepper-label", "stepper-label-active");
 
       if (i + 1 < step) {
-        dot.setText("✓");
+        dot.setText(String.valueOf(i + 1));
         dot.getStyleClass().add("stepper-dot-completed");
         label.getStyleClass().add("stepper-label-active");
       } else if (i + 1 == step) {

@@ -4,7 +4,6 @@ import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -31,8 +30,7 @@ public class ContractLandlordStepPane extends VBox {
   public ContractLandlordStepPane(ResourceBundle bundle, Person defaultLandlord) {
     this.bundle = bundle;
     this.defaultLandlord = defaultLandlord;
-    setSpacing(16);
-    setPadding(new Insets(24, 24, 24, 24));
+    getStyleClass().add("wizard-step-pane");
     buildLayout();
   }
 
@@ -100,7 +98,9 @@ public class ContractLandlordStepPane extends VBox {
     }
 
     VBox radioGroup = new VBox(10, useDefaultRadio, selectOtherRadio);
-    getChildren().addAll(radioGroup, defaultPanel, comboGroup, errorLabel);
+    VBox card = new VBox(20, radioGroup, defaultPanel, comboGroup);
+    card.getStyleClass().add("wizard-section-card");
+    getChildren().addAll(card, errorLabel);
   }
 
   public void setAllPersons(List<Person> persons) {

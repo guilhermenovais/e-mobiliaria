@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.person.ui.controller;
 
+import com.guilherme.emobiliaria.person.application.usecase.DeleteJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
@@ -7,6 +8,7 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
+import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import javafx.application.Platform;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,8 +74,9 @@ class JuridicalPersonListControllerTest {
 
   private JuridicalPersonListController createController(FakeJuridicalPersonRepository repo) {
     FindAllJuridicalPeopleInteractor findAll = new FindAllJuridicalPeopleInteractor(repo);
+    DeleteJuridicalPersonInteractor deleteInteractor = new DeleteJuridicalPersonInteractor(repo);
     NavigationService navigationService = new NavigationService();
-    return new JuridicalPersonListController(findAll, navigationService, null);
+    return new JuridicalPersonListController(findAll, deleteInteractor, navigationService, null);
   }
 
   @Nested
@@ -123,6 +126,46 @@ class JuridicalPersonListControllerTest {
       boolean nextDisabled = onFX(() -> controller.getNextButton().isDisable());
       assertTrue(prevDisabled);
       assertTrue(nextDisabled);
+    }
+  }
+
+
+  @Nested
+  @DisplayName("HandleDelete")
+  class HandleDelete {
+
+    @Test
+    @DisplayName("Should not delete when confirmation is cancelled")
+    void shouldNotDeleteWhenConfirmationCancelled() throws Exception {
+      FakeJuridicalPersonRepository repo = new FakeJuridicalPersonRepository();
+      JuridicalPerson person = repo.create(sampleJuridicalPerson("Empresa A", 1));
+      JuridicalPersonListController controller = createController(repo);
+
+      runOnFX(controller::initialize);
+      Thread.sleep(500);
+
+      runOnFX(() -> controller.handleDelete(person, false));
+      Thread.sleep(200);
+
+      long count = repo.findAll(new PaginationInput(100, 0)).total();
+      assertEquals(1, count, "Juridical person should NOT have been deleted");
+    }
+
+    @Test
+    @DisplayName("Should delete when confirmation is accepted")
+    void shouldDeleteWhenConfirmationAccepted() throws Exception {
+      FakeJuridicalPersonRepository repo = new FakeJuridicalPersonRepository();
+      JuridicalPerson person = repo.create(sampleJuridicalPerson("Empresa A", 1));
+      JuridicalPersonListController controller = createController(repo);
+
+      runOnFX(controller::initialize);
+      Thread.sleep(500);
+
+      runOnFX(() -> controller.handleDelete(person, true));
+      Thread.sleep(500);
+
+      long count = repo.findAll(new PaginationInput(100, 0)).total();
+      assertEquals(0, count, "Juridical person should have been deleted");
     }
   }
 }

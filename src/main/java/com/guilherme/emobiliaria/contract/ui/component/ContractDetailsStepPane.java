@@ -29,8 +29,7 @@ public class ContractDetailsStepPane extends VBox {
 
   public ContractDetailsStepPane(ResourceBundle bundle) {
     this.bundle = bundle;
-    setSpacing(16);
-    setPadding(new Insets(24, 24, 24, 24));
+    getStyleClass().add("wizard-step-pane");
     buildLayout();
   }
 
@@ -90,7 +89,10 @@ public class ContractDetailsStepPane extends VBox {
     grid.add(paymentDaySpinner, 1, 4);
     grid.add(rentError, 0, 5);
 
-    getChildren().add(grid);
+    VBox card = new VBox(20, grid);
+    card.setPadding(new Insets(24, 24, 24, 24));
+    card.getStyleClass().add("wizard-section-card");
+    getChildren().add(card);
   }
 
   public void populate(LocalDate startDate, int durationMonths, int rentCents, int paymentDay) {

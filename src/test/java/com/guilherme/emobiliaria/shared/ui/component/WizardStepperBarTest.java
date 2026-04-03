@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.shared.ui.component;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +14,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WizardStepperBarTest {
@@ -64,7 +66,7 @@ class WizardStepperBarTest {
     void shouldApplyStepperDotStyle() throws Exception {
       WizardStepperBar bar = onFX(() -> new WizardStepperBar(List.of("Tipo", "Dados")));
 
-      assertTrue(bar.getChildren().get(0) instanceof javafx.scene.layout.VBox);
+      assertInstanceOf(VBox.class, bar.getChildren().get(0));
     }
   }
 
@@ -114,8 +116,8 @@ class WizardStepperBarTest {
     }
 
     @Test
-    @DisplayName("When step is 2, completed dot should show checkmark")
-    void shouldShowCheckmarkOnCompletedDot() throws Exception {
+    @DisplayName("When step is 2, completed dot should keep numeric step")
+    void shouldKeepStepNumberOnCompletedDot() throws Exception {
       WizardStepperBar[] bar = new WizardStepperBar[1];
       runOnFX(() -> {
         bar[0] = new WizardStepperBar(List.of("Tipo", "Dados"));
@@ -125,7 +127,7 @@ class WizardStepperBarTest {
       onFX(() -> {
         javafx.scene.layout.VBox firstBox = (javafx.scene.layout.VBox) bar[0].getChildren().get(0);
         Label firstDot = (Label) firstBox.getChildren().get(0);
-        assertEquals("✓", firstDot.getText());
+        assertEquals("1", firstDot.getText());
         return null;
       });
     }

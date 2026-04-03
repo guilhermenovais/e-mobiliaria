@@ -5,7 +5,6 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -31,8 +30,7 @@ public class ContractPropertyStepPane extends VBox {
 
   public ContractPropertyStepPane(ResourceBundle bundle) {
     this.bundle = bundle;
-    setSpacing(16);
-    setPadding(new Insets(24, 24, 24, 24));
+    getStyleClass().add("wizard-step-pane");
     buildLayout();
   }
 
@@ -92,8 +90,10 @@ public class ContractPropertyStepPane extends VBox {
     errorLabel.setManaged(false);
     errorLabel.setText(bundle.getString("contract.wizard.step1.error.property_required"));
 
-    VBox comboGroup = new VBox(6, comboLabel, propertyCombo);
-    getChildren().addAll(comboGroup, detailPanel, errorLabel);
+    VBox comboGroup = new VBox(8, comboLabel, propertyCombo);
+    VBox card = new VBox(20, comboGroup, detailPanel);
+    card.getStyleClass().add("wizard-section-card");
+    getChildren().addAll(card, errorLabel);
   }
 
   private void showDetails(Property property) {
