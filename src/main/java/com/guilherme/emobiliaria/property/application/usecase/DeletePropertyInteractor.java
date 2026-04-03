@@ -5,11 +5,13 @@ import com.guilherme.emobiliaria.property.application.output.DeletePropertyOutpu
 import com.guilherme.emobiliaria.property.domain.repository.PropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class DeletePropertyInteractor {
 
   private final PropertyRepository propertyRepository;
 
+  @Inject
   public DeletePropertyInteractor(PropertyRepository propertyRepository) {
     this.propertyRepository = propertyRepository;
   }

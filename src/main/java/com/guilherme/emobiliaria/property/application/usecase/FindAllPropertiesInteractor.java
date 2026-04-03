@@ -5,11 +5,13 @@ import com.guilherme.emobiliaria.property.application.output.FindAllPropertiesOu
 import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.repository.PropertyRepository;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
+import jakarta.inject.Inject;
 
 public class FindAllPropertiesInteractor {
 
   private final PropertyRepository propertyRepository;
 
+  @Inject
   public FindAllPropertiesInteractor(PropertyRepository propertyRepository) {
     this.propertyRepository = propertyRepository;
   }

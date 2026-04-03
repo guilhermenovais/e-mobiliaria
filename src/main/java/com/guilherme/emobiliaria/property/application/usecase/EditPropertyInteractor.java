@@ -8,12 +8,14 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.repository.PropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
+import jakarta.inject.Inject;
 
 public class EditPropertyInteractor {
 
   private final PropertyRepository propertyRepository;
   private final AddressRepository addressRepository;
 
+  @Inject
   public EditPropertyInteractor(
       PropertyRepository propertyRepository,
       AddressRepository addressRepository
