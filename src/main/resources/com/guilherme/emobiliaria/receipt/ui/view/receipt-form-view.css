@@ -1,0 +1,70 @@
+.form-view-root {
+    -fx-padding: 32 40;
+    -fx-spacing: 16;
+    -fx-max-width: 900;
+    -fx-alignment: TOP_LEFT;
+    -fx-background-color: #F9FAFB;
+}
+
+.form-view-header {
+    -fx-spacing: 4;
+}
+
+.form-view-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #111827;
+}
+
+.form-view-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+}
+
+.form-section-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #374151;
+    -fx-padding: 8 0 4 0;
+}
+
+.receipt-form-grid {
+    -fx-padding: 0;
+}
+
+.receipt-form-grid .form-combo {
+    -fx-pref-height: 34;
+    -fx-max-width: Infinity;
+}
+
+.receipt-form-grid .date-picker {
+    -fx-max-width: Infinity;
+    -fx-pref-height: 34;
+}
+
+.receipt-form-grid .date-picker .text-field {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1 0 1 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 7 12;
+    -fx-font-size: 13px;
+    -fx-text-fill: #111827;
+}
+
+.receipt-form-grid .date-picker > .arrow-button {
+    -fx-background-color: white;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}
+
+.form-view-footer {
+    -fx-alignment: CENTER_RIGHT;
+    -fx-spacing: 12;
+    -fx-padding: 16 0 0 0;
+    -fx-border-color: #E5E7EB transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}

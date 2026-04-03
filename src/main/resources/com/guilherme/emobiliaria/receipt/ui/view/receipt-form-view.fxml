@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<ScrollPane
+    xmlns:fx="http://javafx.com/fxml"
+    fitToWidth="true">
+
+    <stylesheets>
+        <URL value="@receipt-form-view.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/forms.css"/>
+        <URL value="@/com/guilherme/emobiliaria/shared/ui/style/buttons.css"/>
+    </stylesheets>
+
+    <VBox styleClass="form-view-root">
+
+        <!-- HEADER -->
+        <VBox styleClass="form-view-header">
+            <Label fx:id="titleLabel" styleClass="form-view-title"/>
+            <Label fx:id="subtitleLabel" styleClass="form-view-subtitle"/>
+        </VBox>
+
+        <Separator/>
+
+        <!-- FORM SECTION -->
+        <Label fx:id="formSectionLabel" styleClass="form-section-label"/>
+
+        <GridPane styleClass="receipt-form-grid" hgap="16" vgap="12">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="50"/>
+                <ColumnConstraints percentWidth="50"/>
+            </columnConstraints>
+
+            <!-- Row 0: Contrato (col 0) + Data do Recibo (col 1) -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="0" spacing="4">
+                <Label fx:id="contractFieldLabel" styleClass="form-label"/>
+                <ComboBox fx:id="contractComboBox" styleClass="form-combo" maxWidth="Infinity"/>
+                <Label fx:id="contractErrorLabel" styleClass="form-error-label"/>
+            </VBox>
+
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="4">
+                <Label fx:id="dateFieldLabel" styleClass="form-label"/>
+                <DatePicker fx:id="datePicker" styleClass="form-input" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Row 1: Período (Início) — full width -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2" spacing="4">
+                <Label fx:id="intervalStartFieldLabel" styleClass="form-label"/>
+                <DatePicker fx:id="intervalStartPicker" styleClass="form-input" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Row 2: Período (Fim) — full width -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2" spacing="4">
+                <Label fx:id="intervalEndFieldLabel" styleClass="form-label"/>
+                <DatePicker fx:id="intervalEndPicker" styleClass="form-input" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Row 3: Desconto (col 0) + Multa (col 1) -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="3" spacing="4">
+                <Label fx:id="discountFieldLabel" styleClass="form-label"/>
+                <TextField fx:id="discountField" styleClass="form-input" promptText="0,00"/>
+            </VBox>
+
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="4">
+                <Label fx:id="fineFieldLabel" styleClass="form-label"/>
+                <TextField fx:id="fineField" styleClass="form-input" promptText="0,00"/>
+            </VBox>
+
+        </GridPane>
+
+        <!-- FOOTER -->
+        <HBox styleClass="form-view-footer">
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="cancelButton" styleClass="btn-secondary"/>
+            <Button fx:id="submitButton" styleClass="btn-primary"/>
+        </HBox>
+
+    </VBox>
+
+</ScrollPane>

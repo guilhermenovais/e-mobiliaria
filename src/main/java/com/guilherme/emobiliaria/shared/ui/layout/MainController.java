@@ -1,5 +1,7 @@
 package com.guilherme.emobiliaria.shared.ui.layout;
 
+import com.google.inject.Provider;
+import com.guilherme.emobiliaria.receipt.ui.controller.ReceiptListController;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import com.guilherme.emobiliaria.shared.ui.component.SidebarPane;
@@ -33,12 +35,17 @@ public class MainController {
 
   private final NavigationService navigationService;
   private final GuiceFxmlLoader fxmlLoader;
+  private final Provider<ReceiptListController> receiptListControllerProvider;
   private SidebarPane sidebarPane;
 
   @Inject
-  public MainController(NavigationService navigationService, GuiceFxmlLoader fxmlLoader) {
+  public MainController(
+      NavigationService navigationService,
+      GuiceFxmlLoader fxmlLoader,
+      Provider<ReceiptListController> receiptListControllerProvider) {
     this.navigationService = navigationService;
     this.fxmlLoader = fxmlLoader;
+    this.receiptListControllerProvider = receiptListControllerProvider;
   }
 
   @FXML private StackPane contentPane;
@@ -57,6 +64,7 @@ public class MainController {
     sidebarPane.setOnJuridicalPeopleAction(() -> navigateToJuridicalPersonList());
     sidebarPane.setOnPropertiesAction(() -> navigateToPropertyList());
     sidebarPane.setOnContractsAction(() -> navigateToContractList());
+    sidebarPane.setOnReceiptsAction(() -> navigateToReceiptList());
     sidebarPane.setActiveItem("sidebar.physical_people");
     sidebarContainer.getChildren().add(sidebarPane);
 
@@ -75,31 +83,27 @@ public class MainController {
   }
 
   private void navigateToPhysicalPersonList() {
-    if (sidebarPane != null) {
-      sidebarPane.setActiveItem("sidebar.physical_people");
-    }
-    navigationService.navigate(() -> loadPhysicalPersonList());
+    navigationService.navigate(() -> loadPhysicalPersonList(), "sidebar.physical_people");
   }
 
   private void navigateToJuridicalPersonList() {
-    if (sidebarPane != null) {
-      sidebarPane.setActiveItem("sidebar.juridical_people");
-    }
-    navigationService.navigate(() -> loadJuridicalPersonList());
+    navigationService.navigate(() -> loadJuridicalPersonList(), "sidebar.juridical_people");
   }
 
   private void navigateToPropertyList() {
-    if (sidebarPane != null) {
-      sidebarPane.setActiveItem("sidebar.properties");
-    }
-    navigationService.navigate(() -> loadPropertyList());
+    navigationService.navigate(() -> loadPropertyList(), "sidebar.properties");
   }
 
   private void navigateToContractList() {
-    if (sidebarPane != null) {
-      sidebarPane.setActiveItem("sidebar.contracts");
-    }
-    navigationService.navigate(() -> loadContractList());
+    navigationService.navigate(() -> loadContractList(), "sidebar.contracts");
+  }
+
+  private void navigateToReceiptList() {
+    navigationService.navigate(() -> loadReceiptList(), "sidebar.receipts");
+  }
+
+  private Node loadReceiptList() {
+    return receiptListControllerProvider.get().buildView();
   }
 
   private Node loadContractList() {
@@ -162,6 +166,12 @@ public class MainController {
   }
 
   private void updateNavButtons() {
+    if (sidebarPane != null) {
+      String activeItem = navigationService.getCurrentSidebarItemKey();
+      if (activeItem != null) {
+        sidebarPane.setActiveItem(activeItem);
+      }
+    }
     backButton.setDisable(!navigationService.canGoBack());
     forwardButton.setDisable(!navigationService.canGoForward());
   }

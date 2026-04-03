@@ -111,8 +111,8 @@ class SidebarPaneTest {
         long enabledCount = getAllButtons(pane).stream()
             .filter(n -> !n.isDisable())
             .count();
-        assertEquals(2, disabledCount, "Two buttons should be disabled");
-        assertEquals(4, enabledCount, "Four buttons should be enabled");
+        assertEquals(1, disabledCount, "One buttons should be disabled");
+        assertEquals(5, enabledCount, "Five buttons should be enabled");
         return null;
       });
     }

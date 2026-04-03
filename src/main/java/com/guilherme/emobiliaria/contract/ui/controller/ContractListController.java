@@ -13,6 +13,7 @@ import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
+import com.guilherme.emobiliaria.receipt.ui.controller.ReceiptListController;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
@@ -52,6 +53,7 @@ public class ContractListController {
   private final GenerateContractPdfInteractor generatePdf;
   private final NavigationService navigationService;
   private final Provider<ContractWizardController> wizardControllerProvider;
+  private final Provider<ReceiptListController> receiptListControllerProvider;
 
   @Inject
   public ContractListController(
@@ -59,12 +61,14 @@ public class ContractListController {
       DeleteContractInteractor deleteContract,
       GenerateContractPdfInteractor generatePdf,
       NavigationService navigationService,
-      Provider<ContractWizardController> wizardControllerProvider) {
+      Provider<ContractWizardController> wizardControllerProvider,
+      Provider<ReceiptListController> receiptListControllerProvider) {
     this.findAll = findAll;
     this.deleteContract = deleteContract;
     this.generatePdf = generatePdf;
     this.navigationService = navigationService;
     this.wizardControllerProvider = wizardControllerProvider;
+    this.receiptListControllerProvider = receiptListControllerProvider;
   }
 
   // ── FXML fields ────────────────────────────────────────────────────────────
@@ -247,8 +251,6 @@ public class ContractListController {
     new Thread(task).start();
   }
 
-  // ── Generate PDF ───────────────────────────────────────────────────────────
-
   private void handleGeneratePdf(Contract contract) {
     Task<GenerateContractPdfOutput> task = new Task<>() {
       @Override
@@ -281,13 +283,19 @@ public class ContractListController {
 
   private void navigateToCreate() {
     ContractWizardController ctrl = wizardControllerProvider.get();
-    navigationService.navigate(ctrl::buildView);
+    navigationService.navigate(ctrl::buildView, "sidebar.contracts");
   }
 
   private void navigateToEdit(long contractId) {
     ContractWizardController ctrl = wizardControllerProvider.get();
     ctrl.setContractId(contractId);
-    navigationService.navigate(ctrl::buildView);
+    navigationService.navigate(ctrl::buildView, "sidebar.contracts");
+  }
+
+  private void navigateToReceipts(long contractId) {
+    ReceiptListController ctrl = receiptListControllerProvider.get();
+    ctrl.setContractId(contractId);
+    navigationService.navigate(ctrl::buildView, "sidebar.receipts");
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -306,6 +314,7 @@ public class ContractListController {
     private final Button editBtn = new Button(bundle.getString("contract.list.button.edit"));
     private final Button deleteBtn = new Button(bundle.getString("contract.list.button.delete"));
     private final Button pdfBtn = new Button(bundle.getString("contract.list.button.generate_pdf"));
+    private final Button receiptsBtn = new Button(bundle.getString("contract.list.button.receipts"));
 
     ActionsCell() {
       actionsBox.setAlignment(Pos.CENTER_RIGHT);
@@ -314,7 +323,8 @@ public class ContractListController {
 
       editBtn.getStyleClass().add("list-row-edit-button");
       deleteBtn.getStyleClass().add("list-row-delete-button");
-      pdfBtn.getStyleClass().add("list-row-pdf-button");
+      pdfBtn.getStyleClass().add("list-row-receipts-button");
+      receiptsBtn.getStyleClass().add("list-row-receipts-button");
 
       editBtn.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
@@ -328,8 +338,12 @@ public class ContractListController {
         Contract contract = getTableView().getItems().get(getIndex());
         handleGeneratePdf(contract);
       });
+      receiptsBtn.setOnAction(e -> {
+        Contract contract = getTableView().getItems().get(getIndex());
+        navigateToReceipts(contract.getId());
+      });
 
-      actionsBox.getChildren().setAll(editBtn, deleteBtn, pdfBtn);
+      actionsBox.getChildren().setAll(editBtn, deleteBtn, pdfBtn, receiptsBtn);
     }
 
     @Override

@@ -49,6 +49,7 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.contract.ui.controller to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.contract.ui.component to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.receipt.di to com.google.guice;
+  opens com.guilherme.emobiliaria.receipt.ui.controller to javafx.fxml, com.google.guice;
 
   opens com.guilherme.emobiliaria.person.application.usecase to com.google.guice;
   opens com.guilherme.emobiliaria.contract.application.usecase to com.google.guice;

@@ -15,10 +15,20 @@ import java.util.function.Supplier;
  */
 public class NavigationService {
 
+  private static final class NavigationEntry {
+    private final Supplier<Node> viewFactory;
+    private final String sidebarItemKey;
+
+    private NavigationEntry(Supplier<Node> viewFactory, String sidebarItemKey) {
+      this.viewFactory = viewFactory;
+      this.sidebarItemKey = sidebarItemKey;
+    }
+  }
+
   private StackPane contentPane;
-  private final Deque<Supplier<Node>> backStack = new ArrayDeque<>();
-  private final Deque<Supplier<Node>> forwardStack = new ArrayDeque<>();
-  private Supplier<Node> currentViewFactory;
+  private final Deque<NavigationEntry> backStack = new ArrayDeque<>();
+  private final Deque<NavigationEntry> forwardStack = new ArrayDeque<>();
+  private NavigationEntry currentEntry;
   private Runnable onNavigationChanged;
 
   @Inject
@@ -33,11 +43,15 @@ public class NavigationService {
   }
 
   public void navigate(Supplier<Node> viewFactory) {
-    if (currentViewFactory != null) {
-      backStack.push(currentViewFactory);
+    navigate(viewFactory, null);
+  }
+
+  public void navigate(Supplier<Node> viewFactory, String sidebarItemKey) {
+    if (currentEntry != null) {
+      backStack.push(currentEntry);
     }
     forwardStack.clear();
-    currentViewFactory = viewFactory;
+    currentEntry = new NavigationEntry(viewFactory, sidebarItemKey);
     loadView();
   }
 
@@ -45,8 +59,8 @@ public class NavigationService {
     if (backStack.isEmpty()) {
       return;
     }
-    forwardStack.push(currentViewFactory);
-    currentViewFactory = backStack.pop();
+    forwardStack.push(currentEntry);
+    currentEntry = backStack.pop();
     loadView();
   }
 
@@ -54,8 +68,8 @@ public class NavigationService {
     if (forwardStack.isEmpty()) {
       return;
     }
-    backStack.push(currentViewFactory);
-    currentViewFactory = forwardStack.pop();
+    backStack.push(currentEntry);
+    currentEntry = forwardStack.pop();
     loadView();
   }
 
@@ -67,8 +81,15 @@ public class NavigationService {
     return !forwardStack.isEmpty();
   }
 
+  public String getCurrentSidebarItemKey() {
+    if (currentEntry == null) {
+      return null;
+    }
+    return currentEntry.sidebarItemKey;
+  }
+
   private void loadView() {
-    Node node = currentViewFactory.get();
+    Node node = currentEntry.viewFactory.get();
     if (Platform.isFxApplicationThread()) {
       contentPane.getChildren().setAll(node);
       notifyNavigationChanged();

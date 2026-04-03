@@ -1,4 +1,4 @@
-.contract-list-root {
+.receipt-list-root {
     -fx-background-color: #F9FAFB;
 }
 
@@ -31,8 +31,31 @@
     -fx-font-size: 13px;
 }
 
+.receipt-list-filter-row {
+    -fx-padding: 20 40 0 40;
+    -fx-spacing: 12;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.receipt-list-filter-field {
+    -fx-spacing: 6;
+}
+
+.receipt-list-filter-row .form-combo {
+    -fx-min-width: 320;
+    -fx-pref-width: 480;
+}
+
+.receipt-list-filter-row .btn-secondary {
+    -fx-padding: 7 16;
+    -fx-font-size: 13px;
+    -fx-border-color: #D1D5DB;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}
+
 .list-table-container {
-    -fx-padding: 24 40 0 40;
+    -fx-padding: 16 40 0 40;
 }
 
 .list-table-view {
@@ -96,6 +119,7 @@
     -fx-text-fill: #6B7280;
     -fx-wrap-text: true;
     -fx-text-alignment: CENTER;
+    -fx-padding: 40;
 }
 
 .list-actions-box {
@@ -132,7 +156,7 @@
     -fx-background-color: #FEF2F2;
 }
 
-.list-row-receipts-button {
+.list-row-pdf-button {
     -fx-background-color: #1F2937;
     -fx-text-fill: white;
     -fx-border-color: transparent;
@@ -143,7 +167,7 @@
     -fx-padding: 6 12;
 }
 
-.list-row-receipts-button:hover {
+.list-row-pdf-button:hover {
     -fx-background-color: #111827;
 }
 
