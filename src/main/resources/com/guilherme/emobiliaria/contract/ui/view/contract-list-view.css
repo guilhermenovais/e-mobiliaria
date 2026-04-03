@@ -101,6 +101,10 @@
 .list-actions-box {
     -fx-padding: 0;
 }
+.list-table-view .table-cell.list-actions-cell {
+    -fx-alignment: CENTER-RIGHT;
+    -fx-padding: 0 16;
+}
 
 .list-row-edit-button {
     -fx-background-color: white;

@@ -15,6 +15,7 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -220,6 +221,9 @@ public class JuridicalPersonListController {
     private final Button editBtn = new Button(bundle.getString("juridical_person.list.button.edit"));
 
     ActionsCell() {
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+      setAlignment(Pos.CENTER_RIGHT);
+      getStyleClass().add("list-actions-cell");
       actionsBox.setAlignment(Pos.CENTER_RIGHT);
       actionsBox.setSpacing(6);
       actionsBox.getStyleClass().add("list-actions-box");

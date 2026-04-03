@@ -19,6 +19,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -253,6 +254,9 @@ public class PropertyListController {
     private final Button deleteBtn = new Button(bundle.getString("property.list.button.delete"));
 
     ActionsCell() {
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+      setAlignment(Pos.CENTER_RIGHT);
+      getStyleClass().add("list-actions-cell");
       actionsBox.setAlignment(Pos.CENTER_RIGHT);
       actionsBox.setSpacing(6);
       actionsBox.getStyleClass().add("list-actions-box");

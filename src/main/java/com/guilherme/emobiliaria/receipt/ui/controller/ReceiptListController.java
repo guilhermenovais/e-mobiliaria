@@ -28,6 +28,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TableCell;
@@ -429,6 +430,9 @@ public class ReceiptListController {
     private final Button pdfBtn = new Button(bundle.getString("receipt.list.button.generate_pdf"));
 
     ActionsCell() {
+      setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+      setAlignment(Pos.CENTER_RIGHT);
+      getStyleClass().add("list-actions-cell");
       actionsBox.setAlignment(Pos.CENTER_RIGHT);
       actionsBox.setSpacing(6);
       actionsBox.getStyleClass().add("list-actions-box");
