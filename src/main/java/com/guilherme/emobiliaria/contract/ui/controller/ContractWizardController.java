@@ -1,6 +1,5 @@
 package com.guilherme.emobiliaria.contract.ui.controller;
 
-import com.guilherme.emobiliaria.config.application.output.GetConfigOutput;
 import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
 import com.guilherme.emobiliaria.config.domain.entity.Config;
 import com.guilherme.emobiliaria.contract.application.input.CreateContractInput;
@@ -313,8 +312,18 @@ public class ContractWizardController {
     };
   }
 
+  static PaymentAccount resolveAccountForReview(ContractPaymentAccountStepPane accountPane) {
+    if (!accountPane.isNewAccount()) {
+      return accountPane.getSelectedAccount();
+    }
+
+    String pixKey = accountPane.getNewPixKey();
+    return PaymentAccount.create(accountPane.getNewBank(), accountPane.getNewBranch(),
+        accountPane.getNewAccountNumber(), pixKey.isBlank() ? null : pixKey);
+  }
+
   private void populateReview() {
-    resolvedAccount = accountPane.isNewAccount() ? null : accountPane.getSelectedAccount();
+    resolvedAccount = resolveAccountForReview(accountPane);
     reviewPane.populate(
         propertyPane.getSelectedProperty(),
         landlordPane.getSelectedLandlord(),

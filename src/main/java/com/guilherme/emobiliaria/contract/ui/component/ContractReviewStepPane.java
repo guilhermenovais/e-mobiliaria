@@ -98,6 +98,9 @@ public class ContractReviewStepPane extends VBox {
       if (account.getPixKey() != null && !account.getPixKey().isBlank()) {
         accountSection.getChildren().add(sectionValue("PIX: " + account.getPixKey()));
       }
+    } else {
+      accountSection.getChildren()
+          .add(sectionValue(bundle.getString("contract.wizard.step6.section.account.empty")));
     }
   }
 
