@@ -67,5 +67,8 @@ public class ContractTemplate
 
 
   public record TextBean(String text) {
+    public String getText() {
+      return text;
+    }
   }
 }
