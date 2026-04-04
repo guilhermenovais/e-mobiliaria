@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
 import com.guilherme.emobiliaria.shared.di.AppModule;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
+import com.guilherme.emobiliaria.shared.update.UpdateService;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -27,6 +28,11 @@ public class EMobiliariaApplication extends Application {
         (thread, throwable) -> log.error("Uncaught exception in thread {}", thread.getName(),
             throwable));
     injector = Guice.createInjector(new AppModule());
+
+    Thread updateThread = new Thread(() -> new UpdateService().checkAndUpdate());
+    updateThread.setDaemon(true);
+    updateThread.setName("update-checker");
+    updateThread.start();
   }
 
   @Override
