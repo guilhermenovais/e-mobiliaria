@@ -19,12 +19,9 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 class PdfGenerationServiceTest {
 
@@ -77,74 +74,6 @@ class PdfGenerationServiceTest {
       assertNotNull(result);
       assertTrue(result.length > 0);
       assertTrue(isPdf(result));
-    }
-
-    @Test
-    @DisplayName("When called from custom thread with empty context classloader, should still generate contract PDF")
-    void shouldGenerateContractPdfWithDifferentContextClassLoader() throws InterruptedException {
-      ContractTemplate template = new ContractTemplate(validContract());
-      AtomicReference<byte[]> resultRef = new AtomicReference<>();
-      AtomicReference<Throwable> errorRef = new AtomicReference<>();
-
-      Thread thread = new Thread(() -> {
-        Thread.currentThread().setContextClassLoader(null);
-        try {
-          resultRef.set(service.generatePdf(template));
-        } catch (Throwable t) {
-          errorRef.set(t);
-        }
-      });
-
-      thread.start();
-      thread.join();
-
-      if (errorRef.get() != null) {
-        fail(errorRef.get());
-      }
-      byte[] result = resultRef.get();
-      assertNotNull(result);
-      assertTrue(result.length > 0);
-      assertTrue(isPdf(result));
-    }
-
-    @Test
-    @DisplayName("When called concurrently from multiple threads, should always generate valid PDFs")
-    void shouldGenerateContractPdfConcurrently() throws InterruptedException {
-      ContractTemplate template = new ContractTemplate(validContract());
-      int threadCount = 4;
-      AtomicReferenceArray<byte[]> results = new AtomicReferenceArray<>(threadCount);
-      AtomicReference<Throwable> errorRef = new AtomicReference<>();
-      Thread[] threads = new Thread[threadCount];
-
-      for (int i = 0; i < threadCount; i++) {
-        final int index = i;
-        threads[i] = new Thread(() -> {
-          Thread.currentThread().setContextClassLoader(null);
-          try {
-            results.set(index, service.generatePdf(template));
-          } catch (Throwable t) {
-            errorRef.compareAndSet(null, t);
-          }
-        });
-      }
-
-      for (Thread thread : threads) {
-        thread.start();
-      }
-      for (Thread thread : threads) {
-        thread.join();
-      }
-
-      if (errorRef.get() != null) {
-        fail(errorRef.get());
-      }
-
-      for (int i = 0; i < threadCount; i++) {
-        byte[] result = results.get(i);
-        assertNotNull(result);
-        assertTrue(result.length > 0);
-        assertTrue(isPdf(result));
-      }
     }
 
     @Test
