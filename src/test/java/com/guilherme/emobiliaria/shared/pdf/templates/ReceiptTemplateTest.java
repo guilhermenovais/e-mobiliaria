@@ -62,134 +62,72 @@ class ReceiptTemplateTest {
   class GetParameters {
 
     @Test
-    @DisplayName("When given a receipt, should return tenant name as payer identification")
-    void shouldReturnPayerIdentification() {
+    @DisplayName("When given a receipt, should return sample receipt text")
+    void shouldReturnReceiptText() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("João Silva", params.get(ReceiptTemplate.ReceiptParameters.PAYER_IDENTIFICATION));
+      assertEquals(
+          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva a importância de R$ 1.500,00 referente ao aluguel do mês de março de 2026." + "</body></html>",
+          params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TEXT));
     }
 
     @Test
-    @DisplayName("When given a receipt, should return rent value in full Portuguese words")
-    void shouldReturnPaymentValueInFull() {
+    @DisplayName("When given a receipt, should return sample receipt title")
+    void shouldReturnReceiptTitle() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("mil e quinhentos reais", params.get(ReceiptTemplate.ReceiptParameters.PAYMENT_VALUE_IN_FULL));
+      assertEquals("RECIBO DE ALUGUEL",
+          params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TITLE));
     }
 
     @Test
-    @DisplayName("When given a receipt, should return formatted period")
-    void shouldReturnPeriod() {
+    @DisplayName("When given a receipt, should return sample values table RTF")
+    void shouldReturnValuesTableRtf() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("01/03/2026 a 31/03/2026", params.get(ReceiptTemplate.ReceiptParameters.PERIOD));
+      assertEquals(
+          "{\\rtf1\\ansi\\deff0\\fs20" + "\\b Valores\\b0\\par" + "Aluguel: R$ 1.500,00\\par" + "Desconto: R$ 0,00\\par" + "Multa: R$ 0,00\\par" + "Total pago: R$ 1.500,00\\par" + "}",
+          params.get(ReceiptTemplate.ReceiptParameters.VALUES_TABLE_RTF));
     }
 
     @Test
-    @DisplayName("When receipt has no discount, should return zero formatted")
-    void shouldReturnZeroDiscount() {
+    @DisplayName("When given a receipt, should return sample city and date text")
+    void shouldReturnCityAndDateText() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("R$ 0,00", params.get(ReceiptTemplate.ReceiptParameters.DISCOUNT));
+      assertEquals(
+          "<html><body style='font-family: Arial; text-align: center;'>" + "São Paulo, 10 de março de 2026." + "</body></html>",
+          params.get(ReceiptTemplate.ReceiptParameters.CITY_AND_DATE_TEXT));
     }
 
     @Test
-    @DisplayName("When receipt has a discount, should return formatted discount")
-    void shouldReturnDiscount() {
-      Receipt receipt = Receipt.create(LocalDate.of(2026, 3, 10),
-          LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31),
-          5000, 0, validContract());
-      ReceiptTemplate template = new ReceiptTemplate(receipt);
-
-      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
-
-      assertEquals("R$ 50,00", params.get(ReceiptTemplate.ReceiptParameters.DISCOUNT));
-    }
-
-    @Test
-    @DisplayName("When receipt has no fine, should return zero formatted")
-    void shouldReturnZeroFine() {
+    @DisplayName("When given a receipt, should return sample observations")
+    void shouldReturnObservations() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("R$ 0,00", params.get(ReceiptTemplate.ReceiptParameters.FINE));
+      assertEquals("{\\rtf1\\ansi\\deff0\\fs20 Sem observações adicionais.\\par}",
+          params.get(ReceiptTemplate.ReceiptParameters.OBSERVATIONS));
     }
 
     @Test
-    @DisplayName("When receipt has a fine, should return formatted fine")
-    void shouldReturnFine() {
-      Receipt receipt = Receipt.create(LocalDate.of(2026, 3, 10),
-          LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31),
-          0, 10000, validContract());
-      ReceiptTemplate template = new ReceiptTemplate(receipt);
-
-      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
-
-      assertEquals("R$ 100,00", params.get(ReceiptTemplate.ReceiptParameters.FINE));
-    }
-
-    @Test
-    @DisplayName("When receipt has no discount or fine, should return rent as payed value")
-    void shouldReturnPayedValueEqualToRent() {
+    @DisplayName("When given a receipt, should return sample landlord signing text")
+    void shouldReturnLandlordSigningText() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("R$ 1.500,00", params.get(ReceiptTemplate.ReceiptParameters.PAYED_VALUE));
-    }
-
-    @Test
-    @DisplayName("When receipt has discount and fine, should return rent minus discount plus fine")
-    void shouldReturnPayedValueWithDiscountAndFine() {
-      Receipt receipt = Receipt.create(LocalDate.of(2026, 3, 10),
-          LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31),
-          5000, 10000, validContract());
-      ReceiptTemplate template = new ReceiptTemplate(receipt);
-
-      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
-
-      assertEquals("R$ 1.550,00", params.get(ReceiptTemplate.ReceiptParameters.PAYED_VALUE));
-    }
-
-    @Test
-    @DisplayName("When given a receipt, should return landlord city")
-    void shouldReturnLandlordCity() {
-      ReceiptTemplate template = new ReceiptTemplate(validReceipt());
-
-      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
-
-      assertEquals("São Paulo", params.get(ReceiptTemplate.ReceiptParameters.LANDLORD_CITY));
-    }
-
-    @Test
-    @DisplayName("When given a receipt, should return formatted receipt date")
-    void shouldReturnReceiptDate() {
-      ReceiptTemplate template = new ReceiptTemplate(validReceipt());
-
-      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
-
-      assertEquals("10/03/2026", params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_DATE));
-    }
-
-    @Test
-    @DisplayName("When given a receipt, should return landlord identification with name and description")
-    void shouldReturnLandlordIdentification() {
-      ReceiptTemplate template = new ReceiptTemplate(validReceipt());
-
-      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
-
-      String identification = (String) params.get(ReceiptTemplate.ReceiptParameters.LANDLORD_IDENTIFICATION);
-      assertTrue(identification.startsWith("Maria Souza, "));
-      assertTrue(identification.contains("529.982.247-25"));
+      assertEquals("Maria Souza",
+          params.get(ReceiptTemplate.ReceiptParameters.LANDLORD_SIGNING_TEXT));
     }
   }
 

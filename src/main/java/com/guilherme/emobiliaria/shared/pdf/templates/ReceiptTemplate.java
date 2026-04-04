@@ -1,18 +1,27 @@
 package com.guilherme.emobiliaria.shared.pdf.templates;
 
-import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.pdf.PdfTemplate;
 
 import java.util.Collection;
 import java.util.EnumMap;
-import java.util.stream.Collectors;
 
 public class ReceiptTemplate extends PdfTemplate<ReceiptTemplate.ReceiptParameters, ReceiptTemplate.ReceiptCollections> {
 
-  public enum ReceiptParameters {
-    PAYER_IDENTIFICATION, PAYMENT_VALUE_IN_FULL, PERIOD, DISCOUNT,
-    FINE, PAYED_VALUE, LANDLORD_CITY, RECEIPT_DATE, LANDLORD_IDENTIFICATION
+  @Override
+  public EnumMap<ReceiptParameters, Object> getParameters() {
+    EnumMap<ReceiptParameters, Object> params = new EnumMap<>(ReceiptParameters.class);
+    params.put(ReceiptParameters.RECEIPT_TEXT,
+        "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva a importância de R$ 1.500,00 referente ao aluguel do mês de março de 2026." + "</body></html>");
+    params.put(ReceiptParameters.RECEIPT_TITLE, "RECIBO DE ALUGUEL");
+    params.put(ReceiptParameters.VALUES_TABLE_RTF,
+        "{\\rtf1\\ansi\\deff0\\fs20" + "\\b Valores\\b0\\par" + "Aluguel: R$ 1.500,00\\par" + "Desconto: R$ 0,00\\par" + "Multa: R$ 0,00\\par" + "Total pago: R$ 1.500,00\\par" + "}");
+    params.put(ReceiptParameters.CITY_AND_DATE_TEXT,
+        "<html><body style='font-family: Arial; text-align: center;'>" + "São Paulo, 10 de março de 2026." + "</body></html>");
+    params.put(ReceiptParameters.OBSERVATIONS,
+        "{\\rtf1\\ansi\\deff0\\fs20 Sem observações adicionais.\\par}");
+    params.put(ReceiptParameters.LANDLORD_SIGNING_TEXT, "Maria Souza");
+    return params;
   }
 
   public enum ReceiptCollections {}
@@ -24,28 +33,8 @@ public class ReceiptTemplate extends PdfTemplate<ReceiptTemplate.ReceiptParamete
     this.receipt = receipt;
   }
 
-  @Override
-  public EnumMap<ReceiptParameters, Object> getParameters() {
-    EnumMap<ReceiptParameters, Object> params = new EnumMap<>(ReceiptParameters.class);
-    Contract contract = receipt.getContract();
-    int rent = contract.getRent();
-    int payedValue = rent - receipt.getDiscount() + receipt.getFine();
-
-    params.put(ReceiptParameters.PAYER_IDENTIFICATION, contract.getTenants().stream()
-        .map(TemplateFormatter::personName)
-        .collect(Collectors.joining(", ")));
-    params.put(ReceiptParameters.PAYMENT_VALUE_IN_FULL, TemplateFormatter.formatCurrencyInFull(rent));
-    params.put(ReceiptParameters.PERIOD, TemplateFormatter.formatDate(receipt.getIntervalStart())
-        + " a " + TemplateFormatter.formatDate(receipt.getIntervalEnd()));
-    params.put(ReceiptParameters.DISCOUNT, TemplateFormatter.formatCurrency(receipt.getDiscount()));
-    params.put(ReceiptParameters.FINE, TemplateFormatter.formatCurrency(receipt.getFine()));
-    params.put(ReceiptParameters.PAYED_VALUE, TemplateFormatter.formatCurrency(payedValue));
-    params.put(ReceiptParameters.LANDLORD_CITY, TemplateFormatter.personCity(contract.getLandlord()));
-    params.put(ReceiptParameters.RECEIPT_DATE, TemplateFormatter.formatDate(receipt.getDate()));
-    params.put(ReceiptParameters.LANDLORD_IDENTIFICATION,
-        TemplateFormatter.personName(contract.getLandlord()) + ", "
-            + TemplateFormatter.personDescription(contract.getLandlord()));
-    return params;
+  public enum ReceiptParameters {
+    RECEIPT_TEXT, RECEIPT_TITLE, VALUES_TABLE_RTF, CITY_AND_DATE_TEXT, OBSERVATIONS, LANDLORD_SIGNING_TEXT
   }
 
   @Override
