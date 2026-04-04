@@ -17,6 +17,7 @@ import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteracto
 import com.guilherme.emobiliaria.person.ui.component.AddressFormPane;
 import com.guilherme.emobiliaria.person.ui.component.CompanyDataFormPane;
 import com.guilherme.emobiliaria.person.ui.component.PhysicalPersonFormPane;
+import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.component.WizardStepperBar;
 import jakarta.inject.Inject;
@@ -24,6 +25,8 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -33,6 +36,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -51,6 +55,7 @@ public class InitialSetupController {
   private final SetConfigInteractor setConfig;
   private final ValidateCpfInteractor validateCpf;
   private final ValidateCnpjInteractor validateCnpj;
+  private final GuiceFxmlLoader fxmlLoader;
 
   @Inject
   public InitialSetupController(
@@ -58,7 +63,8 @@ public class InitialSetupController {
       SearchAddressByCepInteractor searchByCep,
       CreatePhysicalPersonInteractor createPhysicalPerson,
       CreateJuridicalPersonInteractor createJuridicalPerson, SetConfigInteractor setConfig,
-      ValidateCpfInteractor validateCpf, ValidateCnpjInteractor validateCnpj) {
+      ValidateCpfInteractor validateCpf, ValidateCnpjInteractor validateCnpj,
+      GuiceFxmlLoader fxmlLoader) {
     this.createAddress = createAddress;
     this.searchByCep = searchByCep;
     this.createPhysicalPerson = createPhysicalPerson;
@@ -66,6 +72,7 @@ public class InitialSetupController {
     this.setConfig = setConfig;
     this.validateCpf = validateCpf;
     this.validateCnpj = validateCnpj;
+    this.fxmlLoader = fxmlLoader;
   }
 
   // ── FXML fields ────────────────────────────────────────────────────────────
@@ -391,10 +398,18 @@ public class InitialSetupController {
   }
 
   private void navigateToMain() {
-    Stage stage = (Stage) nextButton.getScene().getWindow();
-    stage.setResizable(true);
-    // Main view will be loaded here in a future task
-    stage.setTitle("e-Mobiliária");
+    try {
+      Stage stage = (Stage) nextButton.getScene().getWindow();
+      Parent mainView = fxmlLoader.load(InitialSetupController.class.getResource(
+          "/com/guilherme/emobiliaria/shared/ui/layout/view/main-view.fxml"));
+      Scene scene = new Scene(mainView);
+      stage.setScene(scene);
+      stage.setTitle("e-Mobiliária");
+      stage.setResizable(true);
+    } catch (IOException e) {
+      log.error("Failed to load main view", e);
+      handleError(e);
+    }
   }
 
   private void handleError(Throwable t) {

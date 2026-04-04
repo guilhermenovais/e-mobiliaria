@@ -69,9 +69,14 @@ public class PersonTypeSelectionPane extends VBox {
   }
 
   private void applyCardSelection(VBox selected, VBox deselected) {
-    selected.getStyleClass().removeAll("type-card", "type-card-selected");
-    selected.getStyleClass().add("type-card-selected");
-    deselected.getStyleClass().removeAll("type-card-selected");
+    if (!selected.getStyleClass().contains("type-card")) {
+      selected.getStyleClass().add("type-card");
+    }
+    if (!selected.getStyleClass().contains("type-card-selected")) {
+      selected.getStyleClass().add("type-card-selected");
+    }
+
+    deselected.getStyleClass().remove("type-card-selected");
     if (!deselected.getStyleClass().contains("type-card")) {
       deselected.getStyleClass().add("type-card");
     }
