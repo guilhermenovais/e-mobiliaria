@@ -92,7 +92,7 @@ class ContractTemplateTest {
       String landlordText =
           (String) template.getParameters().get(ContractTemplate.ContractParameters.LANDLORD_TEXT);
 
-      assertTrue(landlordText.startsWith("LOCADOR: "));
+      assertTrue(landlordText.startsWith("<b>LOCADOR: </b>"));
       assertTrue(landlordText.contains("João Silva"));
       assertTrue(landlordText.contains("529.982.247-25"));
     }
@@ -105,7 +105,7 @@ class ContractTemplateTest {
       String tenantsText =
           (String) template.getParameters().get(ContractTemplate.ContractParameters.TENANTS_TEXT);
 
-      assertTrue(tenantsText.startsWith("LOCATÁRIO(A): "));
+      assertTrue(tenantsText.startsWith("<b>LOCATÁRIO(A): </b>"));
       assertTrue(tenantsText.contains("Maria Lima"));
     }
 
@@ -117,7 +117,7 @@ class ContractTemplateTest {
       String rentText = (String) template.getParameters()
           .get(ContractTemplate.ContractParameters.CONTRACT_RENT_TEXT);
 
-      assertEquals("Valor do aluguel: aluguel mensal: R$ 980,00(novecentos e oitenta reais)",
+      assertEquals("<b>Valor do aluguel mensal: </b>R$ 980,00 (novecentos e oitenta reais)",
           rentText);
     }
 
@@ -129,7 +129,7 @@ class ContractTemplateTest {
       String periodText = (String) template.getParameters()
           .get(ContractTemplate.ContractParameters.CONTRACT_PERIOD_TEXT);
 
-      assertEquals("Período: 12 (DOZE) meses", periodText);
+      assertEquals("<b>Período: </b>12 (doze) meses", periodText);
     }
 
     @Test
@@ -140,9 +140,9 @@ class ContractTemplateTest {
 
       EnumMap<ContractTemplate.ContractParameters, Object> params = template.getParameters();
 
-      assertEquals("Início: 10 de julho de 2025",
+      assertEquals("<b>Início: </b>10 de julho de 2025",
           params.get(ContractTemplate.ContractParameters.CONTRACT_START_DATE_TEXT));
-      assertEquals("Término: 9 de julho de 2026",
+      assertEquals("<b>Término: </b>9 de julho de 2026",
           params.get(ContractTemplate.ContractParameters.CONTRACT_END_DATE_TEXT));
     }
 
@@ -156,7 +156,7 @@ class ContractTemplateTest {
           .get(ContractTemplate.ContractParameters.CONTRACT_PAYMENT_METHOD_TEXT);
 
       assertEquals(
-          "Dia de pagamento: 10 (dez), conta para pagamento: Banco Inter, agência n°0001, conta corrente n° 0518639487, PIX 64514507000146",
+          "<b>Dia de pagamento: </b>10 (dez), conta para pagamento: Banco Inter, agência n° 0001, conta corrente n° 0518639487, chave PIX 64514507000146",
           paymentText);
     }
 
@@ -181,7 +181,7 @@ class ContractTemplateTest {
       String purposeText = (String) template.getParameters()
           .get(ContractTemplate.ContractParameters.PROPERTY_PURPOSE_TEXT);
 
-      assertEquals("Uso ou finalidade: Comercial", purposeText);
+      assertEquals("<b>Uso ou finalidade: </b>Comercial", purposeText);
     }
 
     @Test
@@ -205,7 +205,7 @@ class ContractTemplateTest {
       String iptuText = (String) template.getParameters()
           .get(ContractTemplate.ContractParameters.PROPERTY_IPTU_TEXT);
 
-      assertEquals("ÍNDICE CADASTRAL (IPTU) 000920280359002", iptuText);
+      assertEquals("ÍNDICE CADASTRAL (IPTU): 000920280359002", iptuText);
     }
   }
 

@@ -55,8 +55,7 @@ class ReceiptTemplateTest {
   private Receipt validReceipt() {
     return Receipt.create(
         LocalDate.of(2026, 3, 10),
-        LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 31), 0, 0, null, validContract());
+        LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, "Observation", validContract());
   }
 
   private Receipt receiptWithDiscountAndFine() {
@@ -162,13 +161,13 @@ class ReceiptTemplateTest {
     }
 
     @Test
-    @DisplayName("When given a receipt, should return sample observations")
+    @DisplayName("When given a receipt, should return with observation")
     void shouldReturnObservations() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("",
+      assertEquals("Observation",
           params.get(ReceiptTemplate.ReceiptParameters.OBSERVATIONS));
     }
 
