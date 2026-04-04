@@ -65,5 +65,8 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.receipt.infrastructure.service to com.google.guice;
 
   opens db.migration;
+  opens reports;
+  opens fonts;
+  opens fonts.arial;
   opens com.guilherme.emobiliaria.shared.ui.style;
 }
