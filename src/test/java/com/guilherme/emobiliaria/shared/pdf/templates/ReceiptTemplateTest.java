@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReceiptTemplateTest {
 
+  private static final int VALUES_TABLE_WIDTH = 60;
+
   private Address validAddress() {
     return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo", BrazilianState.SP);
   }
@@ -58,18 +60,56 @@ class ReceiptTemplateTest {
         0, 0, validContract());
   }
 
+  private Receipt receiptWithDiscountAndFine() {
+    return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
+        LocalDate.of(2026, 3, 31), 10000, 5000, validContract());
+  }
+
+  private String expectedValuesTable(int rent, int discount, int fine, int totalPaid) {
+    return String.join("\n",
+        expectedDottedRow("aluguel do período", TemplateFormatter.formatCurrency(rent)),
+        expectedDottedRow("desconto", TemplateFormatter.formatCurrency(discount)),
+        expectedDottedRow("multa", TemplateFormatter.formatCurrency(fine)),
+        expectedDottedRow("valor pago", TemplateFormatter.formatCurrency(totalPaid)));
+  }
+
+  private String expectedDottedRow(String label, String value) {
+    int targetWidthInDots = VALUES_TABLE_WIDTH * 2;
+    int labelWidthInDots = expectedTextWidthInDots(label);
+    int valueWidthInDots = expectedValueTextWidthInDots(value);
+    int dots = Math.max(0, targetWidthInDots - labelWidthInDots - valueWidthInDots - 1);
+    return label + ".".repeat(dots) + " " + value;
+  }
+
+  private int expectedTextWidthInDots(String text) {
+    int width = 0;
+    for (int i = 0; i < text.length(); i++) {
+      width += text.charAt(i) == ' ' ? 1 : 2;
+    }
+    return width;
+  }
+
+  private int expectedValueTextWidthInDots(String text) {
+    int width = 0;
+    for (int i = 0; i < text.length(); i++) {
+      char ch = text.charAt(i);
+      width += (ch == ' ' || ch == '.' || ch == ',') ? 1 : 2;
+    }
+    return width;
+  }
+
   @Nested
   class GetParameters {
 
     @Test
-    @DisplayName("When given a receipt, should return sample receipt text")
+    @DisplayName("When given a receipt, should return receipt text based on receipt data")
     void shouldReturnReceiptText() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
       assertEquals(
-          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva a importância de R$ 1.500,00 referente ao aluguel do mês de março de 2026." + "</body></html>",
+          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25 a quantia de R$ 1.500,00 (mil e quinhentos reais)" + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
           params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TEXT));
     }
 
@@ -85,14 +125,28 @@ class ReceiptTemplateTest {
     }
 
     @Test
-    @DisplayName("When given a receipt, should return sample values table RTF")
-    void shouldReturnValuesTableRtf() {
+    @DisplayName("When given a receipt, should return values table based on receipt amounts")
+    void shouldReturnValuesTable() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
+      assertEquals(expectedValuesTable(150000, 0, 0, 150000),
+          params.get(ReceiptTemplate.ReceiptParameters.VALUES_TABLE_RTF));
+    }
+
+    @Test
+    @DisplayName(
+        "When discount and fine are present, should calculate paid total in receipt text and values table")
+    void shouldCalculatePaidTotal() {
+      ReceiptTemplate template = new ReceiptTemplate(receiptWithDiscountAndFine());
+
+      EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
+
       assertEquals(
-          "{\\rtf1\\ansi\\deff0\\fs20" + "\\b Valores\\b0\\par" + "Aluguel: R$ 1.500,00\\par" + "Desconto: R$ 0,00\\par" + "Multa: R$ 0,00\\par" + "Total pago: R$ 1.500,00\\par" + "}",
+          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25 a quantia de R$ 1.450,00 (mil e quatrocentos e cinquenta reais)" + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
+          params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TEXT));
+      assertEquals(expectedValuesTable(150000, 10000, 5000, 145000),
           params.get(ReceiptTemplate.ReceiptParameters.VALUES_TABLE_RTF));
     }
 
@@ -115,18 +169,18 @@ class ReceiptTemplateTest {
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("{\\rtf1\\ansi\\deff0\\fs20 Sem observações adicionais.\\par}",
+      assertEquals("",
           params.get(ReceiptTemplate.ReceiptParameters.OBSERVATIONS));
     }
 
     @Test
-    @DisplayName("When given a receipt, should return sample landlord signing text")
+    @DisplayName("When given a receipt, should return landlord signing text based on landlord data")
     void shouldReturnLandlordSigningText() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("Maria Souza",
+      assertEquals("Maria Souza, CPF: 529.982.247-25",
           params.get(ReceiptTemplate.ReceiptParameters.LANDLORD_SIGNING_TEXT));
     }
   }
