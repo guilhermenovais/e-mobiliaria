@@ -53,7 +53,7 @@ public class ReceiptTemplate extends PdfTemplate<ReceiptTemplate.ReceiptParamete
         "<html><body style='font-family: Arial; text-align: center;'>" + TemplateFormatter.personCity(
             contract.getLandlord()) + ", " + TemplateFormatter.formatDateInFull(
             receipt.getDate()) + "." + "</body></html>");
-    params.put(ReceiptParameters.OBSERVATIONS, "");
+    params.put(ReceiptParameters.OBSERVATIONS, receipt.getObservation());
     params.put(ReceiptParameters.LANDLORD_SIGNING_TEXT, signingText(contract.getLandlord()));
     return params;
   }

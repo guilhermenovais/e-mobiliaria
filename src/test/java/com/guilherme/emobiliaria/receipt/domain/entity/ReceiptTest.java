@@ -53,7 +53,7 @@ class ReceiptTest {
   }
 
   private Receipt validReceipt() {
-    return Receipt.create(VALID_DATE, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0,
+    return Receipt.create(VALID_DATE, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0, null,
         validContract());
   }
 
@@ -80,7 +80,7 @@ class ReceiptTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       Receipt receipt =
-          Receipt.restore(42L, VALID_DATE, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0,
+          Receipt.restore(42L, VALID_DATE, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0, null,
               validContract());
 
       assertEquals(42L, receipt.getId());

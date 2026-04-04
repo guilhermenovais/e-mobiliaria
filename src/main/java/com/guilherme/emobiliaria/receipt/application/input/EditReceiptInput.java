@@ -8,6 +8,6 @@ public record EditReceiptInput(
     LocalDate intervalStart,
     LocalDate intervalEnd,
     int discount,
-    int fine,
+    int fine, String observation,
     Long contractId
 ) {}

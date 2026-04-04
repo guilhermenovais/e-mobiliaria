@@ -26,7 +26,7 @@ public class CreateReceiptInteractor {
     Contract contract = contractRepository.findById(input.contractId())
         .orElseThrow(() -> new BusinessException(ErrorMessage.Contract.NOT_FOUND));
     Receipt receipt = Receipt.create(input.date(), input.intervalStart(), input.intervalEnd(),
-        input.discount(), input.fine(), contract);
+        input.discount(), input.fine(), input.observation(), contract);
     Receipt created = receiptRepository.create(receipt);
     return new CreateReceiptOutput(created);
   }

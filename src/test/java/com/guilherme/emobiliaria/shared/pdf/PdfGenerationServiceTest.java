@@ -80,7 +80,7 @@ class PdfGenerationServiceTest {
     @DisplayName("When given a ReceiptTemplate, should return valid PDF bytes")
     void shouldGenerateReceiptPdf() {
       Receipt receipt = Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
-          LocalDate.of(2026, 3, 31), 0, 0, validContract());
+          LocalDate.of(2026, 3, 31), 0, 0, null, validContract());
       ReceiptTemplate template = new ReceiptTemplate(receipt);
 
       byte[] result = service.generatePdf(template);

@@ -23,6 +23,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import org.slf4j.Logger;
@@ -88,6 +89,10 @@ public class ReceiptFormController {
   @FXML private TextField discountField;
   @FXML private Label fineFieldLabel;
   @FXML private TextField fineField;
+  @FXML
+  private Label observationFieldLabel;
+  @FXML
+  private TextArea observationTextArea;
   @FXML private Button cancelButton;
   @FXML private Button submitButton;
 
@@ -122,6 +127,7 @@ public class ReceiptFormController {
     intervalEndFieldLabel.setText(bundle.getString("receipt.form.field.interval_end"));
     discountFieldLabel.setText(bundle.getString("receipt.form.field.discount"));
     fineFieldLabel.setText(bundle.getString("receipt.form.field.fine"));
+    observationFieldLabel.setText(bundle.getString("receipt.form.field.observation"));
     cancelButton.setText(bundle.getString("receipt.form.button.cancel"));
     submitButton.setText(bundle.getString(editMode ? "receipt.form.button.save" : "receipt.form.button.submit"));
 
@@ -206,6 +212,7 @@ public class ReceiptFormController {
         intervalEndPicker.setValue(r.getIntervalEnd());
         discountField.setText(String.format("%.2f", r.getDiscount() / 100.0).replace('.', ','));
         fineField.setText(String.format("%.2f", r.getFine() / 100.0).replace('.', ','));
+        observationTextArea.setText(r.getObservation());
       } else if (preSelectedContractId != null) {
         data.contracts().stream()
             .filter(c -> c.getId().equals(preSelectedContractId))
@@ -283,6 +290,9 @@ public class ReceiptFormController {
     LocalDate date = datePicker.getValue();
     LocalDate intervalStart = intervalStartPicker.getValue();
     LocalDate intervalEnd = intervalEndPicker.getValue();
+    String observation = observationTextArea.getText();
+    if (observation != null && observation.isBlank())
+      observation = null;
 
     int discount;
     int fine;
@@ -295,8 +305,8 @@ public class ReceiptFormController {
     }
 
     if (receiptId != null) {
-      EditReceiptInput input = new EditReceiptInput(
-          receiptId, date, intervalStart, intervalEnd, discount, fine, selectedContract.getId());
+      EditReceiptInput input = new EditReceiptInput(receiptId, date, intervalStart, intervalEnd,
+          discount, fine, observation, selectedContract.getId());
 
       Task<Void> task = new Task<>() {
         @Override
@@ -311,8 +321,8 @@ public class ReceiptFormController {
       new Thread(task).start();
 
     } else {
-      CreateReceiptInput input = new CreateReceiptInput(
-          date, intervalStart, intervalEnd, discount, fine, selectedContract.getId());
+      CreateReceiptInput input = new CreateReceiptInput(date, intervalStart, intervalEnd, discount,
+          fine, observation, selectedContract.getId());
 
       Task<Void> task = new Task<>() {
         @Override

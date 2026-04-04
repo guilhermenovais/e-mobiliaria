@@ -89,8 +89,8 @@ class CreateReceiptInteractorTest {
       Long contractId = createContract();
 
       CreateReceiptOutput output = interactor.execute(new CreateReceiptInput(
-          LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31),
-          0, 0, contractId));
+          LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null,
+          contractId));
 
       assertNotNull(output.receipt().getId());
       assertEquals(contractId, output.receipt().getContract().getId());
@@ -101,7 +101,7 @@ class CreateReceiptInteractorTest {
     void shouldThrowWhenContractNotFound() {
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(new CreateReceiptInput(LocalDate.of(2026, 3, 1),
-              LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, 999L)));
+              LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, 999L)));
 
       assertEquals(ErrorMessage.Contract.NOT_FOUND, ex.getErrorMessage());
     }

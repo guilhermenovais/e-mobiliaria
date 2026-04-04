@@ -56,13 +56,12 @@ class ReceiptTemplateTest {
     return Receipt.create(
         LocalDate.of(2026, 3, 10),
         LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 31),
-        0, 0, validContract());
+        LocalDate.of(2026, 3, 31), 0, 0, null, validContract());
   }
 
   private Receipt receiptWithDiscountAndFine() {
     return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 31), 10000, 5000, validContract());
+        LocalDate.of(2026, 3, 31), 10000, 5000, null, validContract());
   }
 
   private String expectedValuesTable(int rent, int discount, int fine, int totalPaid) {

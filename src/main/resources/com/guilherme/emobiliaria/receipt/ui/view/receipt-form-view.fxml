@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -75,6 +76,12 @@
             <VBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="4">
                 <Label fx:id="fineFieldLabel" styleClass="form-label"/>
                 <TextField fx:id="fineField" styleClass="form-input" promptText="0,00"/>
+            </VBox>
+
+            <!-- Row 4: Observação — full width -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2" spacing="4">
+                <Label fx:id="observationFieldLabel" styleClass="form-label"/>
+                <TextArea fx:id="observationTextArea" styleClass="form-input" wrapText="true" prefRowCount="3"/>
             </VBox>
 
         </GridPane>

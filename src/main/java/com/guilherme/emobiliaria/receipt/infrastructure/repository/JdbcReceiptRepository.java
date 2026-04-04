@@ -41,7 +41,8 @@ public class JdbcReceiptRepository implements ReceiptRepository {
 
   @Override
   public Receipt create(Receipt receipt) {
-    String sql = "INSERT INTO receipts (date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, ?, ?, ?)";
+    String sql =
+        "INSERT INTO receipts (date, interval_start, interval_end, discount, fine, observation, contract_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setDate(1, Date.valueOf(receipt.getDate()));
@@ -49,7 +50,8 @@ public class JdbcReceiptRepository implements ReceiptRepository {
       stmt.setDate(3, Date.valueOf(receipt.getIntervalEnd()));
       stmt.setInt(4, receipt.getDiscount());
       stmt.setInt(5, receipt.getFine());
-      stmt.setLong(6, receipt.getContract().getId());
+      stmt.setString(6, receipt.getObservation());
+      stmt.setLong(7, receipt.getContract().getId());
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
@@ -63,7 +65,8 @@ public class JdbcReceiptRepository implements ReceiptRepository {
 
   @Override
   public Receipt update(Receipt receipt) {
-    String sql = "UPDATE receipts SET date=?, interval_start=?, interval_end=?, discount=?, fine=?, contract_id=? WHERE id=?";
+    String sql =
+        "UPDATE receipts SET date=?, interval_start=?, interval_end=?, discount=?, fine=?, observation=?, contract_id=? WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setDate(1, Date.valueOf(receipt.getDate()));
@@ -71,8 +74,9 @@ public class JdbcReceiptRepository implements ReceiptRepository {
       stmt.setDate(3, Date.valueOf(receipt.getIntervalEnd()));
       stmt.setInt(4, receipt.getDiscount());
       stmt.setInt(5, receipt.getFine());
-      stmt.setLong(6, receipt.getContract().getId());
-      stmt.setLong(7, receipt.getId());
+      stmt.setString(6, receipt.getObservation());
+      stmt.setLong(7, receipt.getContract().getId());
+      stmt.setLong(8, receipt.getId());
       if (stmt.executeUpdate() == 0) {
         throw new PersistenceException(ErrorMessage.Receipt.NOT_FOUND, null);
       }
@@ -98,7 +102,8 @@ public class JdbcReceiptRepository implements ReceiptRepository {
 
   @Override
   public Optional<Receipt> findById(Long id) {
-    String sql = "SELECT id, date, interval_start, interval_end, discount, fine, contract_id FROM receipts WHERE id=?";
+    String sql =
+        "SELECT id, date, interval_start, interval_end, discount, fine, observation, contract_id FROM receipts WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
@@ -126,7 +131,8 @@ public class JdbcReceiptRepository implements ReceiptRepository {
           total = countRs.getLong(1);
         }
       }
-      String sql = "SELECT id, date, interval_start, interval_end, discount, fine, contract_id FROM receipts WHERE contract_id=? LIMIT ? OFFSET ?";
+      String sql =
+          "SELECT id, date, interval_start, interval_end, discount, fine, observation, contract_id FROM receipts WHERE contract_id=? LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setLong(1, contractId);
         stmt.setInt(2, limit);
@@ -152,7 +158,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
         rs.getDate("interval_start").toLocalDate(),
         rs.getDate("interval_end").toLocalDate(),
         rs.getInt("discount"),
-        rs.getInt("fine"),
+        rs.getInt("fine"), rs.getString("observation"),
         contract
     );
   }

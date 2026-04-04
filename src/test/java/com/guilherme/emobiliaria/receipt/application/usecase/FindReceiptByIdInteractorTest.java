@@ -85,7 +85,8 @@ class FindReceiptByIdInteractorTest {
 
   private Long createReceipt(Long contractId) {
     return createReceiptInteractor.execute(new CreateReceiptInput(LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, contractId)).receipt().getId();
+            LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId)).receipt()
+        .getId();
   }
 
   @Nested

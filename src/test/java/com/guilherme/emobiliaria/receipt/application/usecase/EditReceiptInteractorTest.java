@@ -84,7 +84,8 @@ class EditReceiptInteractorTest {
 
   private Long createReceipt(Long contractId) {
     return createReceiptInteractor.execute(new CreateReceiptInput(LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, contractId)).receipt().getId();
+            LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId)).receipt()
+        .getId();
   }
 
   @Nested
@@ -97,8 +98,8 @@ class EditReceiptInteractorTest {
       Long receiptId = createReceipt(contractId);
 
       EditReceiptOutput output = interactor.execute(new EditReceiptInput(receiptId,
-          LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30),
-          500, 100, contractId));
+          LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 500, 100,
+          null, contractId));
 
       assertEquals(receiptId, output.receipt().getId());
       assertEquals(LocalDate.of(2026, 4, 1), output.receipt().getDate());
@@ -113,7 +114,7 @@ class EditReceiptInteractorTest {
 
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(new EditReceiptInput(999L, LocalDate.of(2026, 4, 1),
-              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, contractId)));
+              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, contractId)));
 
       assertEquals(ErrorMessage.Receipt.NOT_FOUND, ex.getErrorMessage());
     }
@@ -126,7 +127,7 @@ class EditReceiptInteractorTest {
 
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(new EditReceiptInput(receiptId, LocalDate.of(2026, 4, 1),
-              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, 999L)));
+              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, 999L)));
 
       assertEquals(ErrorMessage.Contract.NOT_FOUND, ex.getErrorMessage());
     }

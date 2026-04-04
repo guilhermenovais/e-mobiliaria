@@ -29,7 +29,7 @@ public class EditReceiptInteractor {
         .orElseThrow(() -> new BusinessException(ErrorMessage.Contract.NOT_FOUND));
     Receipt updated = receiptRepository.update(
         Receipt.restore(receipt.getId(), input.date(), input.intervalStart(), input.intervalEnd(),
-            input.discount(), input.fine(), contract));
+            input.discount(), input.fine(), input.observation(), contract));
     return new EditReceiptOutput(updated);
   }
 }

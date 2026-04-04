@@ -13,26 +13,29 @@ public class Receipt {
   private LocalDate intervalEnd;
   private int discount;
   private int fine;
+  private String observation;
   private Contract contract;
 
   private Receipt() {
   }
 
   public static Receipt create(LocalDate date, LocalDate intervalStart, LocalDate intervalEnd,
-      int discount, int fine, Contract contract) {
+      int discount, int fine, String observation, Contract contract) {
     Receipt receipt = new Receipt();
     receipt.setDate(date);
     receipt.setIntervalStart(intervalStart);
     receipt.setIntervalEnd(intervalEnd);
     receipt.setDiscount(discount);
     receipt.setFine(fine);
+    receipt.setObservation(observation);
     receipt.setContract(contract);
     return receipt;
   }
 
   public static Receipt restore(Long id, LocalDate date, LocalDate intervalStart,
-      LocalDate intervalEnd, int discount, int fine, Contract contract) {
-    Receipt receipt = create(date, intervalStart, intervalEnd, discount, fine, contract);
+      LocalDate intervalEnd, int discount, int fine, String observation, Contract contract) {
+    Receipt receipt =
+        create(date, intervalStart, intervalEnd, discount, fine, observation, contract);
     receipt.setId(id);
     return receipt;
   }
@@ -104,6 +107,14 @@ public class Receipt {
       throw new BusinessException(ErrorMessage.Receipt.FINE_NEGATIVE);
     }
     this.fine = fine;
+  }
+
+  public String getObservation() {
+    return observation;
+  }
+
+  public void setObservation(String observation) {
+    this.observation = observation;
   }
 
   public Contract getContract() {

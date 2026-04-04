@@ -73,7 +73,8 @@ CREATE TABLE receipts (
     interval_end   DATE   NOT NULL,
     discount       INT    NOT NULL DEFAULT 0,
     fine           INT    NOT NULL DEFAULT 0,
-    contract_id    BIGINT NOT NULL REFERENCES contracts(id)
+    observation    VARCHAR(500),
+    contract_id    BIGINT NOT NULL REFERENCES contracts (id)
 );
 
 CREATE TABLE configs (
