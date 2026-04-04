@@ -34,4 +34,8 @@ public abstract class PdfTemplate<P extends Enum<P>, C extends Enum<C>> {
    * @return an EnumMap where keys are of type C and values are collections of objects
    */
   public abstract EnumMap<C, Collection<Object>> getCollections();
+
+  public static String bold(String text) {
+    return "<b>" + text + "</b>";
+  }
 }

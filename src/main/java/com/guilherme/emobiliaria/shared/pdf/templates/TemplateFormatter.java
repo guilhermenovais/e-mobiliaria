@@ -5,11 +5,14 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
+import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Locale;
+
+import static com.guilherme.emobiliaria.shared.pdf.PdfTemplate.bold;
 
 class TemplateFormatter {
 
@@ -119,7 +122,67 @@ class TemplateFormatter {
     throw new IllegalArgumentException("Unknown person type: " + person.getClass());
   }
 
-  private static String numberInWords(int n) {
+  static String formatCep(String digits) {
+    return digits.substring(0, 5) + "-" + digits.substring(5, 8);
+  }
+
+  static String formatAddressForContract(Address address) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(address.getAddress()).append(" ").append(address.getNumber());
+    if (address.getComplement() != null) {
+      sb.append(", ").append(address.getComplement());
+    }
+    sb.append(", bairro ").append(address.getNeighborhood());
+    sb.append(", ").append(address.getCity());
+    sb.append("/").append(address.getState().name());
+    sb.append(", CEP ").append(formatCep(address.getCep()));
+    return sb.toString();
+  }
+
+  static String purposeLabel(Purpose purpose) {
+    return switch (purpose) {
+      case RESIDENTIAL -> "Residencial";
+      case COMMERCIAL -> "Comercial";
+    };
+  }
+
+  static String formatPeriodForContract(Period period) {
+    int years = period.getYears();
+    int months = period.getMonths();
+    if (years == 0) {
+      return months + " (" + numberInWords(months) + ") " + (months == 1 ? "mês" : "meses");
+    }
+    if (months == 0) {
+      return years + " (" + numberInWords(years) + ") " + (years == 1 ? "ano" : "anos");
+    }
+    return years + " (" + numberInWords(years) + ") " + (years == 1 ?
+        "ano" :
+        "anos") + " e " + months + " (" + numberInWords(months) + ") " + (months == 1 ?
+        "mês" :
+        "meses");
+  }
+
+  static String formatPhysicalPersonForContract(PhysicalPerson pp) {
+    return bold(pp.getName()) + ", " + pp.getNationality() + ", " + civilStateInPortuguese(
+        pp.getCivilState()) + ", " + pp.getOccupation() + ", CPF n°" + formatCpf(
+        pp.getCpf()) + ", carteira de identidade nº " + pp.getIdCardNumber() + ", residente e domiciliado na " + formatAddressForContract(
+        pp.getAddress());
+  }
+
+  static String formatPersonForContract(Person person) {
+    if (person instanceof PhysicalPerson pp) {
+      return formatPhysicalPersonForContract(pp) + ".";
+    }
+    if (person instanceof JuridicalPerson jp) {
+      return bold(jp.getCorporateName()) + ", CNPJ: " + formatCnpj(
+          jp.getCnpj()) + ", com sede na " + formatAddressForContract(
+          jp.getAddress()) + ", representada neste ato conforme contrato social pelo sócio " + formatPhysicalPersonForContract(
+          jp.getRepresentative()) + ".";
+    }
+    throw new IllegalArgumentException("Unknown person type: " + person.getClass());
+  }
+
+  static String numberInWords(int n) {
     if (n == 100) return "cem";
     if (n >= 1000) {
       int thousands = n / 1000;
