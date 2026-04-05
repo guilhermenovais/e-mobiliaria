@@ -1,4 +1,8 @@
 <configuration>
+    <property name="APP_DATA_DIR"
+              value="${emobiliaria.app.data.dir:-${user.home}/AppData/Local/e-mobiliaria}"/>
+    <property name="LOG_DIR" value="${APP_DATA_DIR}/logs"/>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -6,9 +10,9 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/emobiliaria.log</file>
+        <file>${LOG_DIR}/emobiliaria.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/emobiliaria.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/emobiliaria.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>7</maxHistory>
         </rollingPolicy>
         <encoder>

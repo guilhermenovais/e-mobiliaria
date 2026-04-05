@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
 import com.guilherme.emobiliaria.shared.di.AppModule;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
+import com.guilherme.emobiliaria.shared.persistence.AppDataPaths;
 import com.guilherme.emobiliaria.shared.update.UpdateService;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -17,6 +18,10 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class EMobiliariaApplication extends Application {
+
+  static {
+    AppDataPaths.initializeSystemProperties();
+  }
 
   private static final Logger log = LoggerFactory.getLogger(EMobiliariaApplication.class);
 

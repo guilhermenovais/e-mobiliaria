@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.shared.di;
 
+import com.guilherme.emobiliaria.shared.persistence.AppDataPaths;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.inject.Provider;
@@ -12,7 +13,7 @@ public class DataSourceProvider implements Provider<DataSource> {
   @Override
   public DataSource get() {
     HikariConfig config = new HikariConfig();
-    config.setJdbcUrl("jdbc:h2:file:./emobiliaria;AUTO_SERVER=TRUE");
+    config.setJdbcUrl("jdbc:h2:file:" + AppDataPaths.h2DatabaseFilePath() + ";AUTO_SERVER=TRUE");
     config.setUsername("sa");
     config.setPassword("");
     config.setMaximumPoolSize(10);
