@@ -95,6 +95,7 @@ class TemplateFormatter {
       case MARRIED -> "casado";
       case DIVORCED -> "divorciado";
       case WIDOWER -> "viúvo";
+      case STABLE_UNION -> "em união estável";
     };
   }
 
