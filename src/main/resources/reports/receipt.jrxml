@@ -1,0 +1,42 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="receipt" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20" uuid="42eece36-4743-4972-9f90-335ac71165d9">
+    <parameter name="receipt_title" forPrompting="false" class="java.lang.String"/>
+    <parameter name="receipt_text" forPrompting="false" class="java.lang.String"/>
+    <parameter name="values_table_rtf" forPrompting="false" class="java.lang.String"/>
+    <parameter name="observations" class="java.lang.String"/>
+    <parameter name="city_and_date_text" forPrompting="false" class="java.lang.String"/>
+    <parameter name="landlord_signing_text" forPrompting="false" class="java.lang.String"/>
+    <query language="sql"><![CDATA[]]></query>
+    <background splitType="Stretch"/>
+    <title height="302" splitType="Stretch">
+        <element kind="textField" uuid="203c930b-ead3-4b0c-a219-3d1f0ba49b63" positionType="Float" x="0" y="60"
+                 width="558" height="20" markup="html" fontName="Arial" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{receipt_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="479b1482-ac17-4620-8f87-6632fa0a045a" positionType="Float" x="0" y="0"
+                 width="558" height="30" fontName="Arial" fontSize="20.0" bold="true" underline="true"
+                 hTextAlign="Center">
+            <expression><![CDATA[$P{receipt_title}]]></expression>
+        </element>
+        <element kind="textField" uuid="547009b0-fa3b-4d55-8fef-8f3b03024d3a" positionType="Float" x="0" y="94"
+                 width="558" height="20" markup="html" fontName="Arial" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{values_table_rtf}]]></expression>
+        </element>
+        <element kind="textField" uuid="e512fa4b-4caa-40d4-a6b0-e0edcd9c0c34" positionType="Float" x="0" y="172"
+                 width="558" height="20" markup="html" fontName="Arial" textAdjust="StretchHeight" hTextAlign="Center"
+                 vTextAlign="Middle">
+            <expression><![CDATA[$P{city_and_date_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="4f828add-95b3-4672-915a-925208c2a1c1" positionType="Float" x="0" y="128"
+                 width="558" height="20" markup="html" fontName="Arial" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{observations}]]></expression>
+        </element>
+        <element kind="rectangle" uuid="9c6dd044-4f57-44f2-8edf-0bbe9537d1b2" positionType="Float" x="33" y="232"
+                 width="489" height="1"/>
+        <element kind="textField" uuid="1bbc815c-ab63-4059-bc67-7f7cfa4eebf6" positionType="Float" x="33" y="232"
+                 width="488" height="30" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle">
+            <expression><![CDATA[$P{landlord_signing_text}]]></expression>
+        </element>
+    </title>
+</jasperReport>

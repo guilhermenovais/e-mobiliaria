@@ -1,0 +1,103 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="contract" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20" uuid="646096b9-0adb-499f-a7ea-59691780e4d0">
+    <parameter name="contract_title" class="java.lang.String"/>
+    <parameter name="landlord_text" class="java.lang.String"/>
+    <parameter name="tenants_text" class="java.lang.String"/>
+    <parameter name="property_section_title" class="java.lang.String"/>
+    <parameter name="property_type_text" class="java.lang.String"/>
+    <parameter name="property_address_text" class="java.lang.String"/>
+    <parameter name="property_purpose_text" class="java.lang.String"/>
+    <parameter name="contract_rent_text" class="java.lang.String"/>
+    <parameter name="property_cemig_text" class="java.lang.String"/>
+    <parameter name="property_iptu_text" class="java.lang.String"/>
+    <parameter name="period_section_title" class="java.lang.String"/>
+    <parameter name="contract_period_text" class="java.lang.String"/>
+    <parameter name="contract_start_date_text" class="java.lang.String"/>
+    <parameter name="contract_end_date_text" class="java.lang.String"/>
+    <parameter name="contract_payment_method_text" class="java.lang.String"/>
+    <parameter name="contractual_terms_section_title" class="java.lang.String"/>
+    <parameter name="contractual_terms_text" class="java.lang.String"/>
+    <parameter name="city_and_date_text" class="java.lang.String"/>
+    <parameter name="signing_texts" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+    <title height="678" splitType="Stretch">
+        <element kind="textField" uuid="cdb997b2-41fd-4ea2-b9a1-b3067f436402" positionType="Float" x="30" y="0"
+                 width="499" height="30" fontName="Arial" fontSize="20.0" textAdjust="StretchHeight" bold="true"
+                 underline="true" hTextAlign="Center">
+            <expression><![CDATA[$P{contract_title}]]></expression>
+        </element>
+        <element kind="textField" uuid="1ca2e56d-ad6f-478b-9a73-58683957c900" positionType="Float" x="30" y="50"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{landlord_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="a1e729c4-491a-4adb-8fae-a3db3eacebd0" positionType="Float" x="30" y="80"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{tenants_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="b6902fb8-5572-4a8e-9236-e8c90a372000" positionType="Float" x="30" y="114"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true">
+            <expression><![CDATA[$P{property_section_title}]]></expression>
+        </element>
+        <element kind="textField" uuid="b13dc894-6c05-4590-bacd-6e439998e00c" positionType="Float" x="30" y="144"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{property_type_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="4fb7b662-948e-4cb4-b0b0-6340ca6fa3d4" positionType="Float" x="30" y="174"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{property_address_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="aafa54ef-c824-4f69-8fe2-7bd043be95f5" positionType="Float" x="30" y="204"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{property_purpose_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="f73c4cee-3ecd-43f7-8f53-b13869842b00" positionType="Float" x="30" y="234"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{contract_rent_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="db3cb70c-9d4d-44d5-aa78-ada3af4a3259" positionType="Float" x="30" y="264"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true" underline="true">
+            <expression><![CDATA[$P{property_cemig_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="a42c95ab-c05d-441f-8e31-8c857f69c42d" positionType="Float" x="30" y="294"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true" underline="true">
+            <expression><![CDATA[$P{property_iptu_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="cf0ac724-0afa-411b-8614-1af0d1af6f66" positionType="Float" x="30" y="328"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true">
+            <expression><![CDATA[$P{period_section_title}]]></expression>
+        </element>
+        <element kind="textField" uuid="6320183b-3ba1-4526-8bd5-547f623afc97" positionType="Float" x="30" y="358"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{contract_period_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="f68a4870-9d91-4b87-a59f-7e4b87b255c0" positionType="Float" x="30" y="388"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{contract_start_date_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="bb4fe540-2538-4f57-97f7-8b8e51b558a1" positionType="Float" x="30" y="418"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{contract_end_date_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="0a816927-180e-4b91-ae24-fb1163bd03b0" positionType="Float" x="30" y="448"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{contract_payment_method_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="8b5a0f81-be55-4406-bf8d-9f0c64f191ca" positionType="Float" x="30" y="482"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true">
+            <expression><![CDATA[$P{contractual_terms_section_title}]]></expression>
+        </element>
+        <element kind="textField" uuid="6f8fd96c-823f-4c78-8076-4fe175ab439b" positionType="Float" x="30" y="512"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight">
+            <expression><![CDATA[$P{contractual_terms_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="3a649a39-a20f-4f69-8b97-27f609640056" positionType="Float" x="30" y="557"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true" hTextAlign="Center">
+            <expression><![CDATA[$P{city_and_date_text}]]></expression>
+        </element>
+        <element kind="subreport" uuid="9c1cb47b-d633-4e7d-a478-e8768cce656b" positionType="Float" x="30" y="592"
+                 width="499" height="60">
+            <dataSourceExpression><![CDATA[$P{signing_texts}]]></dataSourceExpression>
+            <expression><![CDATA["reports/tenants_list.jasper"]]></expression>
+        </element>
+    </title>
+</jasperReport>
