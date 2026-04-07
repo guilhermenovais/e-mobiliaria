@@ -53,7 +53,7 @@ public class ReceiptTemplate extends PdfTemplate<ReceiptTemplate.ReceiptParamete
         "<html><body style='font-family: Arial; text-align: center;'>" + TemplateFormatter.personCity(
             contract.getLandlord()) + ", " + TemplateFormatter.formatDateInFull(
             receipt.getDate()) + "." + "</body></html>");
-    params.put(ReceiptParameters.OBSERVATIONS, receipt.getObservation());
+    params.put(ReceiptParameters.OBSERVATIONS, receipt.getObservation() != null ? receipt.getObservation() : "");
     params.put(ReceiptParameters.LANDLORD_SIGNING_TEXT, signingText(contract.getLandlord()));
     return params;
   }
@@ -90,8 +90,8 @@ public class ReceiptTemplate extends PdfTemplate<ReceiptTemplate.ReceiptParamete
   }
 
   private String formatAddressForReceipt(Address address) {
-    return address.getAddress() + " nº " + address.getNumber() + ", " + address.getNeighborhood() + ", " + address.getCity() + "-" + address.getState()
-        .name();
+    String complement = address.getComplement() != null ? ", " + address.getComplement() : "";
+    return address.getAddress() + " nº " + address.getNumber() + complement + ", " + address.getNeighborhood() + ", " + address.getCity() + "-" + address.getState().name();
   }
 
   private String formatShortDate(java.time.LocalDate date) {
