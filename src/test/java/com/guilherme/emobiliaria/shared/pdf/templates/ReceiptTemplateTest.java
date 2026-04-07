@@ -15,16 +15,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ReceiptTemplateTest {
-
-  private static final int VALUES_TABLE_WIDTH = 60;
 
   private Address validAddress() {
     return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo", BrazilianState.SP);
@@ -63,37 +61,13 @@ class ReceiptTemplateTest {
         LocalDate.of(2026, 3, 31), 10000, 5000, null, validContract());
   }
 
-  private String expectedValuesTable(int rent, int discount, int fine, int totalPaid) {
-    return String.join("\n",
-        expectedDottedRow("aluguel do período", TemplateFormatter.formatCurrency(rent)),
-        expectedDottedRow("desconto", TemplateFormatter.formatCurrency(discount)),
-        expectedDottedRow("multa", TemplateFormatter.formatCurrency(fine)),
-        expectedDottedRow("valor pago", TemplateFormatter.formatCurrency(totalPaid)));
-  }
-
-  private String expectedDottedRow(String label, String value) {
-    int targetWidthInDots = VALUES_TABLE_WIDTH * 2;
-    int labelWidthInDots = expectedTextWidthInDots(label);
-    int valueWidthInDots = expectedValueTextWidthInDots(value);
-    int dots = Math.max(0, targetWidthInDots - labelWidthInDots - valueWidthInDots - 1);
-    return label + ".".repeat(dots) + " " + value;
-  }
-
-  private int expectedTextWidthInDots(String text) {
-    int width = 0;
-    for (int i = 0; i < text.length(); i++) {
-      width += text.charAt(i) == ' ' ? 1 : 2;
-    }
-    return width;
-  }
-
-  private int expectedValueTextWidthInDots(String text) {
-    int width = 0;
-    for (int i = 0; i < text.length(); i++) {
-      char ch = text.charAt(i);
-      width += (ch == ' ' || ch == '.' || ch == ',') ? 1 : 2;
-    }
-    return width;
+  private List<ReceiptTemplate.ValueRowBean> valuesRows(ReceiptTemplate template) {
+    EnumMap<ReceiptTemplate.ReceiptCollections, Collection<Object>> collections =
+        template.getCollections();
+    Collection<Object> rows = collections.get(ReceiptTemplate.ReceiptCollections.VALUES_TABLE_DATA);
+    List<ReceiptTemplate.ValueRowBean> castedRows = new ArrayList<>();
+    rows.forEach(row -> castedRows.add((ReceiptTemplate.ValueRowBean) row));
+    return castedRows;
   }
 
   @Nested
@@ -123,19 +97,18 @@ class ReceiptTemplateTest {
     }
 
     @Test
-    @DisplayName("When given a receipt, should return values table based on receipt amounts")
-    void shouldReturnValuesTable() {
+    @DisplayName(
+        "When given a receipt, should return values table data collection in getCollections")
+    void shouldNotExposeValuesTableAsParameter() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals(expectedValuesTable(150000, 0, 0, 150000),
-          params.get(ReceiptTemplate.ReceiptParameters.VALUES_TABLE_RTF));
+      assertEquals(5, params.size());
     }
 
     @Test
-    @DisplayName(
-        "When discount and fine are present, should calculate paid total in receipt text and values table")
+    @DisplayName("When discount and fine are present, should calculate paid total in receipt text")
     void shouldCalculatePaidTotal() {
       ReceiptTemplate template = new ReceiptTemplate(receiptWithDiscountAndFine());
 
@@ -144,8 +117,6 @@ class ReceiptTemplateTest {
       assertEquals(
           "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25 a quantia de R$ 1.450,00 (mil e quatrocentos e cinquenta reais)" + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
           params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TEXT));
-      assertEquals(expectedValuesTable(150000, 10000, 5000, 145000),
-          params.get(ReceiptTemplate.ReceiptParameters.VALUES_TABLE_RTF));
     }
 
     @Test
@@ -187,13 +158,33 @@ class ReceiptTemplateTest {
   class GetCollections {
 
     @Test
-    @DisplayName("When given a receipt, should return an empty collections map")
-    void shouldReturnEmptyCollections() {
+    @DisplayName("When given a receipt, should return values table rows")
+    void shouldReturnValuesTableRows() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
       EnumMap<ReceiptTemplate.ReceiptCollections, Collection<Object>> collections = template.getCollections();
 
-      assertTrue(collections.isEmpty());
+      assertEquals(1, collections.size());
+      List<ReceiptTemplate.ValueRowBean> rows = valuesRows(template);
+      assertEquals(4, rows.size());
+      assertEquals("aluguel do período", rows.get(0).getLabel());
+      assertEquals("R$ 1.500,00", rows.get(0).getValue());
+      assertEquals("desconto", rows.get(1).getLabel());
+      assertEquals("R$ 0,00", rows.get(1).getValue());
+      assertEquals("multa", rows.get(2).getLabel());
+      assertEquals("R$ 0,00", rows.get(2).getValue());
+      assertEquals("valor pago", rows.get(3).getLabel());
+      assertEquals("R$ 1.500,00", rows.get(3).getValue());
+    }
+
+    @Test
+    @DisplayName("When discount and fine are present, should return calculated paid total row")
+    void shouldReturnCalculatedTotalInValuesTableRows() {
+      ReceiptTemplate template = new ReceiptTemplate(receiptWithDiscountAndFine());
+
+      List<ReceiptTemplate.ValueRowBean> rows = valuesRows(template);
+
+      assertEquals("R$ 1.450,00", rows.get(3).getValue());
     }
   }
 }

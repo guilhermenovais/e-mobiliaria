@@ -3,7 +3,8 @@
               rightMargin="20" topMargin="20" bottomMargin="20" uuid="42eece36-4743-4972-9f90-335ac71165d9">
     <parameter name="receipt_title" forPrompting="false" class="java.lang.String"/>
     <parameter name="receipt_text" forPrompting="false" class="java.lang.String"/>
-    <parameter name="values_table_rtf" forPrompting="false" class="java.lang.String"/>
+    <parameter name="values_table_data" forPrompting="false"
+               class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
     <parameter name="observations" class="java.lang.String"/>
     <parameter name="city_and_date_text" forPrompting="false" class="java.lang.String"/>
     <parameter name="landlord_signing_text" forPrompting="false" class="java.lang.String"/>
@@ -20,10 +21,10 @@
                  hTextAlign="Center">
             <expression><![CDATA[$P{receipt_title}]]></expression>
         </element>
-        <element kind="textField" uuid="547009b0-fa3b-4d55-8fef-8f3b03024d3a" positionType="Float" x="33" y="94"
-                 width="497" height="20" markup="html" fontName="Arial" textAdjust="StretchHeight"
-                 hTextAlign="Justified">
-            <expression><![CDATA[$P{values_table_rtf}]]></expression>
+        <element kind="subreport" uuid="547009b0-fa3b-4d55-8fef-8f3b03024d3a" positionType="Float" x="33" y="94"
+                 width="497" height="20">
+            <dataSourceExpression><![CDATA[$P{values_table_data}]]></dataSourceExpression>
+            <expression><![CDATA["reports/values_table.jasper"]]></expression>
         </element>
         <element kind="textField" uuid="e512fa4b-4caa-40d4-a6b0-e0edcd9c0c34" positionType="Float" x="33" y="172"
                  width="497" height="20" markup="html" fontName="Arial" textAdjust="StretchHeight" hTextAlign="Center"
