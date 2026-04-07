@@ -123,6 +123,7 @@ date intervalStart
 date intervalEnd
 int discount
 int fine
+string observations
 }
 
 Receipt "*" --> "1" Contract : payment is for
