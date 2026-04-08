@@ -12,6 +12,7 @@ module com.guilherme.emobiliaria {
   requires org.slf4j;
   requires ch.qos.logback.classic;
   requires java.net.http;
+  requires java.desktop;
 
   opens com.guilherme.emobiliaria to javafx.fxml;
   exports com.guilherme.emobiliaria;

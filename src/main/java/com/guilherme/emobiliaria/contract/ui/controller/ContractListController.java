@@ -32,8 +32,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser;
-
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -253,28 +252,19 @@ public class ContractListController {
   }
 
   private void handleGeneratePdf(Contract contract) {
-    Task<GenerateContractPdfOutput> task = new Task<>() {
+    Task<Void> task = new Task<>() {
       @Override
-      protected GenerateContractPdfOutput call() {
-        return generatePdf.execute(new GenerateContractPdfInput(contract.getId()));
+      protected Void call() throws Exception {
+        byte[] pdfBytes = generatePdf.execute(new GenerateContractPdfInput(contract.getId())).pdfBytes();
+        File tmp = File.createTempFile("contrato_" + contract.getId() + "_", ".pdf");
+        tmp.deleteOnExit();
+        try (FileOutputStream fos = new FileOutputStream(tmp)) {
+          fos.write(pdfBytes);
+        }
+        Desktop.getDesktop().open(tmp);
+        return null;
       }
     };
-
-    task.setOnSucceeded(e -> {
-      byte[] pdfBytes = task.getValue().pdfBytes();
-      FileChooser chooser = new FileChooser();
-      chooser.setTitle("Salvar PDF do Contrato");
-      chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
-      chooser.setInitialFileName("contrato_" + contract.getId() + ".pdf");
-      File file = chooser.showSaveDialog(tableView.getScene().getWindow());
-      if (file != null) {
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-          fos.write(pdfBytes);
-        } catch (IOException ex) {
-          ErrorHandler.handle(ex, bundle);
-        }
-      }
-    });
 
     task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
     new Thread(task).start();
