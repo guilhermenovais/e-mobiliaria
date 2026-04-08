@@ -49,9 +49,9 @@ public class EditContractInteractor {
     Property property = propertyRepository.findById(input.propertyId())
         .orElseThrow(() -> new BusinessException(ErrorMessage.Property.NOT_FOUND));
     Person landlord = resolvePerson(input.landlord());
-    List<Person> tenants = input.tenants().stream()
-        .map(this::resolvePerson)
-        .toList();
+    List<Person> tenants = resolvePeople(input.tenants());
+    List<Person> guarantors = resolvePeople(input.guarantors());
+    List<Person> witnesses = resolvePeople(input.witnesses());
     contract.setStartDate(input.startDate());
     contract.setDuration(input.duration());
     contract.setPaymentDay(input.paymentDay());
@@ -60,6 +60,8 @@ public class EditContractInteractor {
     contract.setProperty(property);
     contract.setLandlord(landlord);
     contract.setTenants(tenants);
+    contract.setGuarantors(guarantors);
+    contract.setWitnesses(witnesses);
     Contract updated = contractRepository.update(contract);
     return new EditContractOutput(updated);
   }
@@ -71,5 +73,14 @@ public class EditContractInteractor {
       case JURIDICAL -> juridicalPersonRepository.findById(ref.id())
           .orElseThrow(() -> new BusinessException(ErrorMessage.JuridicalPerson.NOT_FOUND));
     };
+  }
+
+  private List<Person> resolvePeople(List<PersonReference> references) {
+    if (references == null) {
+      return List.of();
+    }
+    return references.stream()
+        .map(this::resolvePerson)
+        .toList();
   }
 }

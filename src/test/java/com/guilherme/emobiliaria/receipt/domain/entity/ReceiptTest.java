@@ -49,7 +49,7 @@ class ReceiptTest {
     PaymentAccount paymentAccount =
         PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null);
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, paymentAccount,
-        validProperty(), validPerson(), List.of(validPerson()));
+        validProperty(), validPerson(), List.of(validPerson()), List.of(), List.of());
   }
 
   private Receipt validReceipt() {

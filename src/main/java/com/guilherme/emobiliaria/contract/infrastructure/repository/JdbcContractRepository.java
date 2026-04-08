@@ -57,6 +57,8 @@ public class JdbcContractRepository implements ContractRepository {
         contract.setId(keys.getLong(1));
       }
       insertTenants(conn, contract.getId(), contract.getTenants());
+      insertGuarantors(conn, contract.getId(), contract.getGuarantors());
+      insertWitnesses(conn, contract.getId(), contract.getWitnesses());
       return contract;
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, e);
@@ -82,6 +84,10 @@ public class JdbcContractRepository implements ContractRepository {
       }
       deleteTenants(conn, contract.getId());
       insertTenants(conn, contract.getId(), contract.getTenants());
+      deleteGuarantors(conn, contract.getId());
+      insertGuarantors(conn, contract.getId(), contract.getGuarantors());
+      deleteWitnesses(conn, contract.getId());
+      insertWitnesses(conn, contract.getId(), contract.getWitnesses());
       return contract;
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, e);
@@ -185,6 +191,8 @@ public class JdbcContractRepository implements ContractRepository {
     Property property = loadProperty(conn, rs.getLong("property_id"));
     Person landlord = loadPerson(conn, rs.getLong("landlord_id"), rs.getString("landlord_type"));
     List<Person> tenants = loadTenants(conn, id);
+    List<Person> guarantors = loadGuarantors(conn, id);
+    List<Person> witnesses = loadWitnesses(conn, id);
     return Contract.restore(
         id,
         rs.getDate("start_date").toLocalDate(),
@@ -194,7 +202,9 @@ public class JdbcContractRepository implements ContractRepository {
         paymentAccount,
         property,
         landlord,
-        tenants
+        tenants,
+        guarantors,
+        witnesses
     );
   }
 
@@ -331,6 +341,74 @@ public class JdbcContractRepository implements ContractRepository {
 
   private void deleteTenants(Connection conn, long contractId) throws SQLException {
     String sql = "DELETE FROM contract_tenants WHERE contract_id=?";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, contractId);
+      stmt.executeUpdate();
+    }
+  }
+
+  private List<Person> loadGuarantors(Connection conn, long contractId) throws SQLException {
+    String sql = "SELECT guarantor_id, guarantor_type FROM contract_guarantors WHERE contract_id=? ORDER BY id";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, contractId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        List<Person> guarantors = new ArrayList<>();
+        while (rs.next()) {
+          guarantors.add(loadPerson(conn, rs.getLong("guarantor_id"), rs.getString("guarantor_type")));
+        }
+        return guarantors;
+      }
+    }
+  }
+
+  private void insertGuarantors(Connection conn, long contractId, List<Person> guarantors) throws SQLException {
+    String sql = "INSERT INTO contract_guarantors (contract_id, guarantor_id, guarantor_type) VALUES (?, ?, ?)";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      for (Person guarantor : guarantors) {
+        stmt.setLong(1, contractId);
+        stmt.setLong(2, guarantor.getId());
+        stmt.setString(3, personType(guarantor));
+        stmt.executeUpdate();
+      }
+    }
+  }
+
+  private void deleteGuarantors(Connection conn, long contractId) throws SQLException {
+    String sql = "DELETE FROM contract_guarantors WHERE contract_id=?";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, contractId);
+      stmt.executeUpdate();
+    }
+  }
+
+  private List<Person> loadWitnesses(Connection conn, long contractId) throws SQLException {
+    String sql = "SELECT witness_id, witness_type FROM contract_witnesses WHERE contract_id=? ORDER BY id";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, contractId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        List<Person> witnesses = new ArrayList<>();
+        while (rs.next()) {
+          witnesses.add(loadPerson(conn, rs.getLong("witness_id"), rs.getString("witness_type")));
+        }
+        return witnesses;
+      }
+    }
+  }
+
+  private void insertWitnesses(Connection conn, long contractId, List<Person> witnesses) throws SQLException {
+    String sql = "INSERT INTO contract_witnesses (contract_id, witness_id, witness_type) VALUES (?, ?, ?)";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      for (Person witness : witnesses) {
+        stmt.setLong(1, contractId);
+        stmt.setLong(2, witness.getId());
+        stmt.setString(3, personType(witness));
+        stmt.executeUpdate();
+      }
+    }
+  }
+
+  private void deleteWitnesses(Connection conn, long contractId) throws SQLException {
+    String sql = "DELETE FROM contract_witnesses WHERE contract_id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, contractId);
       stmt.executeUpdate();

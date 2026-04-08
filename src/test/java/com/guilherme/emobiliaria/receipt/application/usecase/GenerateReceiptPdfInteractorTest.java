@@ -82,7 +82,7 @@ class GenerateReceiptPdfInteractorTest {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     return createContractInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1),
         Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef,
-        List.of(personRef))).contract().getId();
+        List.of(personRef), List.of(), List.of())).contract().getId();
   }
 
   private Long createReceipt(Long contractId) {

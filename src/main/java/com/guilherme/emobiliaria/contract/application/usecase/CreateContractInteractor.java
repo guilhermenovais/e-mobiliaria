@@ -47,9 +47,9 @@ public class CreateContractInteractor {
     Property property = propertyRepository.findById(input.propertyId())
         .orElseThrow(() -> new BusinessException(ErrorMessage.Property.NOT_FOUND));
     Person landlord = resolvePerson(input.landlord());
-    List<Person> tenants = input.tenants().stream()
-        .map(this::resolvePerson)
-        .toList();
+    List<Person> tenants = resolvePeople(input.tenants());
+    List<Person> guarantors = resolvePeople(input.guarantors());
+    List<Person> witnesses = resolvePeople(input.witnesses());
     Contract contract = Contract.create(
         input.startDate(),
         input.duration(),
@@ -58,7 +58,9 @@ public class CreateContractInteractor {
         paymentAccount,
         property,
         landlord,
-        tenants
+        tenants,
+        guarantors,
+        witnesses
     );
     Contract created = contractRepository.create(contract);
     return new CreateContractOutput(created);
@@ -71,5 +73,14 @@ public class CreateContractInteractor {
       case JURIDICAL -> juridicalPersonRepository.findById(ref.id())
           .orElseThrow(() -> new BusinessException(ErrorMessage.JuridicalPerson.NOT_FOUND));
     };
+  }
+
+  private List<Person> resolvePeople(List<PersonReference> references) {
+    if (references == null) {
+      return List.of();
+    }
+    return references.stream()
+        .map(this::resolvePerson)
+        .toList();
   }
 }

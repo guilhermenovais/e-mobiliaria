@@ -173,6 +173,8 @@ public class JdbcReceiptRepository implements ReceiptRepository {
         Property property = loadProperty(conn, rs.getLong("property_id"));
         Person landlord = loadPerson(conn, rs.getLong("landlord_id"), rs.getString("landlord_type"));
         List<Person> tenants = loadTenants(conn, id);
+        List<Person> guarantors = loadGuarantors(conn, id);
+        List<Person> witnesses = loadWitnesses(conn, id);
         return Contract.restore(
             rs.getLong("id"),
             rs.getDate("start_date").toLocalDate(),
@@ -182,7 +184,9 @@ public class JdbcReceiptRepository implements ReceiptRepository {
             paymentAccount,
             property,
             landlord,
-            tenants
+            tenants,
+            guarantors,
+            witnesses
         );
       }
     }
@@ -303,6 +307,34 @@ public class JdbcReceiptRepository implements ReceiptRepository {
           tenants.add(loadPerson(conn, rs.getLong("tenant_id"), rs.getString("tenant_type")));
         }
         return tenants;
+      }
+    }
+  }
+
+  private List<Person> loadGuarantors(Connection conn, long contractId) throws SQLException {
+    String sql = "SELECT guarantor_id, guarantor_type FROM contract_guarantors WHERE contract_id=? ORDER BY id";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, contractId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        List<Person> guarantors = new ArrayList<>();
+        while (rs.next()) {
+          guarantors.add(loadPerson(conn, rs.getLong("guarantor_id"), rs.getString("guarantor_type")));
+        }
+        return guarantors;
+      }
+    }
+  }
+
+  private List<Person> loadWitnesses(Connection conn, long contractId) throws SQLException {
+    String sql = "SELECT witness_id, witness_type FROM contract_witnesses WHERE contract_id=? ORDER BY id";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, contractId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        List<Person> witnesses = new ArrayList<>();
+        while (rs.next()) {
+          witnesses.add(loadPerson(conn, rs.getLong("witness_id"), rs.getString("witness_type")));
+        }
+        return witnesses;
       }
     }
   }

@@ -47,7 +47,7 @@ class ReceiptTemplateTest {
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
         150000,
         PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null),
-        validProperty(), validLandlord(), List.of(validTenant()));
+        validProperty(), validLandlord(), List.of(validTenant()), List.of(), List.of());
   }
 
   private Receipt validReceipt() {

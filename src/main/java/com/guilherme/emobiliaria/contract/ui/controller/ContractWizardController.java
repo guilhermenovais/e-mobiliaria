@@ -18,11 +18,13 @@ import com.guilherme.emobiliaria.contract.application.usecase.FindContractByIdIn
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.contract.ui.component.ContractDetailsStepPane;
+import com.guilherme.emobiliaria.contract.ui.component.ContractGuarantorsStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractLandlordStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractPaymentAccountStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractPropertyStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractReviewStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractTenantsStepPane;
+import com.guilherme.emobiliaria.contract.ui.component.ContractWitnessesStepPane;
 import com.guilherme.emobiliaria.person.application.input.FindAllJuridicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllPhysicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
@@ -67,7 +69,7 @@ public class ContractWizardController {
       "/com/guilherme/emobiliaria/contract/ui/view/contract-wizard-view.fxml";
 
   private static final int LOAD_ALL_LIMIT = 10_000;
-  private static final int TOTAL_STEPS = 6;
+  private static final int TOTAL_STEPS = 8;
 
   // ── Injected use cases ─────────────────────────────────────────────────────
 
@@ -130,6 +132,8 @@ public class ContractWizardController {
   private ContractPropertyStepPane propertyPane;
   private ContractLandlordStepPane landlordPane;
   private ContractTenantsStepPane tenantsPane;
+  private ContractGuarantorsStepPane guarantorsPane;
+  private ContractWitnessesStepPane witnessesPane;
   private ContractDetailsStepPane detailsPane;
   private ContractPaymentAccountStepPane accountPane;
   private ContractReviewStepPane reviewPane;
@@ -175,6 +179,8 @@ public class ContractWizardController {
         bundle.getString("contract.wizard.stepper.property"),
         bundle.getString("contract.wizard.stepper.landlord"),
         bundle.getString("contract.wizard.stepper.tenants"),
+        bundle.getString("contract.wizard.stepper.guarantors"),
+        bundle.getString("contract.wizard.stepper.witnesses"),
         bundle.getString("contract.wizard.stepper.details"),
         bundle.getString("contract.wizard.stepper.account"),
         bundle.getString("contract.wizard.stepper.review")
@@ -255,6 +261,12 @@ public class ContractWizardController {
     tenantsPane = new ContractTenantsStepPane(bundle);
     tenantsPane.setAllPersons(data.allPersons());
 
+    guarantorsPane = new ContractGuarantorsStepPane(bundle);
+    guarantorsPane.setAllPersons(data.allPersons());
+
+    witnessesPane = new ContractWitnessesStepPane(bundle);
+    witnessesPane.setAllPersons(data.allPersons());
+
     detailsPane = new ContractDetailsStepPane(bundle);
 
     accountPane = new ContractPaymentAccountStepPane(bundle);
@@ -267,6 +279,8 @@ public class ContractWizardController {
     propertyPane.populate(contract.getProperty());
     landlordPane.populate(contract.getLandlord());
     tenantsPane.populate(contract.getTenants());
+    guarantorsPane.populate(contract.getGuarantors());
+    witnessesPane.populate(contract.getWitnesses());
     detailsPane.populate(
         contract.getStartDate(),
         contract.getDuration().toTotalMonths() > 0
@@ -302,9 +316,11 @@ public class ContractWizardController {
       case 1 -> propertyPane;
       case 2 -> landlordPane;
       case 3 -> tenantsPane;
-      case 4 -> detailsPane;
-      case 5 -> accountPane;
-      case 6 -> {
+      case 4 -> guarantorsPane;
+      case 5 -> witnessesPane;
+      case 6 -> detailsPane;
+      case 7 -> accountPane;
+      case 8 -> {
         populateReview();
         yield reviewPane;
       }
@@ -328,6 +344,8 @@ public class ContractWizardController {
         propertyPane.getSelectedProperty(),
         landlordPane.getSelectedLandlord(),
         tenantsPane.getSelectedTenants(),
+        guarantorsPane.getSelectedGuarantors(),
+        witnessesPane.getSelectedWitnesses(),
         detailsPane.getStartDate(),
         detailsPane.getDurationMonths(),
         detailsPane.getRentCents(),
@@ -357,8 +375,10 @@ public class ContractWizardController {
       case 1 -> propertyPane.validate();
       case 2 -> landlordPane.validate();
       case 3 -> tenantsPane.validate();
-      case 4 -> detailsPane.validate();
-      case 5 -> accountPane.validate();
+      case 4 -> guarantorsPane.validate();
+      case 5 -> witnessesPane.validate();
+      case 6 -> detailsPane.validate();
+      case 7 -> accountPane.validate();
       default -> true;
     };
   }
@@ -400,8 +420,16 @@ public class ContractWizardController {
     Property property = propertyPane.getSelectedProperty();
     Person landlord = landlordPane.getSelectedLandlord();
     List<Person> tenants = tenantsPane.getSelectedTenants();
+    List<Person> guarantors = guarantorsPane.getSelectedGuarantors();
+    List<Person> witnesses = witnessesPane.getSelectedWitnesses();
 
     List<PersonReference> tenantRefs = tenants.stream()
+        .map(this::toPersonReference)
+        .toList();
+    List<PersonReference> guarantorRefs = guarantors.stream()
+        .map(this::toPersonReference)
+        .toList();
+    List<PersonReference> witnessRefs = witnesses.stream()
         .map(this::toPersonReference)
         .toList();
     PersonReference landlordRef = toPersonReference(landlord);
@@ -416,7 +444,9 @@ public class ContractWizardController {
           accountId,
           property.getId(),
           landlordRef,
-          tenantRefs
+          tenantRefs,
+          guarantorRefs,
+          witnessRefs
       );
 
       Task<Void> task = new Task<>() {
@@ -440,7 +470,9 @@ public class ContractWizardController {
           accountId,
           property.getId(),
           landlordRef,
-          tenantRefs
+          tenantRefs,
+          guarantorRefs,
+          witnessRefs
       );
 
       Task<CreateContractOutput> task = new Task<>() {

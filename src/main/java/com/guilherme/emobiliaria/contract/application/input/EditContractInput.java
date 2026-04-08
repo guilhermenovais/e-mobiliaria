@@ -13,5 +13,7 @@ public record EditContractInput(
     Long paymentAccountId,
     Long propertyId,
     PersonReference landlord,
-    List<PersonReference> tenants
+    List<PersonReference> tenants,
+    List<PersonReference> guarantors,
+    List<PersonReference> witnesses
 ) {}

@@ -53,7 +53,7 @@ class PdfGenerationServiceTest {
             "COPASA-001", "IPTU-001", validAddress());
     PaymentAccount account = PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null);
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, account, property,
-        validLandlord(), List.of(validTenant()));
+        validLandlord(), List.of(validTenant()), List.of(), List.of());
   }
 
   private boolean isPdf(byte[] bytes) {

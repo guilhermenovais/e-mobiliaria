@@ -78,7 +78,7 @@ class CreateContractInteractorTest {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     return new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
         150000,
-        paymentAccountId, propertyId, personRef, List.of(personRef));
+        paymentAccountId, propertyId, personRef, List.of(personRef), List.of(), List.of());
   }
 
   @Nested
@@ -129,7 +129,7 @@ class CreateContractInteractorTest {
       PersonReference missingPerson = new PersonReference(999L, PersonType.PHYSICAL);
       CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
           Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, missingPerson,
-          List.of(missingPerson));
+          List.of(missingPerson), List.of(), List.of());
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.PhysicalPerson.NOT_FOUND, ex.getErrorMessage());
@@ -145,7 +145,7 @@ class CreateContractInteractorTest {
       PersonReference missingTenant = new PersonReference(999L, PersonType.PHYSICAL);
       CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
           Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, landlord,
-          List.of(missingTenant));
+          List.of(missingTenant), List.of(), List.of());
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.PhysicalPerson.NOT_FOUND, ex.getErrorMessage());

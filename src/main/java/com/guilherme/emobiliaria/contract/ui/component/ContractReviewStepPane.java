@@ -21,6 +21,8 @@ public class ContractReviewStepPane extends VBox {
   private final VBox propertySection = new VBox(4);
   private final VBox landlordSection = new VBox(4);
   private final VBox tenantsSection = new VBox(4);
+  private final VBox guarantorsSection = new VBox(4);
+  private final VBox witnessesSection = new VBox(4);
   private final VBox detailsSection = new VBox(4);
   private final VBox accountSection = new VBox(4);
 
@@ -37,11 +39,19 @@ public class ContractReviewStepPane extends VBox {
     propertySection.getStyleClass().add("wizard-review-section");
     landlordSection.getStyleClass().add("wizard-review-section");
     tenantsSection.getStyleClass().add("wizard-review-section");
+    guarantorsSection.getStyleClass().add("wizard-review-section");
+    witnessesSection.getStyleClass().add("wizard-review-section");
     detailsSection.getStyleClass().add("wizard-review-section");
     accountSection.getStyleClass().add("wizard-review-section");
 
     container.getChildren().addAll(
-        propertySection, landlordSection, tenantsSection, detailsSection, accountSection);
+        propertySection,
+        landlordSection,
+        tenantsSection,
+        guarantorsSection,
+        witnessesSection,
+        detailsSection,
+        accountSection);
 
     ScrollPane scroll = new ScrollPane(container);
     scroll.setFitToWidth(true);
@@ -52,12 +62,14 @@ public class ContractReviewStepPane extends VBox {
   }
 
   public void populate(Property property, Person landlord, List<Person> tenants,
+      List<Person> guarantors, List<Person> witnesses,
       LocalDate startDate, int durationMonths, int rentCents, int paymentDay,
       PaymentAccount account) {
 
     // Property
     propertySection.getChildren().clear();
-    propertySection.getChildren().add(sectionHeader(bundle.getString("contract.wizard.step6.section.property")));
+    propertySection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.property")));
     if (property.getAddress() != null) {
       var addr = property.getAddress();
       String address = addr.getAddress() + ", " + addr.getNumber()
@@ -69,19 +81,50 @@ public class ContractReviewStepPane extends VBox {
 
     // Landlord
     landlordSection.getChildren().clear();
-    landlordSection.getChildren().add(sectionHeader(bundle.getString("contract.wizard.step6.section.landlord")));
+    landlordSection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.landlord")));
     landlordSection.getChildren().add(sectionValue(ContractLandlordStepPane.displayName(landlord)));
 
     // Tenants
     tenantsSection.getChildren().clear();
-    tenantsSection.getChildren().add(sectionHeader(bundle.getString("contract.wizard.step6.section.tenants")));
+    tenantsSection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.tenants")));
     for (Person tenant : tenants) {
       tenantsSection.getChildren().add(sectionValue(ContractLandlordStepPane.displayName(tenant)));
     }
 
+    // Guarantors
+    guarantorsSection.getChildren().clear();
+    guarantorsSection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.guarantors")));
+    if (guarantors.isEmpty()) {
+      guarantorsSection.getChildren()
+          .add(sectionValue(bundle.getString("contract.wizard.step8.section.none")));
+    } else {
+      for (Person guarantor : guarantors) {
+        guarantorsSection.getChildren()
+            .add(sectionValue(ContractLandlordStepPane.displayName(guarantor)));
+      }
+    }
+
+    // Witnesses
+    witnessesSection.getChildren().clear();
+    witnessesSection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.witnesses")));
+    if (witnesses.isEmpty()) {
+      witnessesSection.getChildren()
+          .add(sectionValue(bundle.getString("contract.wizard.step8.section.none")));
+    } else {
+      for (Person witness : witnesses) {
+        witnessesSection.getChildren()
+            .add(sectionValue(ContractLandlordStepPane.displayName(witness)));
+      }
+    }
+
     // Details
     detailsSection.getChildren().clear();
-    detailsSection.getChildren().add(sectionHeader(bundle.getString("contract.wizard.step6.section.details")));
+    detailsSection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.details")));
     detailsSection.getChildren().add(sectionValue(
         "Data de Início: " + startDate.format(DATE_FMT) + " | Duração: " + durationMonths + " meses"));
     detailsSection.getChildren().add(sectionValue(
@@ -90,7 +133,8 @@ public class ContractReviewStepPane extends VBox {
 
     // Account
     accountSection.getChildren().clear();
-    accountSection.getChildren().add(sectionHeader(bundle.getString("contract.wizard.step6.section.account")));
+    accountSection.getChildren().add(
+        sectionHeader(bundle.getString("contract.wizard.step8.section.account")));
     if (account != null) {
       accountSection.getChildren().add(sectionValue(
           account.getBank() + " - Agência " + account.getBankBranch()
@@ -100,7 +144,7 @@ public class ContractReviewStepPane extends VBox {
       }
     } else {
       accountSection.getChildren()
-          .add(sectionValue(bundle.getString("contract.wizard.step6.section.account.empty")));
+          .add(sectionValue(bundle.getString("contract.wizard.step8.section.account.empty")));
     }
   }
 

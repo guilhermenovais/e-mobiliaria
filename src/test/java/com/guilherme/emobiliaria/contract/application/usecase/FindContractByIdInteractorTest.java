@@ -69,7 +69,8 @@ class FindContractByIdInteractorTest {
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef, List.of(personRef));
+        Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef,
+        List.of(personRef), List.of(), List.of());
     return createInteractor.execute(input).contract().getId();
   }
 

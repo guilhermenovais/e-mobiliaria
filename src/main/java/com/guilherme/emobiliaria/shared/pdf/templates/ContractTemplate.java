@@ -56,6 +56,15 @@ public class ContractTemplate
     String tenantsText = contract.getTenants().stream()
         .map(t -> bold("LOCATÁRIO(A): ") + TemplateFormatter.formatPersonForContract(t))
         .collect(Collectors.joining("<br>"));
+    String guarantorsText = contract.getGuarantors().stream()
+        .map(g -> bold("FIADOR(A): ") + TemplateFormatter.formatPersonForContract(g))
+        .collect(Collectors.joining("<br>"));
+    String witnessesText = contract.getWitnesses().stream()
+        .map(w -> bold("TESTEMUNHA: ") + TemplateFormatter.formatPersonForContract(w))
+        .collect(Collectors.joining("<br>"));
+    String allPartiesText = tenantsText
+        + (guarantorsText.isEmpty() ? "" : "<br>" + guarantorsText)
+        + (witnessesText.isEmpty() ? "" : "<br>" + witnessesText);
 
     String paymentMethodText = bold(
         "Dia de pagamento: ") + contract.getPaymentDay() + " (" + TemplateFormatter.numberInWords(
@@ -68,7 +77,7 @@ public class ContractTemplate
     params.put(ContractParameters.CONTRACT_TITLE, "CONTRATO DE LOCAÇÃO");
     params.put(ContractParameters.LANDLORD_TEXT,
         bold("LOCADOR: ") + TemplateFormatter.formatPersonForContract(contract.getLandlord()));
-    params.put(ContractParameters.TENANTS_TEXT, tenantsText);
+    params.put(ContractParameters.TENANTS_TEXT, allPartiesText);
     params.put(ContractParameters.PROPERTY_SECTION_TITLE, "IMÓVEL OBJETO DESTA LOCAÇÃO:");
     params.put(ContractParameters.PROPERTY_TYPE_TEXT, bold("Tipo: ") + property.getType());
     params.put(ContractParameters.PROPERTY_ADDRESS_TEXT,
@@ -104,6 +113,8 @@ public class ContractTemplate
     List<Object> signingEntries = new ArrayList<>();
     signingEntries.add(new TextBean(signingText(contract.getLandlord())));
     contract.getTenants().forEach(t -> signingEntries.add(new TextBean(signingText(t))));
+    contract.getGuarantors().forEach(g -> signingEntries.add(new TextBean(signingText(g))));
+    contract.getWitnesses().forEach(w -> signingEntries.add(new TextBean(signingText(w))));
 
     EnumMap<ContractCollections, Collection<Object>> collections =
         new EnumMap<>(ContractCollections.class);

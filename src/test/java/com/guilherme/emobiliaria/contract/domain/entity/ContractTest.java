@@ -51,7 +51,8 @@ class ContractTest {
   private Contract validContract() {
     return Contract.create(VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
         VALID_RENT,
-        validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()));
+        validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
+        List.of());
   }
 
   @Nested
@@ -79,7 +80,8 @@ class ContractTest {
     void shouldRestoreWithId() {
       Contract contract = Contract.restore(42L, VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
           VALID_RENT,
-          validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()));
+          validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
+          List.of());
 
       assertEquals(42L, contract.getId());
     }

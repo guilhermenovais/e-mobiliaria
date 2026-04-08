@@ -50,7 +50,7 @@ class ContractTemplateTest {
         "CX 1 INSTALAÇÃO Nº3007687953", "MATRÍCULA Nº103765573", "000920280359002",
         propertyAddress());
     return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, account,
-        property, landlord(), List.of(tenant()));
+        property, landlord(), List.of(tenant()), List.of(), List.of());
   }
 
   @Nested
@@ -232,7 +232,7 @@ class ContractTemplateTest {
           propertyAddress());
       Contract contract =
           Contract.create(LocalDate.of(2025, 1, 1), Period.ofMonths(6), 5, 100000, account,
-              property, landlord(), List.of(tenant(), tenant()));
+              property, landlord(), List.of(tenant(), tenant()), List.of(), List.of());
       ContractTemplate template = new ContractTemplate(contract);
 
       Collection<Object> signingTexts =

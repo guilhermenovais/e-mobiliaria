@@ -19,12 +19,15 @@ public class Contract {
   private Property property;
   private Person landlord;
   private List<Person> tenants;
+  private List<Person> guarantors;
+  private List<Person> witnesses;
 
   private Contract() {
   }
 
   public static Contract create(LocalDate startDate, Period duration, int paymentDay, int rent,
-      PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants) {
+      PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants,
+      List<Person> guarantors, List<Person> witnesses) {
     Contract contract = new Contract();
     contract.setStartDate(startDate);
     contract.setDuration(duration);
@@ -34,14 +37,18 @@ public class Contract {
     contract.setProperty(property);
     contract.setLandlord(landlord);
     contract.setTenants(tenants);
+    contract.setGuarantors(guarantors);
+    contract.setWitnesses(witnesses);
     return contract;
   }
 
   public static Contract restore(Long id, LocalDate startDate, Period duration, int paymentDay,
       int rent,
-      PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants) {
+      PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants,
+      List<Person> guarantors, List<Person> witnesses) {
     Contract contract =
-        create(startDate, duration, paymentDay, rent, paymentAccount, property, landlord, tenants);
+        create(startDate, duration, paymentDay, rent, paymentAccount, property, landlord, tenants,
+            guarantors, witnesses);
     contract.setId(id);
     return contract;
   }
@@ -140,5 +147,21 @@ public class Contract {
       throw new BusinessException(ErrorMessage.Contract.TENANTS_EMPTY);
     }
     this.tenants = tenants;
+  }
+
+  public List<Person> getGuarantors() {
+    return guarantors;
+  }
+
+  public void setGuarantors(List<Person> guarantors) {
+    this.guarantors = guarantors == null ? List.of() : guarantors;
+  }
+
+  public List<Person> getWitnesses() {
+    return witnesses;
+  }
+
+  public void setWitnesses(List<Person> witnesses) {
+    this.witnesses = witnesses == null ? List.of() : witnesses;
   }
 }

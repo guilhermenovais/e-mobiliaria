@@ -86,8 +86,9 @@ class ContractReviewStepPaneTest {
     List<String> values = onFX(() -> {
       ContractReviewStepPane pane = new ContractReviewStepPane(messages());
       pane.populate(sampleProperty(), samplePerson("Locador", "52998224725"),
-          List.of(samplePerson("Locatário", "11144477735")), LocalDate.of(2026, 1, 1), 12, 150000,
-          5, PaymentAccount.restore(10L, "Banco XPTO", "1234", "998877", "pix-x"));
+          List.of(samplePerson("Locatário", "11144477735")), List.of(), List.of(),
+          LocalDate.of(2026, 1, 1), 12, 150000, 5,
+          PaymentAccount.restore(10L, "Banco XPTO", "1234", "998877", "pix-x"));
 
       return accountSectionTexts(pane);
     });
@@ -99,13 +100,13 @@ class ContractReviewStepPaneTest {
   @Test
   @DisplayName("Should render empty-account message in review when account is null")
   void shouldRenderEmptyAccountMessageInReviewWhenAccountIsNull() throws Exception {
-    String emptyMessage = messages().getString("contract.wizard.step6.section.account.empty");
+    String emptyMessage = messages().getString("contract.wizard.step8.section.account.empty");
 
     List<String> values = onFX(() -> {
       ContractReviewStepPane pane = new ContractReviewStepPane(messages());
       pane.populate(sampleProperty(), samplePerson("Locador", "52998224725"),
-          List.of(samplePerson("Locatário", "11144477735")), LocalDate.of(2026, 1, 1), 12, 150000,
-          5, null);
+          List.of(samplePerson("Locatário", "11144477735")), List.of(), List.of(),
+          LocalDate.of(2026, 1, 1), 12, 150000, 5, null);
 
       return accountSectionTexts(pane);
     });
