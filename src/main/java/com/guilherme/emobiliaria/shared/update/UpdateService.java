@@ -155,7 +155,7 @@ public class UpdateService {
 
     ProcessBuilder pb;
     if (isWindows) {
-      pb = new ProcessBuilder("cmd.exe", "/c", "start", "", launcher.toString());
+      pb = new ProcessBuilder("cmd.exe", "/c", "start \"\" \"" + launcher + "\"");
     } else {
       launcher.toFile().setExecutable(true);
       pb = new ProcessBuilder(launcher.toString());
