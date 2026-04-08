@@ -8,6 +8,7 @@ module com.guilherme.emobiliaria {
   requires com.zaxxer.hikari;
   requires com.h2database;
   requires flyway.core;
+  requires com.fasterxml.jackson.databind;
   requires org.slf4j;
   requires ch.qos.logback.classic;
   requires java.net.http;
