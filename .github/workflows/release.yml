@@ -87,6 +87,7 @@ jobs:
             --win-menu \
             --win-menu-group "e-Mobiliaria" \
             --win-dir-chooser \
+            --win-console \
             --win-shortcut
           mv "target/e-Mobiliaria-${VERSION}.exe" "target/e-mobiliaria-${VERSION}-setup.exe"
 
