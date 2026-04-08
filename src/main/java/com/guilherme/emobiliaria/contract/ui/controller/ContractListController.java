@@ -31,6 +31,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
 import java.awt.Desktop;
 import java.io.File;
@@ -251,7 +252,13 @@ public class ContractListController {
     new Thread(task).start();
   }
 
-  private void handleGeneratePdf(Contract contract) {
+  private void handleGeneratePdf(Contract contract, Button pdfBtn) {
+    ProgressIndicator spinner = new ProgressIndicator();
+    spinner.setMaxSize(16, 16);
+    pdfBtn.setGraphic(spinner);
+    pdfBtn.setText("");
+    pdfBtn.setDisable(true);
+
     Task<Void> task = new Task<>() {
       @Override
       protected Void call() throws Exception {
@@ -266,7 +273,17 @@ public class ContractListController {
       }
     };
 
-    task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
+    task.setOnSucceeded(e -> {
+      pdfBtn.setGraphic(null);
+      pdfBtn.setText(bundle.getString("contract.list.button.generate_pdf"));
+      pdfBtn.setDisable(false);
+    });
+    task.setOnFailed(e -> {
+      pdfBtn.setGraphic(null);
+      pdfBtn.setText(bundle.getString("contract.list.button.generate_pdf"));
+      pdfBtn.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
     new Thread(task).start();
   }
 
@@ -330,7 +347,7 @@ public class ContractListController {
       });
       pdfBtn.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
-        handleGeneratePdf(contract);
+        handleGeneratePdf(contract, pdfBtn);
       });
       receiptsBtn.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());

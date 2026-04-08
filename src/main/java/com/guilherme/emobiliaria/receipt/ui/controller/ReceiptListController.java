@@ -34,6 +34,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import org.slf4j.Logger;
@@ -359,7 +360,13 @@ public class ReceiptListController {
 
   // ── Generate PDF ───────────────────────────────────────────────────────────
 
-  private void handleGeneratePdf(Receipt receipt) {
+  private void handleGeneratePdf(Receipt receipt, Button pdfBtn) {
+    ProgressIndicator spinner = new ProgressIndicator();
+    spinner.setMaxSize(16, 16);
+    pdfBtn.setGraphic(spinner);
+    pdfBtn.setText("");
+    pdfBtn.setDisable(true);
+
     Task<Void> task = new Task<>() {
       @Override
       protected Void call() throws Exception {
@@ -374,7 +381,17 @@ public class ReceiptListController {
       }
     };
 
-    task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
+    task.setOnSucceeded(e -> {
+      pdfBtn.setGraphic(null);
+      pdfBtn.setText(bundle.getString("receipt.list.button.generate_pdf"));
+      pdfBtn.setDisable(false);
+    });
+    task.setOnFailed(e -> {
+      pdfBtn.setGraphic(null);
+      pdfBtn.setText(bundle.getString("receipt.list.button.generate_pdf"));
+      pdfBtn.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
     new Thread(task).start();
   }
 
@@ -442,7 +459,7 @@ public class ReceiptListController {
       });
       pdfBtn.setOnAction(e -> {
         Receipt receipt = getTableView().getItems().get(getIndex());
-        handleGeneratePdf(receipt);
+        handleGeneratePdf(receipt, pdfBtn);
       });
 
       actionsBox.getChildren().setAll(editBtn, deleteBtn, pdfBtn);
