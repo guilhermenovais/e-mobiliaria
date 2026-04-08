@@ -27,7 +27,7 @@ public class UpdateService {
   private final HttpClient httpClient =
       HttpClient.newBuilder()
           .connectTimeout(Duration.ofSeconds(10))
-          .followRedirects(HttpClient.Redirect.NORMAL)
+          .followRedirects(HttpClient.Redirect.ALWAYS)
           .build();
 
   private static String readCurrentVersion() {
@@ -57,6 +57,7 @@ public class UpdateService {
       Path zip = download(latest.downloadUrl());
       Path newDir = Files.createTempDirectory("emobiliaria-update");
       unzip(zip, newDir);
+      log.info("Unzip complete: {}", newDir);
       applyUpdate(newDir);
 
     } catch (Exception e) {
@@ -111,9 +112,16 @@ public class UpdateService {
   private Path download(String url) throws Exception {
     Path target = Files.createTempFile("emobiliaria-update", ".zip");
 
-    httpClient.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofMinutes(5)).build(),
+    HttpResponse<Path> response = httpClient.send(
+        HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofMinutes(5)).build(),
         HttpResponse.BodyHandlers.ofFile(target));
 
+    int status = response.statusCode();
+    if (status < 200 || status >= 300) {
+      throw new IllegalStateException("Download failed with HTTP " + status);
+    }
+
+    log.info("Download complete: {} bytes at {}", Files.size(target), target);
     return target;
   }
 
@@ -141,17 +149,25 @@ public class UpdateService {
 
   private void applyUpdate(Path newDir) throws Exception {
     Path launcher = findLauncher(newDir);
+    log.info("Launcher found at: {}", launcher);
+
     boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
 
     ProcessBuilder pb;
     if (isWindows) {
-      pb = new ProcessBuilder("cmd.exe", "/c", launcher.toString());
+      pb = new ProcessBuilder("cmd.exe", "/c", "start", "", launcher.toString());
     } else {
       launcher.toFile().setExecutable(true);
       pb = new ProcessBuilder(launcher.toString());
     }
 
-    pb.inheritIO().start();
+    pb.redirectInput(ProcessBuilder.Redirect.DISCARD)
+        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+        .redirectErrorStream(true);
+
+    log.info("Starting updated app: {}", pb.command());
+    pb.start();
+    log.info("Update process started; exiting current instance");
     System.exit(0);
   }
 
