@@ -137,6 +137,7 @@ public class ReceiptFormController {
     contractErrorLabel.setManaged(false);
 
     datePicker.setValue(LocalDate.now());
+    installCreateModeContractListener(editMode);
 
     cancelButton.setOnAction(e -> navigationService.goBack());
     submitButton.setOnAction(e -> handleSubmit());
@@ -178,6 +179,53 @@ public class ReceiptFormController {
 
   private record FormData(List<Contract> contracts, Receipt existingReceipt) {}
 
+  private void installCreateModeContractListener(boolean editMode) {
+    if (editMode) {
+      return;
+    }
+    contractComboBox.getSelectionModel().selectedItemProperty()
+        .addListener((obs, oldValue, newValue) -> applyPeriodFromContract(newValue, LocalDate.now()));
+  }
+
+  private void applyPeriodFromContract(Contract contract, LocalDate today) {
+    if (contract == null || contract.getStartDate() == null) {
+      return;
+    }
+    PeriodInterval period = calculatePeriod(today, contract.getStartDate());
+    intervalStartPicker.setValue(period.start());
+    intervalEndPicker.setValue(period.end());
+  }
+
+  static PeriodInterval calculatePeriod(LocalDate today, LocalDate contractStartDate) {
+    if (contractStartDate == null) {
+      throw new IllegalArgumentException("contractStartDate must not be null");
+    }
+    LocalDate periodStart = nextOccurrenceOnOrAfter(today, contractStartDate.getDayOfMonth());
+    return new PeriodInterval(periodStart, periodStart.plusMonths(1).minusDays(1));
+  }
+
+  static LocalDate nextOccurrenceOnOrAfter(LocalDate today, int targetDayOfMonth) {
+    if (today == null) {
+      throw new IllegalArgumentException("today must not be null");
+    }
+    if (targetDayOfMonth < 1 || targetDayOfMonth > 31) {
+      throw new IllegalArgumentException("targetDayOfMonth must be between 1 and 31");
+    }
+
+    LocalDate cursor = LocalDate.of(today.getYear(), today.getMonth(), 1);
+    while (true) {
+      if (targetDayOfMonth <= cursor.lengthOfMonth()) {
+        LocalDate candidate = cursor.withDayOfMonth(targetDayOfMonth);
+        if (!candidate.isBefore(today)) {
+          return candidate;
+        }
+      }
+      cursor = cursor.plusMonths(1).withDayOfMonth(1);
+    }
+  }
+
+  record PeriodInterval(LocalDate start, LocalDate end) {}
+
   private void loadData() {
     submitButton.setDisable(true);
 
@@ -218,6 +266,8 @@ public class ReceiptFormController {
             .filter(c -> c.getId().equals(preSelectedContractId))
             .findFirst()
             .ifPresent(c -> contractComboBox.getSelectionModel().select(c));
+
+        applyPeriodFromContract(contractComboBox.getSelectionModel().getSelectedItem(), LocalDate.now());
       }
 
       submitButton.setDisable(false);
