@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    paths:
+      - 'src/main/resources/version.txt'
   workflow_dispatch:
 
 permissions:
@@ -50,6 +53,25 @@ jobs:
               -q
           done
 
+      - name: Build minimal JRE
+        shell: bash
+        run: |
+          "$JAVA_HOME/bin/jlink" \
+            --no-header-files --no-man-pages --compress zip-6 \
+            --add-modules java.base,java.desktop,java.sql,java.net.http,java.logging,java.naming,java.management,java.xml,jdk.unsupported \
+            --output target/app/runtime
+
+      - name: Build ZIP
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p target/app/bin
+          printf '@echo off\r\nset SCRIPT_DIR=%%~dp0\r\n"%%SCRIPT_DIR%%..\runtime\bin\java" --module-path "%%SCRIPT_DIR%%..\lib" --module com.guilherme.emobiliaria/com.guilherme.emobiliaria.EMobiliariaApplication\r\n' \
+            > target/app/bin/app.bat
+          cd target
+          7z a -tzip "e-mobiliaria-${VERSION}.zip" app/
+          cd ..
+
       - name: Install WiX 4
         run: dotnet tool install --global wix
 
@@ -61,21 +83,26 @@ jobs:
             --type exe \
             --name "e-Mobiliaria" \
             --app-version "$VERSION" \
+            --runtime-image target/app/runtime \
             --module-path target/app/lib \
             --module com.guilherme.emobiliaria/com.guilherme.emobiliaria.EMobiliariaApplication \
             --dest target \
             --win-menu \
             --win-menu-group "e-Mobiliaria" \
-            --win-dir-chooser
+            --win-dir-chooser \
             --win-shortcut
           mv "target/e-Mobiliaria-${VERSION}.exe" "target/e-mobiliaria-${VERSION}-setup.exe"
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          gh release create "$VERSION" \
-            "target/e-mobiliaria-${VERSION}-setup.exe" \
-            --title "$VERSION"
+          ZIP="target/e-mobiliaria-${VERSION}.zip"
+          EXE="target/e-mobiliaria-${VERSION}-setup.exe"
+          if gh release view "$VERSION" > /dev/null 2>&1; then
+            gh release upload "$VERSION" "$ZIP" "$EXE" --clobber
+          else
+            gh release create "$VERSION" "$ZIP" "$EXE" --title "$VERSION"
+          fi
