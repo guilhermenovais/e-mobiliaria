@@ -72,9 +72,6 @@ jobs:
           7z a -tzip "e-mobiliaria-${VERSION}.zip" app/
           cd ..
 
-      - name: Install WiX 3
-        run: choco install wixtoolset --version=3.11.2 -y --no-progress
-
       - name: Build installer
         shell: bash
         run: |
