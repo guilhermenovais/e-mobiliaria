@@ -25,7 +25,10 @@ public class UpdateService {
   private static final String CURRENT_VERSION = readCurrentVersion();
 
   private final HttpClient httpClient =
-      HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+      HttpClient.newBuilder()
+          .connectTimeout(Duration.ofSeconds(10))
+          .followRedirects(HttpClient.Redirect.NORMAL)
+          .build();
 
   private static String readCurrentVersion() {
     try (InputStream is = UpdateService.class.getResourceAsStream("/version.txt")) {
