@@ -161,8 +161,7 @@ public class UpdateService {
       pb = new ProcessBuilder(launcher.toString());
     }
 
-    pb.redirectInput(ProcessBuilder.Redirect.DISCARD)
-        .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+    pb.redirectOutput(ProcessBuilder.Redirect.DISCARD)
         .redirectErrorStream(true);
 
     log.info("Starting updated app: {}", pb.command());
