@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: echo "version=$(tr -d '[:space:]' < src/main/resources/version.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        shell: bash
+        run: ./mvnw package -DskipTests -q
+
+      - name: Collect runtime JARs
+        shell: bash
+        run: |
+          mkdir -p target/app/lib
+          ./mvnw dependency:copy-dependencies \
+            -DoutputDirectory=target/app/lib \
+            -DincludeScope=runtime \
+            -DexcludeGroupIds=org.openjfx \
+            -q
+          cp "$(ls target/e-mobiliaria-*.jar | grep -v tests | head -1)" target/app/lib/
+
+      - name: Download Windows JavaFX JARs
+        shell: bash
+        run: |
+          for artifact in javafx-base javafx-controls javafx-fxml javafx-graphics javafx-media; do
+            ./mvnw dependency:copy \
+              -Dartifact="org.openjfx:${artifact}:21.0.6:jar:win" \
+              -DoutputDirectory=target/app/lib \
+              -q
+          done
+
+      - name: Install WiX 4
+        run: dotnet tool install --global wix
+
+      - name: Build installer
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          jpackage \
+            --type exe \
+            --name "e-Mobiliaria" \
+            --app-version "$VERSION" \
+            --module-path target/app/lib \
+            --module com.guilherme.emobiliaria/com.guilherme.emobiliaria.EMobiliariaApplication \
+            --dest target \
+            --win-menu \
+            --win-menu-group "e-Mobiliaria" \
+            --win-dir-chooser
+            --win-shortcut
+          mv "target/e-Mobiliaria-${VERSION}.exe" "target/e-mobiliaria-${VERSION}-setup.exe"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create "$VERSION" \
+            "target/e-mobiliaria-${VERSION}-setup.exe" \
+            --title "$VERSION"
