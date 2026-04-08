@@ -41,6 +41,11 @@ public class UpdateService {
   }
 
   public void checkAndUpdate() {
+    if (isLinux()) {
+      log.info("Skipping auto-update on Linux");
+      return;
+    }
+
     try {
       Release latest = fetchLatest();
       if (!isNewer(CURRENT_VERSION, latest.version())) {
@@ -163,6 +168,10 @@ public class UpdateService {
           }).findFirst()
           .orElseThrow(() -> new IllegalStateException("No launcher found in update package"));
     }
+  }
+
+  private boolean isLinux() {
+    return System.getProperty("os.name").toLowerCase().contains("linux");
   }
 
 
