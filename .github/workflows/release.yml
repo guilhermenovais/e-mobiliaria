@@ -72,11 +72,8 @@ jobs:
           7z a -tzip "e-mobiliaria-${VERSION}.zip" app/
           cd ..
 
-      - name: Install WiX 4
-        run: |
-          dotnet tool install --global wix --version "4.0.5"
-          wix extension add --global WixToolset.UI.wixext
-          wix extension add --global WixToolset.Util.wixext
+      - name: Install WiX 3
+        run: choco install wixtoolset --version=3.11.2 -y --no-progress
 
       - name: Build installer
         shell: bash
