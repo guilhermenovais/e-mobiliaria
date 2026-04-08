@@ -5,6 +5,7 @@ import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.entity.Purpose;
@@ -51,6 +52,17 @@ class ContractTemplateTest {
         propertyAddress());
     return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, account,
         property, landlord(), List.of(tenant()), List.of(), List.of());
+  }
+
+  private Contract buildContract(List<Person> tenants, List<Person> guarantors,
+      List<Person> witnesses) {
+    PaymentAccount account =
+        PaymentAccount.create("Banco Inter", "0001", "0518639487", "64514507000146");
+    Property property = Property.create("Escritório Centro", "Sala comercial", Purpose.COMMERCIAL,
+        "CX 1 INSTALAÇÃO Nº3007687953", "MATRÍCULA Nº103765573", "000920280359002",
+        propertyAddress());
+    return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, account,
+        property, landlord(), tenants, guarantors, witnesses);
   }
 
   @Nested
@@ -107,6 +119,38 @@ class ContractTemplateTest {
 
       assertTrue(tenantsText.startsWith("<b>LOCATÁRIO(A): </b>"));
       assertTrue(tenantsText.contains("Maria Lima"));
+    }
+
+    @Test
+    @DisplayName(
+        "When contract has multiple parties of same role, should add ordinals only for repeated role")
+    void shouldAddOrdinalsOnlyWhenRoleHasMultipleParties() {
+      PhysicalPerson secondTenant = PhysicalPerson.create("Carlos Nunes", "Brasileiro",
+          CivilState.SINGLE, "Professor", "987.654.321-00", "MG-55555", landlordAddress());
+      PhysicalPerson guarantor = PhysicalPerson.create("Ana Souza", "Brasileira",
+          CivilState.MARRIED, "Médica", "123.456.789-09", "MG-99999", landlordAddress());
+      PhysicalPerson witnessOne = PhysicalPerson.create("Paulo Costa", "Brasileiro",
+          CivilState.SINGLE, "Contador", "111.444.777-35", "MG-11111", landlordAddress());
+      PhysicalPerson witnessTwo = PhysicalPerson.create("Fernanda Alves", "Brasileira",
+          CivilState.DIVORCED, "Arquiteta", "222.333.444-05", "MG-22222", landlordAddress());
+
+      Contract contract = buildContract(List.of(tenant(), secondTenant), List.of(guarantor),
+          List.of(witnessOne, witnessTwo));
+      ContractTemplate template = new ContractTemplate(contract);
+
+      String partiesText =
+          (String) template.getParameters().get(ContractTemplate.ContractParameters.TENANTS_TEXT);
+
+      assertTrue(partiesText.contains("<b>LOCATÁRIO(A) 1: </b>"));
+      assertTrue(partiesText.contains("<b>LOCATÁRIO(A) 2: </b>"));
+      assertTrue(partiesText.contains("<b>FIADOR(A): </b>"));
+      assertTrue(partiesText.contains("<b>TESTEMUNHA 1: </b>"));
+      assertTrue(partiesText.contains("<b>TESTEMUNHA 2: </b>"));
+      assertTrue(partiesText.contains("Maria Lima"));
+      assertTrue(partiesText.contains("Carlos Nunes"));
+      assertTrue(partiesText.contains("Ana Souza"));
+      assertTrue(partiesText.contains("Paulo Costa"));
+      assertTrue(partiesText.contains("Fernanda Alves"));
     }
 
     @Test

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Collectors;
 
 public class ContractTemplate
@@ -53,15 +55,12 @@ public class ContractTemplate
     PaymentAccount account = contract.getPaymentAccount();
     LocalDate endDate = contract.getStartDate().plus(contract.getDuration()).minusDays(1);
 
-    String tenantsText = contract.getTenants().stream()
-        .map(t -> bold("LOCATÁRIO(A): ") + TemplateFormatter.formatPersonForContract(t))
-        .collect(Collectors.joining("<br>"));
-    String guarantorsText = contract.getGuarantors().stream()
-        .map(g -> bold("FIADOR(A): ") + TemplateFormatter.formatPersonForContract(g))
-        .collect(Collectors.joining("<br>"));
-    String witnessesText = contract.getWitnesses().stream()
-        .map(w -> bold("TESTEMUNHA: ") + TemplateFormatter.formatPersonForContract(w))
-        .collect(Collectors.joining("<br>"));
+    String tenantsText = buildOrdinalPartiesText(contract.getTenants(), "LOCATÁRIO(A)",
+        TemplateFormatter::formatPersonForContract);
+    String guarantorsText = buildOrdinalPartiesText(contract.getGuarantors(), "FIADOR(A)",
+        TemplateFormatter::formatPersonForContract);
+    String witnessesText = buildOrdinalPartiesText(contract.getWitnesses(), "TESTEMUNHA",
+        TemplateFormatter::formatPersonForContract);
     String allPartiesText = tenantsText
         + (guarantorsText.isEmpty() ? "" : "<br>" + guarantorsText)
         + (witnessesText.isEmpty() ? "" : "<br>" + witnessesText);
@@ -130,6 +129,17 @@ public class ContractTemplate
       return jp.getCorporateName() + ", CNPJ: " + TemplateFormatter.formatCnpj(jp.getCnpj());
     }
     throw new IllegalArgumentException("Unknown person type: " + person.getClass());
+  }
+
+  private <T> String buildOrdinalPartiesText(List<T> parties, String label,
+      Function<T, String> formatter) {
+    boolean shouldShowOrdinal = parties.size() > 1;
+    return IntStream.range(0, parties.size())
+        .mapToObj(i -> {
+          String indexedLabel = shouldShowOrdinal ? label + " " + (i + 1) : label;
+          return bold(indexedLabel + ": ") + formatter.apply(parties.get(i));
+        })
+        .collect(Collectors.joining("<br>"));
   }
 
   public ContractTemplate(Contract contract) {
