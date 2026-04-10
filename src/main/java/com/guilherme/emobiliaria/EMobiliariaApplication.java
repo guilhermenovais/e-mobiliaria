@@ -6,6 +6,7 @@ import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
 import com.guilherme.emobiliaria.shared.di.AppModule;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.persistence.AppDataPaths;
+import com.guilherme.emobiliaria.shared.update.UpdateProgressWindow;
 import com.guilherme.emobiliaria.shared.update.UpdateService;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -34,7 +35,10 @@ public class EMobiliariaApplication extends Application {
             throwable));
     injector = Guice.createInjector(new AppModule());
 
-    Thread updateThread = new Thread(() -> new UpdateService().checkAndUpdate());
+    ResourceBundle updateBundle = ResourceBundle.getBundle("messages", Locale.getDefault(),
+        getClass().getModule());
+    UpdateProgressWindow updateWindow = new UpdateProgressWindow(updateBundle);
+    Thread updateThread = new Thread(() -> new UpdateService(updateWindow).checkAndUpdate());
     updateThread.setDaemon(true);
     updateThread.setName("update-checker");
     updateThread.start();

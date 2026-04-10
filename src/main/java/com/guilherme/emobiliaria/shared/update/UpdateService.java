@@ -26,6 +26,12 @@ public class UpdateService {
   private static final String REPO = "guilhermenovais/e-mobiliaria";
   private static final String CURRENT_VERSION = readCurrentVersion();
 
+  private final UpdateProgressWindow progressWindow;
+
+  public UpdateService(UpdateProgressWindow progressWindow) {
+    this.progressWindow = progressWindow;
+  }
+
   private final HttpClient httpClient =
       HttpClient.newBuilder()
           .connectTimeout(Duration.ofSeconds(10))
@@ -55,15 +61,29 @@ public class UpdateService {
         return;
       }
 
-      log.info("Update available: {} -> {}, downloading...", CURRENT_VERSION, latest.version());
+      log.info("Update available: {} -> {}", CURRENT_VERSION, latest.version());
+      boolean confirmed = progressWindow.confirmUpdate(CURRENT_VERSION, latest.version());
+      if (!confirmed) {
+        log.info("User declined the update");
+        return;
+      }
+
+      progressWindow.showProgress();
+      progressWindow.setStatus("update.status.downloading");
+      log.info("Downloading update...");
       Path zip = download(latest.downloadUrl());
+
+      progressWindow.setStatus("update.status.extracting");
       Path newDir = Files.createTempDirectory("emobiliaria-update");
       unzip(zip, newDir);
       log.info("Unzip complete: {}", newDir);
+
+      progressWindow.setStatus("update.status.applying");
       applyUpdate(newDir);
 
     } catch (Exception e) {
-      log.warn("Auto-update check failed: {}", e.getMessage());
+      log.warn("Auto-update failed: {}", e.getMessage());
+      progressWindow.showError(e.getMessage());
     }
   }
 
@@ -164,8 +184,9 @@ public class UpdateService {
           .start();
     }
 
-    log.info("Update process started; exiting current instance");
-    System.exit(0);
+    log.info("Update process started");
+    progressWindow.setStatus("update.status.done");
+    progressWindow.markComplete();
   }
 
   private void applyPersistentUpdate(Path newAppDir, Path currentAppDir) throws Exception {
