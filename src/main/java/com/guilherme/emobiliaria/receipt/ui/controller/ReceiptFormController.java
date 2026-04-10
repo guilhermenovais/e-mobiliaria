@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.receipt.ui.controller;
 
+import com.google.inject.Provider;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
@@ -53,6 +54,7 @@ public class ReceiptFormController {
   private final CreateReceiptInteractor createReceipt;
   private final EditReceiptInteractor editReceipt;
   private final NavigationService navigationService;
+  private final Provider<ReceiptListController> receiptListControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
 
   @Inject
@@ -62,12 +64,14 @@ public class ReceiptFormController {
       CreateReceiptInteractor createReceipt,
       EditReceiptInteractor editReceipt,
       NavigationService navigationService,
+      Provider<ReceiptListController> receiptListControllerProvider,
       GuiceFxmlLoader fxmlLoader) {
     this.findAllContracts = findAllContracts;
     this.findReceiptById = findReceiptById;
     this.createReceipt = createReceipt;
     this.editReceipt = editReceipt;
     this.navigationService = navigationService;
+    this.receiptListControllerProvider = receiptListControllerProvider;
     this.fxmlLoader = fxmlLoader;
   }
 
@@ -366,7 +370,7 @@ public class ReceiptFormController {
         }
       };
 
-      task.setOnSucceeded(e -> Platform.runLater(() -> navigationService.goBack()));
+      task.setOnSucceeded(e -> Platform.runLater(() -> navigateToReceiptListWithContract(selectedContract.getId())));
       task.setOnFailed(e -> handleError(task.getException()));
       new Thread(task).start();
 
@@ -382,10 +386,16 @@ public class ReceiptFormController {
         }
       };
 
-      task.setOnSucceeded(e -> Platform.runLater(() -> navigationService.goBack()));
+      task.setOnSucceeded(e -> Platform.runLater(() -> navigateToReceiptListWithContract(selectedContract.getId())));
       task.setOnFailed(e -> handleError(task.getException()));
       new Thread(task).start();
     }
+  }
+
+  private void navigateToReceiptListWithContract(Long contractId) {
+    ReceiptListController ctrl = receiptListControllerProvider.get();
+    ctrl.setContractId(contractId);
+    navigationService.navigate(ctrl::buildView, "sidebar.receipts");
   }
 
   private void handleError(Throwable t) {
