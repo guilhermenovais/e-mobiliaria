@@ -9,10 +9,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -171,21 +173,20 @@ public class UpdateService {
     String curPath = currentAppDir.toAbsolutePath().toString();
     String launcher = currentAppDir.resolve("bin").resolve("app.bat").toAbsolutePath().toString();
 
-    String script = String.join("\r\n",
-        "Start-Sleep -Seconds 2",
-        "robocopy '" + newPath + "' '" + curPath + "' /MIR /IS /IT /IM /NFL /NDL /NJH /NJS | Out-Null",
-        "Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden",
-        "Remove-Item -Path $MyInvocation.MyCommand.Path -Force",
-        "");
+    // Execution policy applies to script files, not inline commands.
+    // Encoding as UTF-16LE Base64 and passing via -EncodedCommand bypasses it entirely.
+    String script =
+        "Start-Sleep -Seconds 2; " +
+        "robocopy '" + newPath + "' '" + curPath + "' /MIR /IS /IT /IM /NFL /NDL /NJH /NJS | Out-Null; " +
+        "Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden";
 
-    Path scriptPath = Files.createTempFile("emobiliaria-update", ".ps1");
-    Files.writeString(scriptPath, script);
+    String encodedCommand = Base64.getEncoder()
+        .encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
 
-    log.info("Starting persistent update script: {}", scriptPath);
+    log.info("Starting persistent update via encoded PowerShell command");
     new ProcessBuilder(
         "powershell.exe", "-WindowStyle", "Hidden",
-        "-NonInteractive", "-ExecutionPolicy", "Bypass",
-        "-File", scriptPath.toString()
+        "-NonInteractive", "-EncodedCommand", encodedCommand
     ).start();
   }
 
