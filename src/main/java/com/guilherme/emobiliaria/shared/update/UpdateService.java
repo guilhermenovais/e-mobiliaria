@@ -197,8 +197,8 @@ public class UpdateService {
     // Execution policy applies to script files, not inline commands.
     // Encoding as UTF-16LE Base64 and passing via -EncodedCommand bypasses it entirely.
     String script =
-        "Start-Sleep -Seconds 2; " +
-        "robocopy '" + newPath + "' '" + curPath + "' /MIR /IS /IT /IM /NFL /NDL /NJH /NJS | Out-Null; " +
+        "Start-Sleep -Seconds 10; " +
+        "robocopy '" + newPath + "' '" + curPath + "' /MIR /IS /IT /IM /NFL /NDL /NJH /NJS /LOG:NUL /R:3 /W:5; " +
         "Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden";
 
     String encodedCommand = Base64.getEncoder()
