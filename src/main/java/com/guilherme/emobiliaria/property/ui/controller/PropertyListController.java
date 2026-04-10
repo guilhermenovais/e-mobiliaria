@@ -120,11 +120,6 @@ public class PropertyListController {
         bundle.getString("property.list.column.type"));
     typeCol.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getType()));
 
-    TableColumn<Property, String> purposeCol = new TableColumn<>(
-        bundle.getString("property.list.column.purpose"));
-    purposeCol.setCellValueFactory(c -> new SimpleStringProperty(
-        bundle.getString("purpose." + c.getValue().getPurpose().name())));
-
     TableColumn<Property, Void> actionsCol = new TableColumn<>(
         bundle.getString("property.list.column.actions"));
     actionsCol.setCellFactory(col -> new ActionsCell());
@@ -132,20 +127,17 @@ public class PropertyListController {
 
     nameCol.setReorderable(false);
     typeCol.setReorderable(false);
-    purposeCol.setReorderable(false);
     actionsCol.setReorderable(false);
 
     nameCol.setResizable(true);
     typeCol.setResizable(true);
-    purposeCol.setResizable(true);
     actionsCol.setResizable(true);
 
-    nameCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.35));
-    typeCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.22));
-    purposeCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.28));
+    nameCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.50));
+    typeCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.35));
     actionsCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.15));
 
-    tableView.getColumns().setAll(nameCol, typeCol, purposeCol, actionsCol);
+    tableView.getColumns().setAll(nameCol, typeCol, actionsCol);
   }
 
   // ── Load page ──────────────────────────────────────────────────────────────

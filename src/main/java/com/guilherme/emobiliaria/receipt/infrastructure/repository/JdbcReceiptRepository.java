@@ -9,7 +9,7 @@ import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
+
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.receipt.domain.repository.ReceiptRepository;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -164,7 +164,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
   }
 
   private Contract loadContract(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, start_date, duration, payment_day, rent, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
+    String sql = "SELECT id, start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -181,6 +181,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
             Period.parse(rs.getString("duration")),
             rs.getInt("payment_day"),
             rs.getInt("rent"),
+            rs.getString("purpose"),
             paymentAccount,
             property,
             landlord,
@@ -210,7 +211,7 @@ public class JdbcReceiptRepository implements ReceiptRepository {
   }
 
   private Property loadProperty(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, name, type, purpose, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
+    String sql = "SELECT id, name, type, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -220,7 +221,6 @@ public class JdbcReceiptRepository implements ReceiptRepository {
             rs.getLong("id"),
             rs.getString("name"),
             rs.getString("type"),
-            Purpose.valueOf(rs.getString("purpose")),
             rs.getString("cemig"),
             rs.getString("copasa"),
             rs.getString("iptu"),

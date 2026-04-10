@@ -16,7 +16,6 @@ import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -67,7 +66,7 @@ class EditContractInteractorTest {
   }
 
   private Long createProperty() {
-    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
+    Property property = Property.create("Apto Centro", "Apartamento",
         "1234567890", "0987654321", "IPTU-001", validAddress());
     return propertyRepository.create(property).getId();
   }
@@ -81,7 +80,7 @@ class EditContractInteractorTest {
   private Long createContract(Long paymentAccountId, Long propertyId, Long personId) {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef,
+        Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
         List.of(personRef), List.of(), List.of());
     CreateContractOutput output = createInteractor.execute(input);
     return output.contract().getId();
@@ -99,7 +98,7 @@ class EditContractInteractorTest {
       Long contractId = createContract(paymentAccountId, propertyId, personId);
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 6, 1),
-          Period.ofYears(2), 15, 150000, paymentAccountId, propertyId, personRef,
+          Period.ofYears(2), 15, 150000, "Residencial", paymentAccountId, propertyId, personRef,
           List.of(personRef), List.of(), List.of());
 
       EditContractOutput output = interactor.execute(input);
@@ -118,7 +117,7 @@ class EditContractInteractorTest {
       Long personId = createPhysicalPerson();
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(999L, LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef,
+          Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
           List.of(personRef), List.of(), List.of());
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
@@ -134,7 +133,7 @@ class EditContractInteractorTest {
       Long contractId = createContract(paymentAccountId, propertyId, personId);
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, 150000, 999L, propertyId, personRef, List.of(personRef),
+          Period.ofMonths(12), 10, 150000, "Residencial", 999L, propertyId, personRef, List.of(personRef),
           List.of(), List.of());
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
@@ -150,7 +149,7 @@ class EditContractInteractorTest {
       Long contractId = createContract(paymentAccountId, propertyId, personId);
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, 150000, paymentAccountId, 999L, personRef, List.of(personRef),
+          Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, 999L, personRef, List.of(personRef),
           List.of(), List.of());
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));

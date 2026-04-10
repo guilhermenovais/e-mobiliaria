@@ -6,7 +6,6 @@ import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
 import com.guilherme.emobiliaria.property.application.input.CreatePropertyInput;
 import com.guilherme.emobiliaria.property.application.output.CreatePropertyOutput;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -40,7 +39,7 @@ class CreatePropertyInteractorTest {
   }
 
   private CreatePropertyInput validInput(Long addressId) {
-    return new CreatePropertyInput("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL, "1234567890", "0987654321", "1122334455", addressId);
+    return new CreatePropertyInput("Apartamento Centro", "Apartamento", "1234567890", "0987654321", "1122334455", addressId);
   }
 
   @Nested
@@ -55,7 +54,6 @@ class CreatePropertyInteractorTest {
 
       assertNotNull(output.property().getId());
       assertEquals("Apartamento Centro", output.property().getName());
-      assertEquals(Purpose.RESIDENTIAL, output.property().getPurpose());
     }
 
     @Test

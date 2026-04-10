@@ -17,6 +17,7 @@ public class ContractDetailsStepPane extends VBox {
 
   private final ResourceBundle bundle;
 
+  private final TextField purposeField = new TextField();
   private final DatePicker startDatePicker = new DatePicker();
   private final Spinner<Integer> durationSpinner =
       new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 120, 12));
@@ -24,6 +25,7 @@ public class ContractDetailsStepPane extends VBox {
   private final Spinner<Integer> paymentDaySpinner =
       new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 31, 1));
 
+  private final Label purposeError = new Label();
   private final Label startDateError = new Label();
   private final Label rentError = new Label();
 
@@ -34,6 +36,15 @@ public class ContractDetailsStepPane extends VBox {
   }
 
   private void buildLayout() {
+    purposeField.setPromptText(bundle.getString("contract.wizard.step4.field.purpose"));
+    purposeField.getStyleClass().add("form-input");
+    purposeField.setMaxWidth(Double.MAX_VALUE);
+    purposeField.textProperty().addListener((obs, old, text) -> {
+      if (text != null && text.length() > 100) {
+        purposeField.setText(old);
+      }
+    });
+
     startDatePicker.setPromptText("dd/MM/yyyy");
     startDatePicker.setMaxWidth(Double.MAX_VALUE);
     startDatePicker.getStyleClass().add("form-combo");
@@ -46,6 +57,11 @@ public class ContractDetailsStepPane extends VBox {
 
     paymentDaySpinner.setEditable(true);
     paymentDaySpinner.setMaxWidth(Double.MAX_VALUE);
+
+    purposeError.getStyleClass().add("form-error-label");
+    purposeError.setVisible(false);
+    purposeError.setManaged(false);
+    purposeError.setText(bundle.getString("contract.wizard.step4.error.purpose_required"));
 
     startDateError.getStyleClass().add("form-error-label");
     startDateError.setVisible(false);
@@ -67,27 +83,34 @@ public class ContractDetailsStepPane extends VBox {
     col2.setPercentWidth(30);
     grid.getColumnConstraints().addAll(col1, col2);
 
-    // Row 0: Start Date + Duration
+    // Row 0: Purpose (full width)
+    Label purposeLabel = new Label(bundle.getString("contract.wizard.step4.field.purpose"));
+    purposeLabel.getStyleClass().add("form-label");
+    grid.add(purposeLabel, 0, 0, 2, 1);
+    grid.add(purposeField, 0, 1, 2, 1);
+    grid.add(purposeError, 0, 2, 2, 1);
+
+    // Row 3: Start Date + Duration
     Label startLabel = new Label(bundle.getString("contract.wizard.step4.field.start_date"));
     startLabel.getStyleClass().add("form-label");
     Label durationLabel = new Label(bundle.getString("contract.wizard.step4.field.duration"));
     durationLabel.getStyleClass().add("form-label");
-    grid.add(startLabel, 0, 0);
-    grid.add(durationLabel, 1, 0);
-    grid.add(startDatePicker, 0, 1);
-    grid.add(durationSpinner, 1, 1);
-    grid.add(startDateError, 0, 2);
+    grid.add(startLabel, 0, 3);
+    grid.add(durationLabel, 1, 3);
+    grid.add(startDatePicker, 0, 4);
+    grid.add(durationSpinner, 1, 4);
+    grid.add(startDateError, 0, 5);
 
-    // Row 3: Rent + Payment Day
+    // Row 6: Rent + Payment Day
     Label rentLabel = new Label(bundle.getString("contract.wizard.step4.field.rent"));
     rentLabel.getStyleClass().add("form-label");
     Label payDayLabel = new Label(bundle.getString("contract.wizard.step4.field.payment_day"));
     payDayLabel.getStyleClass().add("form-label");
-    grid.add(rentLabel, 0, 3);
-    grid.add(payDayLabel, 1, 3);
-    grid.add(rentField, 0, 4);
-    grid.add(paymentDaySpinner, 1, 4);
-    grid.add(rentError, 0, 5);
+    grid.add(rentLabel, 0, 6);
+    grid.add(payDayLabel, 1, 6);
+    grid.add(rentField, 0, 7);
+    grid.add(paymentDaySpinner, 1, 7);
+    grid.add(rentError, 0, 8);
 
     VBox card = new VBox(20, grid);
     card.setPadding(new Insets(24, 24, 24, 24));
@@ -95,11 +118,17 @@ public class ContractDetailsStepPane extends VBox {
     getChildren().add(card);
   }
 
-  public void populate(LocalDate startDate, int durationMonths, int rentCents, int paymentDay) {
+  public void populate(LocalDate startDate, int durationMonths, int rentCents, int paymentDay,
+      String purpose) {
+    purposeField.setText(purpose);
     startDatePicker.setValue(startDate);
     durationSpinner.getValueFactory().setValue(durationMonths);
     rentField.setText(String.format("%.2f", rentCents / 100.0).replace('.', ','));
     paymentDaySpinner.getValueFactory().setValue(paymentDay);
+  }
+
+  public String getPurpose() {
+    return purposeField.getText() == null ? "" : purposeField.getText().trim();
   }
 
   public LocalDate getStartDate() {
@@ -126,6 +155,11 @@ public class ContractDetailsStepPane extends VBox {
 
   public boolean validate() {
     boolean valid = true;
+
+    boolean purposeOk = !getPurpose().isBlank();
+    purposeError.setVisible(!purposeOk);
+    purposeError.setManaged(!purposeOk);
+    if (!purposeOk) valid = false;
 
     boolean startOk = startDatePicker.getValue() != null;
     startDateError.setVisible(!startOk);

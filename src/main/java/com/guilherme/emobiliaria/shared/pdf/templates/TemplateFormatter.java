@@ -5,7 +5,6 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -138,13 +137,6 @@ class TemplateFormatter {
     sb.append("/").append(address.getState().name());
     sb.append(", CEP ").append(formatCep(address.getCep()));
     return sb.toString();
-  }
-
-  static String purposeLabel(Purpose purpose) {
-    return switch (purpose) {
-      case RESIDENTIAL -> "Residencial";
-      case COMMERCIAL -> "Comercial";
-    };
   }
 
   static String formatPeriodForContract(Period period) {

@@ -8,7 +8,6 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,22 +46,22 @@ class ContractTemplateTest {
   private Contract buildContract() {
     PaymentAccount account =
         PaymentAccount.create("Banco Inter", "0001", "0518639487", "64514507000146");
-    Property property = Property.create("Escritório Centro", "Sala comercial", Purpose.COMMERCIAL,
+    Property property = Property.create("Escritório Centro", "Sala comercial",
         "CX 1 INSTALAÇÃO Nº3007687953", "MATRÍCULA Nº103765573", "000920280359002",
         propertyAddress());
-    return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, account,
-        property, landlord(), List.of(tenant()), List.of(), List.of());
+    return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, "Comercial",
+        account, property, landlord(), List.of(tenant()), List.of(), List.of());
   }
 
   private Contract buildContract(List<Person> tenants, List<Person> guarantors,
       List<Person> witnesses) {
     PaymentAccount account =
         PaymentAccount.create("Banco Inter", "0001", "0518639487", "64514507000146");
-    Property property = Property.create("Escritório Centro", "Sala comercial", Purpose.COMMERCIAL,
+    Property property = Property.create("Escritório Centro", "Sala comercial",
         "CX 1 INSTALAÇÃO Nº3007687953", "MATRÍCULA Nº103765573", "000920280359002",
         propertyAddress());
-    return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, account,
-        property, landlord(), tenants, guarantors, witnesses);
+    return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, "Comercial",
+        account, property, landlord(), tenants, guarantors, witnesses);
   }
 
   @Nested
@@ -272,11 +271,10 @@ class ContractTemplateTest {
         "When contract has one landlord and two tenants, should return three signing entries")
     void shouldReturnThreeSigningEntriesWhenOneLandlordAndTwoTenants() {
       PaymentAccount account = PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null);
-      Property property = Property.create("Casa", "Casa", Purpose.RESIDENTIAL, "111", "222", "333",
-          propertyAddress());
+      Property property = Property.create("Casa", "Casa", "111", "222", "333", propertyAddress());
       Contract contract =
-          Contract.create(LocalDate.of(2025, 1, 1), Period.ofMonths(6), 5, 100000, account,
-              property, landlord(), List.of(tenant(), tenant()), List.of(), List.of());
+          Contract.create(LocalDate.of(2025, 1, 1), Period.ofMonths(6), 5, 100000, "Residencial",
+              account, property, landlord(), List.of(tenant(), tenant()), List.of(), List.of());
       ContractTemplate template = new ContractTemplate(contract);
 
       Collection<Object> signingTexts =
