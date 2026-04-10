@@ -210,7 +210,7 @@ public class UpdateService {
     String encodedCommand = Base64.getEncoder()
         .encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
 
-    log.info("Starting persistent update via PowerShell");
+    log.info("Starting persistent update via PowerShell: " + encodedCommand);
     new ProcessBuilder(
         "powershell.exe", "-NoProfile", "-WindowStyle", "Hidden",
         "-NonInteractive", "-EncodedCommand", encodedCommand
