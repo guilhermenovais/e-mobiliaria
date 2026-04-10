@@ -5,15 +5,20 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
+import java.text.NumberFormat;
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ContractDetailsStepPane extends VBox {
+
+  private static final int MAX_RENT_DIGITS = 12;
 
   private final ResourceBundle bundle;
 
@@ -54,6 +59,8 @@ public class ContractDetailsStepPane extends VBox {
 
     rentField.setPromptText("0,00");
     rentField.getStyleClass().add("form-input");
+    rentField.setMaxWidth(Double.MAX_VALUE);
+    configureRentMask();
 
     paymentDaySpinner.setEditable(true);
     paymentDaySpinner.setMaxWidth(Double.MAX_VALUE);
@@ -123,7 +130,7 @@ public class ContractDetailsStepPane extends VBox {
     purposeField.setText(purpose);
     startDatePicker.setValue(startDate);
     durationSpinner.getValueFactory().setValue(durationMonths);
-    rentField.setText(String.format("%.2f", rentCents / 100.0).replace('.', ','));
+    rentField.setText(formatCents(rentCents));
     paymentDaySpinner.getValueFactory().setValue(paymentDay);
   }
 
@@ -141,12 +148,48 @@ public class ContractDetailsStepPane extends VBox {
 
   /** Returns rent in cents (integer). */
   public int getRentCents() {
+    String text = rentField.getText();
+    if (text == null || text.isBlank()) {
+      return -1;
+    }
+
     try {
-      String text = rentField.getText().trim().replace("R$", "").replace(".", "").replace(",", ".").trim();
-      return (int) (Double.parseDouble(text) * 100);
+      String digits = text.replaceAll("\\D", "");
+      if (digits.isEmpty()) {
+        return -1;
+      }
+
+      long cents = Long.parseLong(digits);
+      if (cents > Integer.MAX_VALUE) {
+        return -1;
+      }
+      return (int) cents;
     } catch (NumberFormatException e) {
       return -1;
     }
+  }
+
+  private void configureRentMask() {
+    rentField.setTextFormatter(new TextFormatter<>(change -> {
+      String digits = change.getControlNewText().replaceAll("\\D", "");
+      if (digits.length() > MAX_RENT_DIGITS) {
+        digits = digits.substring(0, MAX_RENT_DIGITS);
+      }
+
+      String formatted = digits.isEmpty() ? "" : formatCents(Long.parseLong(digits));
+      change.setText(formatted);
+      change.setRange(0, change.getControlText().length());
+      change.setCaretPosition(formatted.length());
+      change.setAnchor(formatted.length());
+      return change;
+    }));
+  }
+
+  private String formatCents(long cents) {
+    NumberFormat formatter = NumberFormat.getNumberInstance(Locale.forLanguageTag("pt-BR"));
+    formatter.setMinimumFractionDigits(2);
+    formatter.setMaximumFractionDigits(2);
+    return formatter.format(cents / 100.0);
   }
 
   public int getPaymentDay() {
