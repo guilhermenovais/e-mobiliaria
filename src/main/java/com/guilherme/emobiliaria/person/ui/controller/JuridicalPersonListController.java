@@ -151,8 +151,8 @@ public class JuridicalPersonListController {
 
     corporateNameCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.38));
     cnpjCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.20));
-    representativeCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.28));
-    actionsCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.14));
+    representativeCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.24));
+    actionsCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.18));
 
     tableView.getColumns().setAll(corporateNameCol, cnpjCol, representativeCol, actionsCol);
   }
