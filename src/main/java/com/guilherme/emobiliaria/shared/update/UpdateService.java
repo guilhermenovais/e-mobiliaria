@@ -196,10 +196,13 @@ public class UpdateService {
 
     // Execution policy applies to script files, not inline commands.
     // Encoding as UTF-16LE Base64 and passing via -EncodedCommand bypasses it entirely.
+    // Remove destination first to avoid permission issues, then copy new files
     String script =
         "Start-Sleep -Seconds 10; " +
         "try { " +
-        "  Copy-Item -Path '" + newPath + "\\*' -Destination '" + curPath + "' -Recurse -Force -ErrorAction Stop; " +
+        "  $dest = '" + curPath + "'; " +
+        "  if (Test-Path $dest) { Remove-Item -Path $dest -Recurse -Force -ErrorAction Stop } " +
+        "  Copy-Item -Path '" + newPath + "' -Destination $dest -Recurse -Force -ErrorAction Stop; " +
         "  Start-Sleep -Seconds 2; " +
         "  Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden -ErrorAction Stop; " +
         "} catch { " +
