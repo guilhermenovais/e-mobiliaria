@@ -33,18 +33,18 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
 
   @Override
   public JuridicalPerson create(JuridicalPerson person) {
-    String sql = "INSERT INTO juridical_persons (corporate_name, cnpj, representative_id, address_id) VALUES (?, ?, ?, ?)";
+    String sql = "INSERT INTO juridical_persons (corporate_name, cnpj, address_id) VALUES (?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setString(1, person.getCorporateName());
       stmt.setString(2, person.getCnpj());
-      stmt.setLong(3, person.getRepresentative().getId());
-      stmt.setLong(4, person.getAddress().getId());
+      stmt.setLong(3, person.getAddress().getId());
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
         person.setId(keys.getLong(1));
       }
+      insertRepresentatives(conn, person.getId(), person.getRepresentatives());
       return person;
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, e);
@@ -53,17 +53,18 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
 
   @Override
   public JuridicalPerson update(JuridicalPerson person) {
-    String sql = "UPDATE juridical_persons SET corporate_name=?, cnpj=?, representative_id=?, address_id=? WHERE id=?";
+    String sql = "UPDATE juridical_persons SET corporate_name=?, cnpj=?, address_id=? WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setString(1, person.getCorporateName());
       stmt.setString(2, person.getCnpj());
-      stmt.setLong(3, person.getRepresentative().getId());
-      stmt.setLong(4, person.getAddress().getId());
-      stmt.setLong(5, person.getId());
+      stmt.setLong(3, person.getAddress().getId());
+      stmt.setLong(4, person.getId());
       if (stmt.executeUpdate() == 0) {
         throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, null);
       }
+      deleteRepresentatives(conn, person.getId());
+      insertRepresentatives(conn, person.getId(), person.getRepresentatives());
       return person;
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, e);
@@ -86,7 +87,7 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
 
   @Override
   public Optional<JuridicalPerson> findById(Long id) {
-    String sql = "SELECT id, corporate_name, cnpj, representative_id, address_id FROM juridical_persons WHERE id=?";
+    String sql = "SELECT id, corporate_name, cnpj, address_id FROM juridical_persons WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
@@ -112,7 +113,7 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
         countRs.next();
         total = countRs.getLong(1);
       }
-      String sql = "SELECT id, corporate_name, cnpj, representative_id, address_id FROM juridical_persons LIMIT ? OFFSET ?";
+      String sql = "SELECT id, corporate_name, cnpj, address_id FROM juridical_persons LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setInt(1, limit);
         stmt.setInt(2, offset);
@@ -130,15 +131,50 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
   }
 
   private JuridicalPerson map(ResultSet rs, Connection conn) throws SQLException {
-    PhysicalPerson representative = loadPhysicalPerson(conn, rs.getLong("representative_id"));
+    long juridicalId = rs.getLong("id");
+    List<PhysicalPerson> representatives = loadRepresentatives(conn, juridicalId);
     Address address = loadAddress(conn, rs.getLong("address_id"));
     return JuridicalPerson.restore(
-        rs.getLong("id"),
+        juridicalId,
         rs.getString("corporate_name"),
         rs.getString("cnpj"),
-        representative,
+        representatives,
         address
     );
+  }
+
+  private List<PhysicalPerson> loadRepresentatives(Connection conn, long juridicalPersonId) throws SQLException {
+    String sql = "SELECT physical_person_id FROM juridical_person_representatives WHERE juridical_person_id=?";
+    List<PhysicalPerson> result = new ArrayList<>();
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, juridicalPersonId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          result.add(loadPhysicalPerson(conn, rs.getLong("physical_person_id")));
+        }
+      }
+    }
+    return result;
+  }
+
+  private void insertRepresentatives(Connection conn, long juridicalPersonId, List<PhysicalPerson> representatives) throws SQLException {
+    String sql = "INSERT INTO juridical_person_representatives (juridical_person_id, physical_person_id) VALUES (?, ?)";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      for (PhysicalPerson rep : representatives) {
+        stmt.setLong(1, juridicalPersonId);
+        stmt.setLong(2, rep.getId());
+        stmt.addBatch();
+      }
+      stmt.executeBatch();
+    }
+  }
+
+  private void deleteRepresentatives(Connection conn, long juridicalPersonId) throws SQLException {
+    String sql = "DELETE FROM juridical_person_representatives WHERE juridical_person_id=?";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, juridicalPersonId);
+      stmt.executeUpdate();
+    }
   }
 
   private PhysicalPerson loadPhysicalPerson(Connection conn, long id) throws SQLException {

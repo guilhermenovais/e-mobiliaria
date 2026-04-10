@@ -2,21 +2,20 @@ package com.guilherme.emobiliaria.person.ui.controller;
 
 import com.guilherme.emobiliaria.person.application.usecase.CreateAddressInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.CreateJuridicalPersonInteractor;
-import com.guilherme.emobiliaria.person.application.usecase.CreatePhysicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.EditAddressInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.EditJuridicalPersonInteractor;
-import com.guilherme.emobiliaria.person.application.usecase.EditPhysicalPersonInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.FindAllPhysicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindJuridicalPersonByIdInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.SearchAddressByCepInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.ValidateCnpjInteractor;
-import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteractor;
+import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
 import com.guilherme.emobiliaria.person.domain.service.CnpjValidationService;
-import com.guilherme.emobiliaria.person.domain.service.CpfValidationService;
 import com.guilherme.emobiliaria.person.domain.service.FakeAddressSearchService;
 import com.guilherme.emobiliaria.person.domain.service.AddressSearchResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -75,12 +74,20 @@ class JuridicalPersonControllerTest {
   record Fixture(
       JuridicalPersonController controller,
       FakeJuridicalPersonRepository juridicalRepo,
+      FakePhysicalPersonRepository physicalRepo,
       NavigationService navigationService) {}
 
   private static Fixture buildFixture() throws Exception {
     FakePhysicalPersonRepository physicalRepo = new FakePhysicalPersonRepository();
     FakeJuridicalPersonRepository juridicalRepo = new FakeJuridicalPersonRepository();
     FakeAddressRepository addressRepo = new FakeAddressRepository();
+
+    // Pre-populate a physical person to be used as representative
+    Address repAddress = Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo", BrazilianState.SP);
+    addressRepo.create(repAddress);
+    PhysicalPerson rep = PhysicalPerson.create("João Representante", "Brasileiro", CivilState.SINGLE,
+        "Administrador", "529.982.247-25", "MG-1234567", repAddress);
+    physicalRepo.create(rep);
 
     NavigationService navigationService = new NavigationService();
 
@@ -93,13 +100,11 @@ class JuridicalPersonControllerTest {
         new FindJuridicalPersonByIdInteractor(juridicalRepo),
         new CreateJuridicalPersonInteractor(juridicalRepo, physicalRepo, addressRepo),
         new EditJuridicalPersonInteractor(juridicalRepo, physicalRepo, addressRepo),
-        new CreatePhysicalPersonInteractor(physicalRepo, addressRepo),
-        new EditPhysicalPersonInteractor(physicalRepo, addressRepo),
+        new FindAllPhysicalPeopleInteractor(physicalRepo),
         new CreateAddressInteractor(addressRepo),
         new EditAddressInteractor(addressRepo),
         new SearchAddressByCepInteractor(addressSearchService),
         new ValidateCnpjInteractor(new CnpjValidationService()),
-        new ValidateCpfInteractor(new CpfValidationService()),
         navigationService,
         null
     );
@@ -113,18 +118,16 @@ class JuridicalPersonControllerTest {
       controller.subtitleLabel = new Label();
       controller.companySectionLabel = new Label();
       controller.companyAddressSectionLabel = new Label();
-      controller.representativeSectionLabel = new Label();
-      controller.representativeAddressSectionLabel = new Label();
+      controller.representativesSectionLabel = new Label();
       controller.companyFormContainer = new StackPane();
       controller.companyAddressFormContainer = new StackPane();
-      controller.representativeFormContainer = new StackPane();
-      controller.representativeAddressFormContainer = new StackPane();
+      controller.representativesContainer = new StackPane();
       controller.cancelButton = new Button();
       controller.saveButton = new Button();
       controller.initialize();
     });
 
-    return new Fixture(controller, juridicalRepo, navigationService);
+    return new Fixture(controller, juridicalRepo, physicalRepo, navigationService);
   }
 
   private static void fillAddress(StackPane container, String number) {
@@ -153,32 +156,14 @@ class JuridicalPersonControllerTest {
     stateCombo.setValue(BrazilianState.SP);
   }
 
-  private static void fillRepresentative(StackPane container) {
-    List<TextField> fields =
-        container.lookupAll(".form-input").stream()
-            .filter(n -> n instanceof TextField)
-            .map(n -> (TextField) n)
-            .toList();
-    fields.get(0).setText("João Representante");
-    fields.get(1).setText("Brasileiro");
-    fields.get(2).setText("Administrador");
-    fields.get(3).setText("529.982.247-25");
-    fields.get(4).setText("MG-1234567");
-
-    @SuppressWarnings("unchecked")
-    ComboBox<CivilState> combo = (ComboBox<CivilState>)
-        container.lookupAll(".form-combo").stream()
-            .filter(n -> n instanceof ComboBox)
-            .findFirst()
-            .orElseThrow();
-    combo.setValue(CivilState.SINGLE);
-  }
-
   @Test
   @DisplayName("Should create juridical person and go back when form is valid")
   void shouldCreateJuridicalPersonAndGoBackWhenFormIsValid() throws Exception {
     Fixture fixture = buildFixture();
     JuridicalPersonController controller = fixture.controller();
+
+    // Wait for the background task that loads physical persons to complete
+    Thread.sleep(1000);
 
     runOnFX(() -> {
       List<TextField> companyFields =
@@ -190,8 +175,15 @@ class JuridicalPersonControllerTest {
       companyFields.get(1).setText("11.222.333/0001-81");
 
       fillAddress(controller.companyAddressFormContainer, "100");
-      fillRepresentative(controller.representativeFormContainer);
-      fillAddress(controller.representativeAddressFormContainer, "200");
+
+      // Select the pre-existing representative from the available list
+      controller.representativesPane.setAllPersons(
+          fixture.physicalRepo().findAll(new PaginationInput(null, null)).items());
+      controller.representativesPane.populate(List.of());
+      PhysicalPerson rep = fixture.physicalRepo().findAll(new PaginationInput(null, null)).items().get(0);
+      controller.representativesPane.setAllPersons(List.of(rep));
+      // Move the rep to selected by populating available and then triggering selection
+      controller.representativesPane.populate(List.of(rep));
 
       controller.handleSubmit();
     });

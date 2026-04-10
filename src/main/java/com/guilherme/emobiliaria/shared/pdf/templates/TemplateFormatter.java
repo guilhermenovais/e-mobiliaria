@@ -111,7 +111,7 @@ class TemplateFormatter {
           + ", RG " + pp.getIdCardNumber();
     }
     if (person instanceof JuridicalPerson jp) {
-      return "CNPJ " + formatCnpj(jp.getCnpj()) + ", representada por " + jp.getRepresentative().getName();
+      return "CNPJ " + formatCnpj(jp.getCnpj()) + ", representada por " + jp.getRepresentatives().stream().map(PhysicalPerson::getName).collect(java.util.stream.Collectors.joining(", "));
     }
     throw new IllegalArgumentException("Unknown person type: " + person.getClass());
   }
@@ -169,8 +169,7 @@ class TemplateFormatter {
     if (person instanceof JuridicalPerson jp) {
       return bold(jp.getCorporateName()) + ", CNPJ: " + formatCnpj(
           jp.getCnpj()) + ", com sede na " + formatAddressForContract(
-          jp.getAddress()) + ", representada neste ato conforme contrato social pelo sócio " + formatPhysicalPersonForContract(
-          jp.getRepresentative()) + ".";
+          jp.getAddress()) + ", representada neste ato conforme contrato social pelo(s) sócio(s) " + jp.getRepresentatives().stream().map(TemplateFormatter::formatPhysicalPersonForContract).collect(java.util.stream.Collectors.joining(" e ")) + ".";
     }
     throw new IllegalArgumentException("Unknown person type: " + person.getClass());
   }

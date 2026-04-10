@@ -48,7 +48,7 @@ class SetConfigInteractorTest {
   }
 
   private JuridicalPerson sampleJuridicalPerson(PhysicalPerson representative) {
-    return JuridicalPerson.create("Empresa LTDA", "11.222.333/0001-81", representative,
+    return JuridicalPerson.create("Empresa LTDA", "11.222.333/0001-81", java.util.List.of(representative),
         sampleAddress());
   }
 

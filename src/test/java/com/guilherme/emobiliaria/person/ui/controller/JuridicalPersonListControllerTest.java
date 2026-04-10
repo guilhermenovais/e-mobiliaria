@@ -69,7 +69,7 @@ class JuridicalPersonListControllerTest {
   private static JuridicalPerson sampleJuridicalPerson(String name, long id) {
     Address address = sampleAddress(100 + id);
     PhysicalPerson representative = sampleRepresentative(200 + id, sampleAddress(300 + id));
-    return JuridicalPerson.restore(id, name, "11222333000181", representative, address);
+    return JuridicalPerson.restore(id, name, "11222333000181", List.of(representative), address);
   }
 
   private JuridicalPersonListController createController(FakeJuridicalPersonRepository repo) {

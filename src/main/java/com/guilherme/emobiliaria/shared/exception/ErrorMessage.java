@@ -48,8 +48,8 @@ public interface ErrorMessage {
     CORPORATE_NAME_TOO_LONG("juridical_person.corporate_name_too_long",
         "Corporate name must contain less than 100 characters"),
     CNPJ_INVALID("juridical_person.cnpj_invalid", "CNPJ is invalid"),
-    REPRESENTATIVE_NULL("juridical_person.representative_null",
-        "Representative must not be null"),
+    REPRESENTATIVES_EMPTY("juridical_person.representatives_empty",
+        "At least one representative must be selected"),
     ADDRESS_NULL("juridical_person.address_null", "Address must not be null"),
     NOT_FOUND("juridical_person.not_found", "Juridical person not found");
 

@@ -7,6 +7,7 @@ import com.guilherme.emobiliaria.person.application.output.FindAllJuridicalPeopl
 import com.guilherme.emobiliaria.person.application.usecase.DeleteJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
+import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
@@ -29,6 +30,7 @@ import javafx.scene.layout.HBox;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class JuridicalPersonListController {
 
@@ -129,7 +131,8 @@ public class JuridicalPersonListController {
     TableColumn<JuridicalPerson, String> representativeCol = new TableColumn<>(
         bundle.getString("juridical_person.list.column.representative"));
     representativeCol.setCellValueFactory(
-        c -> new SimpleStringProperty(c.getValue().getRepresentative().getName()));
+        c -> new SimpleStringProperty(c.getValue().getRepresentatives().stream()
+            .map(PhysicalPerson::getName).collect(Collectors.joining(", "))));
 
     TableColumn<JuridicalPerson, Void> actionsCol = new TableColumn<>(
         bundle.getString("juridical_person.list.column.actions"));

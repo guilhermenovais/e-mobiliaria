@@ -12,6 +12,8 @@ import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import jakarta.inject.Inject;
 
+import java.util.List;
+
 public class CreateJuridicalPersonInteractor {
 
   private final JuridicalPersonRepository juridicalPersonRepository;
@@ -30,14 +32,16 @@ public class CreateJuridicalPersonInteractor {
   }
 
   public CreateJuridicalPersonOutput execute(CreateJuridicalPersonInput input) {
-    PhysicalPerson representative = physicalPersonRepository.findById(input.representativeId())
-        .orElseThrow(() -> new BusinessException(ErrorMessage.PhysicalPerson.NOT_FOUND));
+    List<PhysicalPerson> representatives = input.representativeIds().stream()
+        .map(id -> physicalPersonRepository.findById(id)
+            .orElseThrow(() -> new BusinessException(ErrorMessage.PhysicalPerson.NOT_FOUND)))
+        .toList();
     Address address = addressRepository.findById(input.addressId())
         .orElseThrow(() -> new BusinessException(ErrorMessage.Address.NOT_FOUND));
     JuridicalPerson person = JuridicalPerson.create(
         input.corporateName(),
         input.cnpj(),
-        representative,
+        representatives,
         address
     );
     JuridicalPerson created = juridicalPersonRepository.create(person);

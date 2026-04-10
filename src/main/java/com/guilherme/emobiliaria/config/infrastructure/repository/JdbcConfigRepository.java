@@ -17,6 +17,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JdbcConfigRepository implements ConfigRepository {
 
@@ -101,22 +103,36 @@ public class JdbcConfigRepository implements ConfigRepository {
   }
 
   private JuridicalPerson loadJuridicalPerson(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, corporate_name, cnpj, representative_id, address_id FROM juridical_persons WHERE id = ?";
+    String sql = "SELECT id, corporate_name, cnpj, address_id FROM juridical_persons WHERE id = ?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
         rs.next();
-        PhysicalPerson representative = loadPhysicalPerson(conn, rs.getLong("representative_id"));
+        List<PhysicalPerson> representatives = loadRepresentatives(conn, rs.getLong("id"));
         Address address = loadAddress(conn, rs.getLong("address_id"));
         return JuridicalPerson.restore(
             rs.getLong("id"),
             rs.getString("corporate_name"),
             rs.getString("cnpj"),
-            representative,
+            representatives,
             address
         );
       }
     }
+  }
+
+  private List<PhysicalPerson> loadRepresentatives(Connection conn, long juridicalPersonId) throws SQLException {
+    String sql = "SELECT physical_person_id FROM juridical_person_representatives WHERE juridical_person_id=?";
+    List<PhysicalPerson> representatives = new ArrayList<>();
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setLong(1, juridicalPersonId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          representatives.add(loadPhysicalPerson(conn, rs.getLong("physical_person_id")));
+        }
+      }
+    }
+    return representatives;
   }
 
   private Address loadAddress(Connection conn, long id) throws SQLException {

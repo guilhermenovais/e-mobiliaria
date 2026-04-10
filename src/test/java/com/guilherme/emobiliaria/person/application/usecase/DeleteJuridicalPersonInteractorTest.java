@@ -16,6 +16,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,7 +50,7 @@ class DeleteJuridicalPersonInteractorTest {
     return new CreateJuridicalPersonInteractor(juridicalPersonRepository, physicalPersonRepository,
         addressRepository)
         .execute(new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181",
-            representativeId, addressId))
+            List.of(representativeId), addressId))
         .juridicalPerson().getId();
   }
 
