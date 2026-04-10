@@ -198,14 +198,19 @@ public class UpdateService {
     // Encoding as UTF-16LE Base64 and passing via -EncodedCommand bypasses it entirely.
     String script =
         "Start-Sleep -Seconds 10; " +
-        "robocopy '" + newPath + "' '" + curPath + "' /MIR /IS /IT /IM /NFL /NDL /NJH /NJS /LOG:NUL /R:3 /W:5 | Out-Null; " +
-        "Start-Sleep -Seconds 2; " +
-        "Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden";
+        "try { " +
+        "  Copy-Item -Path '" + newPath + "\\*' -Destination '" + curPath + "' -Recurse -Force -ErrorAction Stop; " +
+        "  Start-Sleep -Seconds 2; " +
+        "  Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden -ErrorAction Stop; " +
+        "} catch { " +
+        "  [Console]::Error.WriteLine('Update failed: ' + $_.Exception.Message); " +
+        "  exit 1; " +
+        "}";
 
     String encodedCommand = Base64.getEncoder()
         .encodeToString(script.getBytes(StandardCharsets.UTF_16LE));
 
-    log.info("Starting persistent update via encoded PowerShell command: " + encodedCommand);
+    log.info("Starting persistent update via PowerShell");
     new ProcessBuilder(
         "powershell.exe", "-NoProfile", "-WindowStyle", "Hidden",
         "-NonInteractive", "-EncodedCommand", encodedCommand
