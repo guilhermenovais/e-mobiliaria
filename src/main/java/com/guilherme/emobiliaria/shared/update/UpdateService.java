@@ -148,26 +148,56 @@ public class UpdateService {
   }
 
   private void applyUpdate(Path newDir) throws Exception {
-    Path launcher = findLauncher(newDir);
-    log.info("Launcher found at: {}", launcher);
+    Path currentAppDir = findCurrentAppDir();
 
-    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-
-    ProcessBuilder pb;
-    if (isWindows) {
-      pb = new ProcessBuilder("cmd.exe", "/c", "start \"\" \"" + launcher + "\"");
+    if (currentAppDir != null) {
+      applyPersistentUpdate(newDir.resolve("app"), currentAppDir);
     } else {
+      Path launcher = findLauncher(newDir);
+      log.info("Launcher found at: {}", launcher);
       launcher.toFile().setExecutable(true);
-      pb = new ProcessBuilder(launcher.toString());
+      new ProcessBuilder(launcher.toString())
+          .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+          .redirectErrorStream(true)
+          .start();
     }
 
-    pb.redirectOutput(ProcessBuilder.Redirect.DISCARD)
-        .redirectErrorStream(true);
-
-    log.info("Starting updated app: {}", pb.command());
-    pb.start();
     log.info("Update process started; exiting current instance");
     System.exit(0);
+  }
+
+  private void applyPersistentUpdate(Path newAppDir, Path currentAppDir) throws Exception {
+    String newPath = newAppDir.toAbsolutePath().toString();
+    String curPath = currentAppDir.toAbsolutePath().toString();
+    String launcher = currentAppDir.resolve("bin").resolve("app.bat").toAbsolutePath().toString();
+
+    String script = String.join("\r\n",
+        "Start-Sleep -Seconds 2",
+        "robocopy '" + newPath + "' '" + curPath + "' /MIR /IS /IT /IM /NFL /NDL /NJH /NJS | Out-Null",
+        "Start-Process -FilePath '" + launcher + "' -WindowStyle Hidden",
+        "Remove-Item -Path $MyInvocation.MyCommand.Path -Force",
+        "");
+
+    Path scriptPath = Files.createTempFile("emobiliaria-update", ".ps1");
+    Files.writeString(scriptPath, script);
+
+    log.info("Starting persistent update script: {}", scriptPath);
+    new ProcessBuilder(
+        "powershell.exe", "-WindowStyle", "Hidden",
+        "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-File", scriptPath.toString()
+    ).start();
+  }
+
+  private Path findCurrentAppDir() {
+    try {
+      URI location = UpdateService.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+      // JAR is at <appDir>/lib/e-mobiliaria-*.jar
+      return Path.of(location).getParent().getParent();
+    } catch (Exception e) {
+      log.warn("Could not determine current app directory: {}", e.getMessage());
+      return null;
+    }
   }
 
   private Path findLauncher(Path dir) throws IOException {

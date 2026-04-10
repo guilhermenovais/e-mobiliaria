@@ -67,7 +67,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           mkdir -p target/app/bin
           printf '@echo off\r\nset SCRIPT_DIR=%%~dp0\r\n"%%SCRIPT_DIR%%..%s" --module-path "%%SCRIPT_DIR%%..%s" --module com.guilherme.emobiliaria/com.guilherme.emobiliaria.EMobiliariaApplication\r\n' \
-            '\runtime\bin\java' '\lib' \
+            '\runtime\bin\javaw' '\lib' \
             > target/app/bin/app.bat
           cd target
           7z a -tzip "e-mobiliaria-${VERSION}.zip" app/
