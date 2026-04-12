@@ -72,6 +72,7 @@ jobs:
             --runtime-image target/app/runtime \
             --module-path target/app/lib \
             --module com.guilherme.emobiliaria/com.guilherme.emobiliaria.EMobiliariaApplication \
+            --java-options "--add-modules=ALL-MODULE-PATH" \
             --dest target \
             --win-menu \
             --win-menu-group "e-Mobiliaria" \
