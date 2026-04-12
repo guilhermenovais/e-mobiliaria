@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,7 +64,7 @@ class JdbcConfigRepositoryTest {
   private JuridicalPerson createJuridicalPerson() {
     PhysicalPerson representative = createPhysicalPerson();
     return juridicalPersonRepository.create(
-        JuridicalPerson.create("Empresa LTDA", "11.222.333/0001-81", representative,
+        JuridicalPerson.create("Empresa LTDA", "11.222.333/0001-81", List.of(representative),
             createAddress()));
   }
 

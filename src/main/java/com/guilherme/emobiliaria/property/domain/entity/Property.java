@@ -8,7 +8,6 @@ public class Property {
   private Long id;
   private String name;
   private String type;
-  private Purpose purpose;
   private String cemig;
   private String copasa;
   private String iptu;
@@ -17,12 +16,11 @@ public class Property {
   private Property() {
   }
 
-  public static Property create(String name, String type, Purpose purpose, String cemig,
+  public static Property create(String name, String type, String cemig,
       String copasa, String iptu, Address address) {
     Property property = new Property();
     property.setName(name);
     property.setType(type);
-    property.setPurpose(purpose);
     property.setCemig(cemig);
     property.setCopasa(copasa);
     property.setIptu(iptu);
@@ -30,9 +28,9 @@ public class Property {
     return property;
   }
 
-  public static Property restore(Long id, String name, String type, Purpose purpose,
+  public static Property restore(Long id, String name, String type,
       String cemig, String copasa, String iptu, Address address) {
-    Property property = create(name, type, purpose, cemig, copasa, iptu, address);
+    Property property = create(name, type, cemig, copasa, iptu, address);
     property.setId(id);
     return property;
   }
@@ -65,17 +63,6 @@ public class Property {
       throw new BusinessException(ErrorMessage.Property.TYPE_EMPTY);
     }
     this.type = type;
-  }
-
-  public Purpose getPurpose() {
-    return purpose;
-  }
-
-  public void setPurpose(Purpose purpose) {
-    if (purpose == null) {
-      throw new BusinessException(ErrorMessage.Property.PURPOSE_NULL);
-    }
-    this.purpose = purpose;
   }
 
   public String getCemig() {

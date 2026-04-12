@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.List;
+
 class JuridicalPersonTest {
 
   private static final String VALID_CORPORATE_NAME = "Empresa Teste Ltda";
@@ -29,7 +31,7 @@ class JuridicalPersonTest {
   }
 
   private JuridicalPerson validJuridicalPerson() {
-    return JuridicalPerson.create(VALID_CORPORATE_NAME, VALID_CNPJ, validRepresentative(),
+    return JuridicalPerson.create(VALID_CORPORATE_NAME, VALID_CNPJ, List.of(validRepresentative()),
         validAddress());
   }
 
@@ -54,7 +56,7 @@ class JuridicalPersonTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       JuridicalPerson person = JuridicalPerson.restore(10L, VALID_CORPORATE_NAME, VALID_CNPJ,
-          validRepresentative(), validAddress());
+          List.of(validRepresentative()), validAddress());
 
       assertEquals(10L, person.getId());
     }
@@ -128,24 +130,24 @@ class JuridicalPersonTest {
   }
 
   @Nested
-  class SetRepresentative {
+  class SetRepresentatives {
 
     @Test
-    @DisplayName("When representative is null, should throw BusinessException")
-    void shouldThrowWhenRepresentativeIsNull() {
+    @DisplayName("When representatives are null, should throw BusinessException")
+    void shouldThrowWhenRepresentativesAreNull() {
       JuridicalPerson person = validJuridicalPerson();
       BusinessException ex =
-          assertThrows(BusinessException.class, () -> person.setRepresentative(null));
-      assertEquals(ErrorMessage.JuridicalPerson.REPRESENTATIVE_NULL, ex.getErrorMessage());
+          assertThrows(BusinessException.class, () -> person.setRepresentatives(null));
+      assertEquals(ErrorMessage.JuridicalPerson.REPRESENTATIVES_EMPTY, ex.getErrorMessage());
     }
 
     @Test
-    @DisplayName("When representative is valid, should set representative")
-    void shouldSetRepresentativeWhenValid() {
+    @DisplayName("When representatives are valid, should set representatives")
+    void shouldSetRepresentativesWhenValid() {
       JuridicalPerson person = validJuridicalPerson();
       PhysicalPerson representative = validRepresentative();
-      assertDoesNotThrow(() -> person.setRepresentative(representative));
-      assertEquals(representative, person.getRepresentative());
+      assertDoesNotThrow(() -> person.setRepresentatives(List.of(representative)));
+      assertEquals(List.of(representative), person.getRepresentatives());
     }
   }
 

@@ -6,7 +6,6 @@ import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
 import com.guilherme.emobiliaria.property.application.input.CreatePropertyInput;
 import com.guilherme.emobiliaria.property.application.input.DeletePropertyInput;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -38,7 +37,7 @@ class DeletePropertyInteractorTest {
             BrazilianState.SP))
         .address().getId();
     return new CreatePropertyInteractor(propertyRepository, addressRepository)
-        .execute(new CreatePropertyInput("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL, "1234567890", "0987654321", "1122334455", addressId))
+        .execute(new CreatePropertyInput("Apartamento Centro", "Apartamento", "1234567890", "0987654321", "1122334455", addressId))
         .property().getId();
   }
 

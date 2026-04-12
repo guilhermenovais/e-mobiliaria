@@ -48,8 +48,8 @@ public interface ErrorMessage {
     CORPORATE_NAME_TOO_LONG("juridical_person.corporate_name_too_long",
         "Corporate name must contain less than 100 characters"),
     CNPJ_INVALID("juridical_person.cnpj_invalid", "CNPJ is invalid"),
-    REPRESENTATIVE_NULL("juridical_person.representative_null",
-        "Representative must not be null"),
+    REPRESENTATIVES_EMPTY("juridical_person.representatives_empty",
+        "At least one representative must be selected"),
     ADDRESS_NULL("juridical_person.address_null", "Address must not be null"),
     NOT_FOUND("juridical_person.not_found", "Juridical person not found");
 
@@ -75,8 +75,7 @@ public interface ErrorMessage {
 
   enum Property implements ErrorMessage {
     NAME_EMPTY("property.name_empty", "Name must not be empty"), TYPE_EMPTY("property.type_empty",
-        "Type must not be empty"), PURPOSE_NULL("property.purpose_null",
-        "Purpose must not be null"), CEMIG_EMPTY("property.cemig_empty",
+        "Type must not be empty"), CEMIG_EMPTY("property.cemig_empty",
         "CEMIG must not be empty"), COPASA_EMPTY("property.copasa_empty",
         "COPASA must not be empty"), IPTU_EMPTY("property.iptu_empty",
         "IPTU must not be empty"), ADDRESS_NULL("property.address_null",
@@ -111,7 +110,9 @@ public interface ErrorMessage {
         "contract.payment_account_null", "Payment account must not be null"), PROPERTY_NULL(
         "contract.property_null", "Property must not be null"), LANDLORD_NULL(
         "contract.landlord_null", "Landlord must not be null"), TENANTS_EMPTY(
-        "contract.tenants_empty", "Tenants list must not be empty"), NOT_FOUND(
+        "contract.tenants_empty", "Tenants list must not be empty"), PURPOSE_EMPTY(
+        "contract.purpose_empty", "Purpose must not be empty"), PURPOSE_TOO_LONG(
+        "contract.purpose_too_long", "Purpose must contain at most 100 characters"), NOT_FOUND(
         "contract.not_found", "Contract not found");
 
     private final String translationKey;

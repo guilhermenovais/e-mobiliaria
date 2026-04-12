@@ -82,7 +82,7 @@ public class ContractTemplate
     params.put(ContractParameters.PROPERTY_ADDRESS_TEXT,
         bold("Endereço: ") + TemplateFormatter.formatAddressForContract(property.getAddress()));
     params.put(ContractParameters.PROPERTY_PURPOSE_TEXT,
-        bold("Uso ou finalidade: ") + TemplateFormatter.purposeLabel(property.getPurpose()));
+        bold("Uso ou finalidade: ") + contract.getPurpose());
     params.put(ContractParameters.CONTRACT_RENT_TEXT,
         bold("Valor do aluguel mensal: ") + TemplateFormatter.formatCurrency(
             contract.getRent()) + " (" + TemplateFormatter.formatCurrencyInFull(

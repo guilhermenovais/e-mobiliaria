@@ -31,7 +31,6 @@ public class EditPropertyInteractor {
         .orElseThrow(() -> new BusinessException(ErrorMessage.Address.NOT_FOUND));
     property.setName(input.name());
     property.setType(input.type());
-    property.setPurpose(input.purpose());
     property.setCemig(input.cemig());
     property.setCopasa(input.copasa());
     property.setIptu(input.iptu());

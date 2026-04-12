@@ -56,6 +56,7 @@ public class EditContractInteractor {
     contract.setDuration(input.duration());
     contract.setPaymentDay(input.paymentDay());
     contract.setRent(input.rent());
+    contract.setPurpose(input.purpose());
     contract.setPaymentAccount(paymentAccount);
     contract.setProperty(property);
     contract.setLandlord(landlord);

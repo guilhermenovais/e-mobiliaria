@@ -15,7 +15,6 @@ import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.receipt.application.input.CreateReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
@@ -69,7 +68,7 @@ class DeleteReceiptInteractorTest {
     Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository)
         .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
-    Property property = Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
+    Property property = Property.create("Apto Centro", "Apartamento",
         "1234567890", "0987654321", "IPTU-001", validAddress());
     Long propertyId = propertyRepository.create(property).getId();
     PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
@@ -77,7 +76,7 @@ class DeleteReceiptInteractorTest {
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     return createContractInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, 150000, paymentAccountId, propertyId, personRef,
+        Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
         List.of(personRef), List.of(), List.of())).contract().getId();
   }
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -29,7 +30,7 @@ class TemplateFormatterTest {
 
   private JuridicalPerson validJuridicalPerson() {
     return JuridicalPerson.create("Empresa LTDA", "11.222.333/0001-81",
-        validPhysicalPerson(), validAddress());
+        List.of(validPhysicalPerson()), validAddress());
   }
 
   @Nested

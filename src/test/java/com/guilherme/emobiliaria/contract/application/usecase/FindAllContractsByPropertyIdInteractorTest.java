@@ -15,7 +15,6 @@ import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +55,7 @@ class FindAllContractsByPropertyIdInteractorTest {
   }
 
   private Long createProperty(String name) {
-    Property property = Property.create(name, "Apartamento", Purpose.RESIDENTIAL,
+    Property property = Property.create(name, "Apartamento",
         "1234567890", "0987654321", "IPTU-001", validAddress());
     return propertyRepository.create(property).getId();
   }
@@ -70,7 +69,7 @@ class FindAllContractsByPropertyIdInteractorTest {
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     createInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12),
-        10, 150000, paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
+        10, 150000, "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
         List.of()));
   }
 

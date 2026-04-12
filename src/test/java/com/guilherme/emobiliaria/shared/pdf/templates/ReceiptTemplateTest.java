@@ -7,7 +7,6 @@ import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -39,13 +38,12 @@ class ReceiptTemplateTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apto Centro", "Apartamento", Purpose.RESIDENTIAL,
-        "CEMIG-001", "COPASA-001", "IPTU-001", validAddress());
+    return Property.create("Apto Centro", "Apartamento", "CEMIG-001", "COPASA-001", "IPTU-001",
+        validAddress());
   }
 
   private Contract validContract() {
-    return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
-        150000,
+    return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, "Residencial",
         PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null),
         validProperty(), validLandlord(), List.of(validTenant()), List.of(), List.of());
   }

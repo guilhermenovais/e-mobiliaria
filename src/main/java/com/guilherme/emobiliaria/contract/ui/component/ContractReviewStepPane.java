@@ -64,7 +64,7 @@ public class ContractReviewStepPane extends VBox {
   public void populate(Property property, Person landlord, List<Person> tenants,
       List<Person> guarantors, List<Person> witnesses,
       LocalDate startDate, int durationMonths, int rentCents, int paymentDay,
-      PaymentAccount account) {
+      String purpose, PaymentAccount account) {
 
     // Property
     propertySection.getChildren().clear();
@@ -125,6 +125,8 @@ public class ContractReviewStepPane extends VBox {
     detailsSection.getChildren().clear();
     detailsSection.getChildren().add(
         sectionHeader(bundle.getString("contract.wizard.step8.section.details")));
+    detailsSection.getChildren().add(sectionValue(
+        bundle.getString("contract.wizard.step4.field.purpose") + ": " + purpose));
     detailsSection.getChildren().add(sectionValue(
         "Data de Início: " + startDate.format(DATE_FMT) + " | Duração: " + durationMonths + " meses"));
     detailsSection.getChildren().add(sectionValue(

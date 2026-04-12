@@ -16,6 +16,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -60,7 +62,7 @@ class CreateJuridicalPersonInteractorTest {
       Long representativeId = createPhysicalPerson(addressId);
 
       CreateJuridicalPersonOutput output = interactor.execute(
-          new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181", representativeId,
+          new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181", List.of(representativeId),
               addressId));
 
       assertNotNull(output.juridicalPerson().getId());
@@ -74,7 +76,7 @@ class CreateJuridicalPersonInteractorTest {
 
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(
-              new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181", 999L,
+              new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181", List.of(999L),
                   addressId)));
       assertEquals(ErrorMessage.PhysicalPerson.NOT_FOUND, ex.getErrorMessage());
     }
@@ -87,7 +89,7 @@ class CreateJuridicalPersonInteractorTest {
 
       BusinessException ex = assertThrows(BusinessException.class,
           () -> interactor.execute(
-              new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181", representativeId,
+              new CreateJuridicalPersonInput("Empresa Teste Ltda", "11222333000181", List.of(representativeId),
                   999L)));
       assertEquals(ErrorMessage.Address.NOT_FOUND, ex.getErrorMessage());
     }

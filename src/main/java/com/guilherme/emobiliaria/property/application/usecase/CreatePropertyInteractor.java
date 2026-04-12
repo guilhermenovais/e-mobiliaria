@@ -30,7 +30,6 @@ public class CreatePropertyInteractor {
     Property property = Property.create(
         input.name(),
         input.type(),
-        input.purpose(),
         input.cemig(),
         input.copasa(),
         input.iptu(),

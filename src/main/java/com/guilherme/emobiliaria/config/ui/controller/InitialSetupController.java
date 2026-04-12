@@ -360,7 +360,7 @@ public class InitialSetupController {
             @Override protected CreateJuridicalPersonOutput call() {
               return createJuridicalPerson.execute(new CreateJuridicalPersonInput(
                   companyDataForm.getCorporateName(), companyDataForm.getCnpj(),
-                  reprPersonId,
+                  List.of(reprPersonId),
                   companyAddressId
               ));
             }

@@ -7,7 +7,6 @@ import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
 import com.guilherme.emobiliaria.property.application.input.CreatePropertyInput;
 import com.guilherme.emobiliaria.property.application.input.FindAllPropertiesInput;
 import com.guilherme.emobiliaria.property.application.output.FindAllPropertiesOutput;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +35,7 @@ class FindAllPropertiesInteractorTest {
             BrazilianState.SP))
         .address().getId();
     new CreatePropertyInteractor(propertyRepository, addressRepository)
-        .execute(new CreatePropertyInput(name, "Apartamento", Purpose.RESIDENTIAL, "1234567890", "0987654321", "1122334455", addressId));
+        .execute(new CreatePropertyInput(name, "Apartamento", "1234567890", "0987654321", "1122334455", addressId));
   }
 
   @Nested

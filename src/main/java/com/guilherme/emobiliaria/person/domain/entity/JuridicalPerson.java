@@ -4,10 +4,12 @@ import com.guilherme.emobiliaria.person.domain.service.CnpjValidationService;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 
+import java.util.List;
+
 public class JuridicalPerson extends Person {
   private String corporateName;
   private String cnpj;
-  private PhysicalPerson representative;
+  private List<PhysicalPerson> representatives;
   private Address address;
 
   private static final CnpjValidationService cnpjValidationService = new CnpjValidationService();
@@ -15,18 +17,18 @@ public class JuridicalPerson extends Person {
   private JuridicalPerson() {}
 
   public static JuridicalPerson create(String corporateName, String cnpj,
-      PhysicalPerson representative, Address address) {
+      List<PhysicalPerson> representatives, Address address) {
     JuridicalPerson person = new JuridicalPerson();
     person.setCorporateName(corporateName);
     person.setCnpj(cnpj);
-    person.setRepresentative(representative);
+    person.setRepresentatives(representatives);
     person.setAddress(address);
     return person;
   }
 
   public static JuridicalPerson restore(Long id, String corporateName, String cnpj,
-      PhysicalPerson representative, Address address) {
-    JuridicalPerson person = create(corporateName, cnpj, representative, address);
+      List<PhysicalPerson> representatives, Address address) {
+    JuridicalPerson person = create(corporateName, cnpj, representatives, address);
     person.setId(id);
     return person;
   }
@@ -54,15 +56,15 @@ public class JuridicalPerson extends Person {
     this.cnpj = cnpj == null ? null : cnpj.replaceAll("[^0-9]", "");
   }
 
-  public PhysicalPerson getRepresentative() {
-    return representative;
+  public List<PhysicalPerson> getRepresentatives() {
+    return representatives;
   }
 
-  public void setRepresentative(PhysicalPerson representative) {
-    if (representative == null) {
-      throw new BusinessException(ErrorMessage.JuridicalPerson.REPRESENTATIVE_NULL);
+  public void setRepresentatives(List<PhysicalPerson> representatives) {
+    if (representatives == null || representatives.isEmpty()) {
+      throw new BusinessException(ErrorMessage.JuridicalPerson.REPRESENTATIVES_EMPTY);
     }
-    this.representative = representative;
+    this.representatives = representatives;
   }
 
   public Address getAddress() {

@@ -6,7 +6,6 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -39,7 +38,7 @@ class ContractTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apartamento Centro", "Apartamento", Purpose.RESIDENTIAL,
+    return Property.create("Apartamento Centro", "Apartamento",
         "1234567890", "0987654321", "IPTU-001", validAddress());
   }
 
@@ -48,9 +47,11 @@ class ContractTest {
         "529.982.247-25", "MG-1234567", validAddress());
   }
 
+  private static final String VALID_PURPOSE = "Residencial";
+
   private Contract validContract() {
     return Contract.create(VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
-        VALID_RENT,
+        VALID_RENT, VALID_PURPOSE,
         validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
         List.of());
   }
@@ -79,7 +80,7 @@ class ContractTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       Contract contract = Contract.restore(42L, VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
-          VALID_RENT,
+          VALID_RENT, VALID_PURPOSE,
           validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
           List.of());
 

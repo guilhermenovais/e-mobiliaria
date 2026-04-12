@@ -15,6 +15,7 @@ public class Contract {
   private Period duration;
   private int paymentDay;
   private int rent;
+  private String purpose;
   private PaymentAccount paymentAccount;
   private Property property;
   private Person landlord;
@@ -26,13 +27,14 @@ public class Contract {
   }
 
   public static Contract create(LocalDate startDate, Period duration, int paymentDay, int rent,
-      PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants,
-      List<Person> guarantors, List<Person> witnesses) {
+      String purpose, PaymentAccount paymentAccount, Property property, Person landlord,
+      List<Person> tenants, List<Person> guarantors, List<Person> witnesses) {
     Contract contract = new Contract();
     contract.setStartDate(startDate);
     contract.setDuration(duration);
     contract.setPaymentDay(paymentDay);
     contract.setRent(rent);
+    contract.setPurpose(purpose);
     contract.setPaymentAccount(paymentAccount);
     contract.setProperty(property);
     contract.setLandlord(landlord);
@@ -43,12 +45,11 @@ public class Contract {
   }
 
   public static Contract restore(Long id, LocalDate startDate, Period duration, int paymentDay,
-      int rent,
-      PaymentAccount paymentAccount, Property property, Person landlord, List<Person> tenants,
-      List<Person> guarantors, List<Person> witnesses) {
+      int rent, String purpose, PaymentAccount paymentAccount, Property property, Person landlord,
+      List<Person> tenants, List<Person> guarantors, List<Person> witnesses) {
     Contract contract =
-        create(startDate, duration, paymentDay, rent, paymentAccount, property, landlord, tenants,
-            guarantors, witnesses);
+        create(startDate, duration, paymentDay, rent, purpose, paymentAccount, property, landlord,
+            tenants, guarantors, witnesses);
     contract.setId(id);
     return contract;
   }
@@ -103,6 +104,20 @@ public class Contract {
       throw new BusinessException(ErrorMessage.Contract.RENT_NEGATIVE);
     }
     this.rent = rent;
+  }
+
+  public String getPurpose() {
+    return purpose;
+  }
+
+  public void setPurpose(String purpose) {
+    if (purpose == null || purpose.isBlank()) {
+      throw new BusinessException(ErrorMessage.Contract.PURPOSE_EMPTY);
+    }
+    if (purpose.length() > 100) {
+      throw new BusinessException(ErrorMessage.Contract.PURPOSE_TOO_LONG);
+    }
+    this.purpose = purpose;
   }
 
   public PaymentAccount getPaymentAccount() {

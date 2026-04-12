@@ -7,7 +7,6 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -59,8 +58,7 @@ class ContractReviewStepPaneTest {
     Address address =
         Address.restore(1L, "30130010", "Rua A", "10", null, "Centro", "Belo Horizonte",
             BrazilianState.MG);
-    return Property.restore(1L, "Apartamento 101", "Apartamento", Purpose.RESIDENTIAL, "111", "222",
-        "333", address);
+    return Property.restore(1L, "Apartamento 101", "Apartamento", "111", "222", "333", address);
   }
 
   private static Person samplePerson(String name, String cpf) {
@@ -87,7 +85,7 @@ class ContractReviewStepPaneTest {
       ContractReviewStepPane pane = new ContractReviewStepPane(messages());
       pane.populate(sampleProperty(), samplePerson("Locador", "52998224725"),
           List.of(samplePerson("Locatário", "11144477735")), List.of(), List.of(),
-          LocalDate.of(2026, 1, 1), 12, 150000, 5,
+          LocalDate.of(2026, 1, 1), 12, 150000, 5, "Residencial",
           PaymentAccount.restore(10L, "Banco XPTO", "1234", "998877", "pix-x"));
 
       return accountSectionTexts(pane);
@@ -106,7 +104,7 @@ class ContractReviewStepPaneTest {
       ContractReviewStepPane pane = new ContractReviewStepPane(messages());
       pane.populate(sampleProperty(), samplePerson("Locador", "52998224725"),
           List.of(samplePerson("Locatário", "11144477735")), List.of(), List.of(),
-          LocalDate.of(2026, 1, 1), 12, 150000, 5, null);
+          LocalDate.of(2026, 1, 1), 12, 150000, 5, "Residencial", null);
 
       return accountSectionTexts(pane);
     });

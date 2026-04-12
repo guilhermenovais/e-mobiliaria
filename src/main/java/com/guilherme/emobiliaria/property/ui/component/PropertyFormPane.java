@@ -3,17 +3,13 @@ package com.guilherme.emobiliaria.property.ui.component;
 import com.guilherme.emobiliaria.property.application.input.CreatePropertyInput;
 import com.guilherme.emobiliaria.property.application.input.EditPropertyInput;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
-import com.guilherme.emobiliaria.property.domain.entity.Purpose;
-import javafx.collections.FXCollections;
 import javafx.scene.Node;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 import java.util.ResourceBundle;
 
@@ -22,7 +18,6 @@ public class PropertyFormPane extends GridPane {
   private final ResourceBundle bundle;
   private final TextField nameField;
   private final TextField typeField;
-  private final ComboBox<Purpose> purposeCombo;
   private final TextField cemigField;
   private final TextField copasaField;
   private final TextField iptuField;
@@ -32,7 +27,6 @@ public class PropertyFormPane extends GridPane {
 
     nameField = styledInput();
     typeField = styledInput();
-    purposeCombo = buildPurposeCombo();
     cemigField = styledInput();
     copasaField = styledInput();
     iptuField = styledInput();
@@ -46,8 +40,7 @@ public class PropertyFormPane extends GridPane {
     getColumnConstraints().addAll(col1, col2);
 
     int row = 0;
-    add(formField(bundle.getString("property.form.field.name"), nameField), 0, row);
-    add(formField(bundle.getString("property.form.field.purpose"), purposeCombo), 1, row);
+    add(formField(bundle.getString("property.form.field.name"), nameField), 0, row, 2, 1);
     row++;
     add(formField(bundle.getString("property.form.field.type"), typeField), 0, row, 2, 1);
     row++;
@@ -65,10 +58,6 @@ public class PropertyFormPane extends GridPane {
     }
     if (isEmpty(typeField)) {
       markError(typeField);
-      valid = false;
-    }
-    if (purposeCombo.getValue() == null) {
-      markComboError(purposeCombo);
       valid = false;
     }
     if (isEmpty(cemigField)) {
@@ -90,7 +79,6 @@ public class PropertyFormPane extends GridPane {
     return new CreatePropertyInput(
         nameField.getText().trim(),
         typeField.getText().trim(),
-        purposeCombo.getValue(),
         cemigField.getText().trim(),
         copasaField.getText().trim(),
         iptuField.getText().trim(),
@@ -102,7 +90,6 @@ public class PropertyFormPane extends GridPane {
         id,
         nameField.getText().trim(),
         typeField.getText().trim(),
-        purposeCombo.getValue(),
         cemigField.getText().trim(),
         copasaField.getText().trim(),
         iptuField.getText().trim(),
@@ -112,7 +99,6 @@ public class PropertyFormPane extends GridPane {
   public void populate(Property property) {
     nameField.setText(property.getName());
     typeField.setText(property.getType());
-    purposeCombo.setValue(property.getPurpose());
     cemigField.setText(property.getCemig());
     copasaField.setText(property.getCopasa());
     iptuField.setText(property.getIptu());
@@ -121,30 +107,9 @@ public class PropertyFormPane extends GridPane {
   public void clearErrors() {
     nameField.getStyleClass().removeAll("form-input-error");
     typeField.getStyleClass().removeAll("form-input-error");
-    purposeCombo.getStyleClass().removeAll("form-input-error");
     cemigField.getStyleClass().removeAll("form-input-error");
     copasaField.getStyleClass().removeAll("form-input-error");
     iptuField.getStyleClass().removeAll("form-input-error");
-  }
-
-  private ComboBox<Purpose> buildPurposeCombo() {
-    ComboBox<Purpose> combo =
-        new ComboBox<>(FXCollections.observableArrayList(Purpose.values()));
-    combo.getStyleClass().add("form-combo");
-    combo.setMaxWidth(Double.MAX_VALUE);
-    combo.setConverter(new StringConverter<>() {
-      @Override
-      public String toString(Purpose p) {
-        if (p == null) return "";
-        return bundle.getString("purpose." + p.name());
-      }
-
-      @Override
-      public Purpose fromString(String s) {
-        return null;
-      }
-    });
-    return combo;
   }
 
   private TextField styledInput() {
@@ -169,12 +134,5 @@ public class PropertyFormPane extends GridPane {
     field.getStyleClass().add("form-input-error");
     field.textProperty()
         .addListener((obs, o, n) -> field.getStyleClass().removeAll("form-input-error"));
-  }
-
-  private void markComboError(ComboBox<?> combo) {
-    combo.getStyleClass().removeAll("form-input-error");
-    combo.getStyleClass().add("form-input-error");
-    combo.valueProperty()
-        .addListener((obs, o, n) -> combo.getStyleClass().removeAll("form-input-error"));
   }
 }

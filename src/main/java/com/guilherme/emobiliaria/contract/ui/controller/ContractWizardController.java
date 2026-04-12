@@ -286,7 +286,8 @@ public class ContractWizardController {
         contract.getDuration().toTotalMonths() > 0
             ? (int) contract.getDuration().toTotalMonths() : 1,
         contract.getRent(),
-        contract.getPaymentDay()
+        contract.getPaymentDay(),
+        contract.getPurpose()
     );
     accountPane.populate(contract.getPaymentAccount());
   }
@@ -350,6 +351,7 @@ public class ContractWizardController {
         detailsPane.getDurationMonths(),
         detailsPane.getRentCents(),
         detailsPane.getPaymentDay(),
+        detailsPane.getPurpose(),
         resolvedAccount
     );
   }
@@ -441,6 +443,7 @@ public class ContractWizardController {
           Period.ofMonths(detailsPane.getDurationMonths()),
           detailsPane.getPaymentDay(),
           detailsPane.getRentCents(),
+          detailsPane.getPurpose(),
           accountId,
           property.getId(),
           landlordRef,
@@ -467,6 +470,7 @@ public class ContractWizardController {
           Period.ofMonths(detailsPane.getDurationMonths()),
           detailsPane.getPaymentDay(),
           detailsPane.getRentCents(),
+          detailsPane.getPurpose(),
           accountId,
           property.getId(),
           landlordRef,

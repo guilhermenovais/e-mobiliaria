@@ -37,13 +37,8 @@
 
         <Separator/>
 
-        <Label fx:id="representativeSectionLabel" styleClass="form-section-label"/>
-        <StackPane fx:id="representativeFormContainer"/>
-
-        <Separator/>
-
-        <Label fx:id="representativeAddressSectionLabel" styleClass="form-section-label"/>
-        <StackPane fx:id="representativeAddressFormContainer"/>
+        <Label fx:id="representativesSectionLabel" styleClass="form-section-label"/>
+        <StackPane fx:id="representativesContainer"/>
 
         <HBox styleClass="form-view-footer">
             <Button fx:id="cancelButton" styleClass="btn-secondary"/>

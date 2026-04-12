@@ -7,8 +7,6 @@ import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +17,6 @@ class PropertyTest {
 
   private static final String VALID_NAME = "Apartamento Centro";
   private static final String VALID_TYPE = "Apartamento";
-  private static final Purpose VALID_PURPOSE = Purpose.RESIDENTIAL;
   private static final String VALID_CEMIG = "1234567890";
   private static final String VALID_COPASA = "0987654321";
   private static final String VALID_IPTU = "IPTU-001";
@@ -30,7 +27,7 @@ class PropertyTest {
   }
 
   private Property validProperty() {
-    return Property.create(VALID_NAME, VALID_TYPE, VALID_PURPOSE, VALID_CEMIG,
+    return Property.create(VALID_NAME, VALID_TYPE, VALID_CEMIG,
         VALID_COPASA, VALID_IPTU, validAddress());
   }
 
@@ -45,7 +42,6 @@ class PropertyTest {
       assertNull(property.getId());
       assertEquals(VALID_NAME, property.getName());
       assertEquals(VALID_TYPE, property.getType());
-      assertEquals(VALID_PURPOSE, property.getPurpose());
       assertEquals(VALID_CEMIG, property.getCemig());
       assertEquals(VALID_COPASA, property.getCopasa());
       assertEquals(VALID_IPTU, property.getIptu());
@@ -60,7 +56,7 @@ class PropertyTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       Property property =
-          Property.restore(42L, VALID_NAME, VALID_TYPE, VALID_PURPOSE, VALID_CEMIG,
+          Property.restore(42L, VALID_NAME, VALID_TYPE, VALID_CEMIG,
               VALID_COPASA, VALID_IPTU, validAddress());
 
       assertEquals(42L, property.getId());
@@ -122,29 +118,6 @@ class PropertyTest {
       Property property = validProperty();
       assertDoesNotThrow(() -> property.setType("Casa"));
       assertEquals("Casa", property.getType());
-    }
-  }
-
-
-  @Nested
-  class SetPurpose {
-
-    @Test
-    @DisplayName("When purpose is null, should throw BusinessException")
-    void shouldThrowWhenPurposeIsNull() {
-      Property property = validProperty();
-      BusinessException ex = assertThrows(BusinessException.class, () -> property.setPurpose(null));
-      assertEquals(ErrorMessage.Property.PURPOSE_NULL, ex.getErrorMessage());
-    }
-
-    @ParameterizedTest(name = "Purpose {0} is valid")
-    @ValueSource(strings = {"RESIDENTIAL", "COMMERCIAL"})
-    @DisplayName("When purpose is a valid value, should set it")
-    void shouldSetPurposeWhenValid(String purposeValue) {
-      Property property = validProperty();
-      Purpose purpose = Purpose.valueOf(purposeValue);
-      assertDoesNotThrow(() -> property.setPurpose(purpose));
-      assertEquals(purpose, property.getPurpose());
     }
   }
 
