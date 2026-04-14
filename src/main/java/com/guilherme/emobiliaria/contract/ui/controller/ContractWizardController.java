@@ -191,6 +191,10 @@ public class ContractWizardController {
         bundle.getString("contract.wizard.stepper.review")
     );
     stepperBar = new WizardStepperBar(labels);
+    stepperBar.setOnStepClick(step -> {
+      if (validateCurrentStep())
+        showStep(step);
+    });
     HBox.setHgrow(stepperBar, Priority.ALWAYS);
     stepperContainer.getChildren().setAll(stepperBar);
     stepperBar.setCurrentStep(currentStep);

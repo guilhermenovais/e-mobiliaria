@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.shared.ui.component;
 
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -9,12 +10,14 @@ import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class WizardStepperBar extends HBox {
 
   private final List<Label> dots = new ArrayList<>();
   private final List<Region> connectors = new ArrayList<>();
   private final List<Label> labels = new ArrayList<>();
+  private Consumer<Integer> onStepClick;
 
   public WizardStepperBar(List<String> labelTexts) {
     for (int i = 0; i < labelTexts.size(); i++) {
@@ -29,6 +32,12 @@ public class WizardStepperBar extends HBox {
 
       VBox dotBox = new VBox(5, dot, label);
       dotBox.setAlignment(Pos.CENTER);
+      dotBox.setCursor(Cursor.HAND);
+      final int step = i + 1;
+      dotBox.setOnMouseClicked(e -> {
+        if (onStepClick != null)
+          onStepClick.accept(step);
+      });
 
       dots.add(dot);
       labels.add(label);
@@ -43,6 +52,10 @@ public class WizardStepperBar extends HBox {
         getChildren().add(connector);
       }
     }
+  }
+
+  public void setOnStepClick(Consumer<Integer> handler) {
+    this.onStepClick = handler;
   }
 
   public void setCurrentStep(int step) {
