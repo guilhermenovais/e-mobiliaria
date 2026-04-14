@@ -9,6 +9,7 @@ import com.guilherme.emobiliaria.contract.application.usecase.DeleteContractInte
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractPdfInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
@@ -18,6 +19,7 @@ import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import jakarta.inject.Inject;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -33,6 +35,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.HBox;
 
@@ -191,12 +194,47 @@ public class ContractListController {
       return new SimpleStringProperty(formatted);
     });
 
+    TableColumn<Contract, ContractStatus> statusCol =
+        new TableColumn<>(bundle.getString("contract.list.column.status"));
+    statusCol.setCellValueFactory(c -> new SimpleObjectProperty<>(c.getValue().getStatus()));
+    statusCol.setCellFactory(col -> new TableCell<>() {
+      @Override
+      protected void updateItem(ContractStatus status, boolean empty) {
+        super.updateItem(status, empty);
+        getStyleClass().removeAll("status-active", "status-expiring", "status-expired",
+            "status-inactive");
+        if (empty || status == null) {
+          setText(null);
+        } else {
+          switch (status) {
+            case ACTIVE -> {
+              setText(bundle.getString("contract.list.status.active"));
+              getStyleClass().add("status-active");
+            }
+            case EXPIRING -> {
+              setText(bundle.getString("contract.list.status.expiring"));
+              getStyleClass().add("status-expiring");
+            }
+            case EXPIRED -> {
+              setText(bundle.getString("contract.list.status.expired"));
+              getStyleClass().add("status-expired");
+            }
+            case INACTIVE -> {
+              setText(bundle.getString("contract.list.status.inactive"));
+              getStyleClass().add("status-inactive");
+            }
+          }
+        }
+      }
+    });
+
     TableColumn<Contract, Void> actionsCol =
         new TableColumn<>(bundle.getString("contract.list.column.actions"));
     actionsCol.setCellFactory(col -> new ActionsCell());
     actionsCol.setStyle("-fx-alignment: CENTER-RIGHT;");
 
-    for (var col : new TableColumn[] {propertyCol, tenantCol, endDateCol, rentCol, actionsCol}) {
+    for (var col : new TableColumn[] {propertyCol, tenantCol, endDateCol, rentCol, statusCol,
+        actionsCol}) {
       col.setReorderable(false);
       col.setResizable(true);
     }
@@ -205,9 +243,25 @@ public class ContractListController {
     tenantCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.18));
     endDateCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.13));
     rentCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.15));
-    actionsCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.34));
+    statusCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.10));
+    actionsCol.prefWidthProperty().bind(tableView.widthProperty().multiply(0.24));
 
-    tableView.getColumns().setAll(propertyCol, tenantCol, endDateCol, rentCol, actionsCol);
+    tableView.setRowFactory(tv -> new TableRow<>() {
+      @Override
+      protected void updateItem(Contract item, boolean empty) {
+        super.updateItem(item, empty);
+        getStyleClass().removeAll("row-expiring", "row-expired");
+        if (!empty && item != null) {
+          if (item.getStatus() == ContractStatus.EXPIRING)
+            getStyleClass().add("row-expiring");
+          else if (item.getStatus() == ContractStatus.EXPIRED)
+            getStyleClass().add("row-expired");
+        }
+      }
+    });
+
+    tableView.getColumns()
+        .setAll(propertyCol, tenantCol, endDateCol, rentCol, statusCol, actionsCol);
   }
 
   // ── Pagination ─────────────────────────────────────────────────────────────

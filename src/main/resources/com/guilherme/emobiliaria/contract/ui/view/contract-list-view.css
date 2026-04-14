@@ -194,3 +194,29 @@
     -fx-border-color: #E5E7EB;
     -fx-opacity: 1;
 }
+
+.list-table-view .table-cell.status-active {
+    -fx-text-fill: #16A34A;
+}
+
+.list-table-view .table-cell.status-expiring {
+    -fx-text-fill: #FFBC51;
+}
+
+.list-table-view .table-cell.status-expired {
+    -fx-text-fill: #DC2626;
+}
+
+.list-table-view .table-cell.status-inactive {
+    -fx-text-fill: #9CA3AF;
+}
+
+.list-table-view .table-row-cell.row-expiring {
+    -fx-border-color: #FFBC51;
+    -fx-border-width: 1;
+}
+
+.list-table-view .table-row-cell.row-expired {
+    -fx-border-color: #DC2626;
+    -fx-border-width: 1;
+}

@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.contract.infrastructure.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.contract.domain.repository.ContractRepository;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
@@ -23,6 +24,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +113,12 @@ public class JdbcContractRepository implements ContractRepository {
 
   @Override
   public Optional<Contract> findById(Long id) {
-    String sql = "SELECT id, start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE id=?";
+    String sql = """
+        SELECT id, start_date, duration, payment_day, rent, purpose,
+               payment_account_id, property_id, landlord_id, landlord_type,
+               (SELECT MAX(c2.id) FROM contracts c2 WHERE c2.property_id = contracts.property_id) AS latest_id
+        FROM contracts WHERE id=?
+        """;
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
@@ -119,7 +126,7 @@ public class JdbcContractRepository implements ContractRepository {
         if (!rs.next()) {
           return Optional.empty();
         }
-        return Optional.of(map(rs, conn));
+        return Optional.of(mapWithStatus(rs, conn));
       }
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, e);
@@ -137,14 +144,22 @@ public class JdbcContractRepository implements ContractRepository {
         countRs.next();
         total = countRs.getLong(1);
       }
-      String sql = "SELECT id, start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type FROM contracts LIMIT ? OFFSET ?";
+      String sql = """
+          WITH ranked AS (
+            SELECT id, start_date, duration, payment_day, rent, purpose,
+                   payment_account_id, property_id, landlord_id, landlord_type,
+                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+            FROM contracts
+          )
+          SELECT * FROM ranked LIMIT ? OFFSET ?
+          """;
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setInt(1, limit);
         stmt.setInt(2, offset);
         try (ResultSet rs = stmt.executeQuery()) {
           List<Contract> items = new ArrayList<>();
           while (rs.next()) {
-            items.add(map(rs, conn));
+            items.add(mapWithStatus(rs, conn));
           }
           return new PagedResult<>(items, total);
         }
@@ -167,7 +182,15 @@ public class JdbcContractRepository implements ContractRepository {
           total = countRs.getLong(1);
         }
       }
-      String sql = "SELECT id, start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type FROM contracts WHERE property_id=? LIMIT ? OFFSET ?";
+      String sql = """
+          WITH ranked AS (
+            SELECT id, start_date, duration, payment_day, rent, purpose,
+                   payment_account_id, property_id, landlord_id, landlord_type,
+                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+            FROM contracts
+          )
+          SELECT * FROM ranked WHERE property_id=? LIMIT ? OFFSET ?
+          """;
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setLong(1, propertyId);
         stmt.setInt(2, limit);
@@ -175,7 +198,7 @@ public class JdbcContractRepository implements ContractRepository {
         try (ResultSet rs = stmt.executeQuery()) {
           List<Contract> items = new ArrayList<>();
           while (rs.next()) {
-            items.add(map(rs, conn));
+            items.add(mapWithStatus(rs, conn));
           }
           return new PagedResult<>(items, total);
         }
@@ -208,6 +231,27 @@ public class JdbcContractRepository implements ContractRepository {
         guarantors,
         witnesses
     );
+  }
+
+  private Contract mapWithStatus(ResultSet rs, Connection conn) throws SQLException {
+    Contract contract = map(rs, conn);
+    long latestId = rs.getLong("latest_id");
+    LocalDate startDate = contract.getStartDate();
+    Period duration = contract.getDuration();
+    LocalDate endDate = startDate.plus(duration);
+    LocalDate today = LocalDate.now();
+    ContractStatus status;
+    if (contract.getId() != latestId) {
+      status = ContractStatus.INACTIVE;
+    } else if (today.isAfter(endDate)) {
+      status = ContractStatus.EXPIRED;
+    } else if (!today.isBefore(endDate.minusDays(30))) {
+      status = ContractStatus.EXPIRING;
+    } else {
+      status = ContractStatus.ACTIVE;
+    }
+    contract.setStatus(status);
+    return contract;
   }
 
   private PaymentAccount loadPaymentAccount(Connection conn, long id) throws SQLException {

@@ -22,6 +22,7 @@ public class Contract {
   private List<Person> tenants;
   private List<Person> guarantors;
   private List<Person> witnesses;
+  private ContractStatus status;
 
   private Contract() {
   }
@@ -178,5 +179,13 @@ public class Contract {
 
   public void setWitnesses(List<Person> witnesses) {
     this.witnesses = witnesses == null ? List.of() : witnesses;
+  }
+
+  public ContractStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(ContractStatus status) {
+    this.status = status;
   }
 }
