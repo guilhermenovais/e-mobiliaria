@@ -142,10 +142,16 @@ public class ContractWizardController {
 
   private PaymentAccount resolvedAccount;
 
-  // ── Edit mode ──────────────────────────────────────────────────────────────
+  // ── Edit / Renewal mode ───────────────────────────────────────────────────
 
   public void setContractId(Long contractId) {
     this.contractId = contractId;
+  }
+
+  private Long renewFromContractId = null;
+
+  public void setRenewFromContractId(Long id) {
+    this.renewFromContractId = id;
   }
 
   // ── Initialization ─────────────────────────────────────────────────────────
@@ -154,8 +160,7 @@ public class ContractWizardController {
   public void initialize() {
     bundle = ResourceBundle.getBundle("messages", Locale.getDefault(), getClass().getModule());
 
-    stepTitleLabel.setText(bundle.getString(
-        contractId != null ? "contract.wizard.title.edit" : "contract.wizard.title.create"));
+    stepTitleLabel.setText(bundle.getString(resolveWizardTitleKey()));
     stepSubtitleLabel.setText(bundle.getString("contract.wizard.step.1.subtitle"));
 
     backButton.setText(bundle.getString("contract.wizard.button.back"));
@@ -226,6 +231,8 @@ public class ContractWizardController {
         Contract existing = null;
         if (contractId != null) {
           existing = findContractById.execute(new FindContractByIdInput(contractId)).contract();
+        } else if (renewFromContractId != null) {
+          existing = findContractById.execute(new FindContractByIdInput(renewFromContractId)).contract();
         }
 
         return new WizardData(properties, allPersons, accounts, config, existing);
@@ -236,7 +243,11 @@ public class ContractWizardController {
       WizardData data = task.getValue();
       buildStepPanes(data);
       if (data.existingContract() != null) {
-        populateStepPanes(data.existingContract());
+        if (contractId != null) {
+          populateStepPanes(data.existingContract());
+        } else {
+          populateStepPanesForRenewal(data.existingContract());
+        }
       }
       nextButton.setDisable(false);
       showStep(1);
@@ -292,12 +303,35 @@ public class ContractWizardController {
     accountPane.populate(contract.getPaymentAccount());
   }
 
+  private void populateStepPanesForRenewal(Contract source) {
+    propertyPane.populate(source.getProperty());
+    landlordPane.populate(source.getLandlord());
+    tenantsPane.populate(source.getTenants());
+    guarantorsPane.populate(source.getGuarantors());
+    witnessesPane.populate(source.getWitnesses());
+    int months = source.getDuration().toTotalMonths() > 0
+        ? (int) source.getDuration().toTotalMonths() : 12;
+    detailsPane.populate(
+        source.getStartDate().plus(source.getDuration()).plusDays(1),
+        months,
+        source.getRent(),
+        source.getPaymentDay(),
+        source.getPurpose()
+    );
+    accountPane.populate(source.getPaymentAccount());
+  }
+
+  private String resolveWizardTitleKey() {
+    if (contractId != null) return "contract.wizard.title.edit";
+    if (renewFromContractId != null) return "contract.wizard.title.renew";
+    return "contract.wizard.title.create";
+  }
+
   // ── Step navigation ────────────────────────────────────────────────────────
 
   private void showStep(int step) {
     currentStep = step;
-    stepTitleLabel.setText(bundle.getString(
-        contractId != null ? "contract.wizard.title.edit" : "contract.wizard.title.create"));
+    stepTitleLabel.setText(bundle.getString(resolveWizardTitleKey()));
     stepSubtitleLabel.setText(bundle.getString("contract.wizard.step." + step + ".subtitle"));
 
     backButton.setVisible(step > 1);

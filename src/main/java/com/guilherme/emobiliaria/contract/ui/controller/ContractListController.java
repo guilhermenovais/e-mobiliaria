@@ -22,11 +22,14 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -282,12 +285,13 @@ public class ContractListController {
 
   // ── Navigation ─────────────────────────────────────────────────────────────
 
-  private void handleGeneratePdf(Contract contract, Button pdfBtn) {
+  private void handleGeneratePdf(Contract contract, Button btn) {
+    String originalText = btn.getText();
     ProgressIndicator spinner = new ProgressIndicator();
     spinner.setMaxSize(16, 16);
-    pdfBtn.setGraphic(spinner);
-    pdfBtn.setText("");
-    pdfBtn.setDisable(true);
+    btn.setGraphic(spinner);
+    btn.setText("");
+    btn.setDisable(true);
 
     Task<Void> task = new Task<>() {
       @Override
@@ -305,14 +309,14 @@ public class ContractListController {
     };
 
     task.setOnSucceeded(e -> {
-      pdfBtn.setGraphic(null);
-      pdfBtn.setText(bundle.getString("contract.list.button.generate_pdf"));
-      pdfBtn.setDisable(false);
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
     });
     task.setOnFailed(e -> {
-      pdfBtn.setGraphic(null);
-      pdfBtn.setText(bundle.getString("contract.list.button.generate_pdf"));
-      pdfBtn.setDisable(false);
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
       ErrorHandler.handle(task.getException(), bundle);
     });
     new Thread(task).start();
@@ -337,6 +341,12 @@ public class ContractListController {
     navigationService.navigate(ctrl::buildView, "sidebar.receipts");
   }
 
+  private void navigateToRenew(long contractId) {
+    ContractWizardController ctrl = wizardControllerProvider.get();
+    ctrl.setRenewFromContractId(contractId);
+    navigationService.navigate(ctrl::buildView, "sidebar.contracts");
+  }
+
   // ── Inner cell class ───────────────────────────────────────────────────────
 
 
@@ -345,9 +355,14 @@ public class ContractListController {
     private final HBox actionsBox = new HBox();
     private final Button editBtn = new Button(bundle.getString("contract.list.button.edit"));
     private final Button deleteBtn = new Button(bundle.getString("contract.list.button.delete"));
-    private final Button pdfBtn = new Button(bundle.getString("contract.list.button.generate_pdf"));
-    private final Button receiptsBtn =
-        new Button(bundle.getString("contract.list.button.receipts"));
+    private final Button moreBtn = new Button(bundle.getString("contract.list.button.more"));
+    private final ContextMenu contextMenu = new ContextMenu();
+    private final MenuItem pdfItem =
+        new MenuItem(bundle.getString("contract.list.button.generate_pdf"));
+    private final MenuItem receiptsItem =
+        new MenuItem(bundle.getString("contract.list.button.receipts"));
+    private final MenuItem renewItem =
+        new MenuItem(bundle.getString("contract.list.button.renew"));
 
     ActionsCell() {
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
@@ -359,8 +374,9 @@ public class ContractListController {
 
       editBtn.getStyleClass().add("list-row-edit-button");
       deleteBtn.getStyleClass().add("list-row-delete-button");
-      pdfBtn.getStyleClass().add("list-row-receipts-button");
-      receiptsBtn.getStyleClass().add("list-row-receipts-button");
+      moreBtn.getStyleClass().add("list-row-more-button");
+
+      contextMenu.getItems().setAll(pdfItem, receiptsItem, renewItem);
 
       editBtn.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
@@ -370,16 +386,21 @@ public class ContractListController {
         Contract contract = getTableView().getItems().get(getIndex());
         handleDelete(contract);
       });
-      pdfBtn.setOnAction(e -> {
+      moreBtn.setOnAction(e -> contextMenu.show(moreBtn, Side.BOTTOM, 0, 0));
+      pdfItem.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
-        handleGeneratePdf(contract, pdfBtn);
+        handleGeneratePdf(contract, moreBtn);
       });
-      receiptsBtn.setOnAction(e -> {
+      receiptsItem.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
         navigateToReceipts(contract.getId());
       });
+      renewItem.setOnAction(e -> {
+        Contract contract = getTableView().getItems().get(getIndex());
+        navigateToRenew(contract.getId());
+      });
 
-      actionsBox.getChildren().setAll(editBtn, deleteBtn, pdfBtn, receiptsBtn);
+      actionsBox.getChildren().setAll(editBtn, deleteBtn, moreBtn);
     }
 
     @Override

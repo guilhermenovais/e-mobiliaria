@@ -151,6 +151,21 @@
     -fx-background-color: #111827;
 }
 
+.list-row-more-button {
+    -fx-background-color: #1F2937;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-font-size: 13px;
+    -fx-padding: 5 10;
+}
+
+.list-row-more-button:hover {
+    -fx-background-color: #111827;
+}
+
 .list-view-pagination {
     -fx-alignment: CENTER_LEFT;
     -fx-spacing: 10;
