@@ -20,5 +20,7 @@ public interface PhysicalPersonRepository {
 
   PagedResult<PhysicalPerson> findByName(String name, PaginationInput pagination);
 
+  PagedResult<PhysicalPerson> search(String query, PaginationInput pagination);
+
   void delete(Long id);
 }

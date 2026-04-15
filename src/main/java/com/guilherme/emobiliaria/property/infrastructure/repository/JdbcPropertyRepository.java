@@ -183,6 +183,48 @@ public class JdbcPropertyRepository implements PropertyRepository {
     }
   }
 
+  @Override
+  public PagedResult<Property> search(String query, PaginationInput pagination) {
+    int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String pattern = "%" + query + "%";
+    try (Connection conn = dataSource.getConnection()) {
+      long total;
+      try (PreparedStatement countStmt = conn.prepareStatement(
+          "SELECT COUNT(*) FROM properties WHERE name ILIKE ? OR type ILIKE ?")) {
+        countStmt.setString(1, pattern);
+        countStmt.setString(2, pattern);
+        try (ResultSet countRs = countStmt.executeQuery()) {
+          countRs.next();
+          total = countRs.getLong(1);
+        }
+      }
+      String sql = """
+          SELECT p.id, p.name, p.type, p.cemig, p.copasa, p.iptu,
+                 a.id AS address_id, a.cep, a.address, a.number, a.complement, a.neighborhood, a.city, a.state
+          FROM properties p
+          JOIN addresses a ON a.id = p.address_id
+          WHERE p.name ILIKE ? OR p.type ILIKE ?
+          LIMIT ? OFFSET ?
+          """;
+      try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, pattern);
+        stmt.setString(2, pattern);
+        stmt.setInt(3, limit);
+        stmt.setInt(4, offset);
+        try (ResultSet rs = stmt.executeQuery()) {
+          List<Property> items = new ArrayList<>();
+          while (rs.next()) {
+            items.add(map(rs));
+          }
+          return new PagedResult<>(items, total);
+        }
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, e);
+    }
+  }
+
   private Property map(ResultSet rs) throws SQLException {
     Address address = Address.restore(
         rs.getLong("address_id"),

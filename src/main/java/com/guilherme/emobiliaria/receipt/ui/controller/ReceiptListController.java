@@ -7,11 +7,14 @@ import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindAllReceiptsByContractIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInput;
+import com.guilherme.emobiliaria.receipt.application.input.SearchReceiptsInput;
 import com.guilherme.emobiliaria.receipt.application.output.FindAllReceiptsByContractIdOutput;
 import com.guilherme.emobiliaria.receipt.application.output.GenerateReceiptPdfOutput;
+import com.guilherme.emobiliaria.receipt.application.output.SearchReceiptsOutput;
 import com.guilherme.emobiliaria.receipt.application.usecase.DeleteReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindAllReceiptsByContractIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.GenerateReceiptPdfInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.SearchReceiptsInteractor;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
@@ -34,6 +37,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -64,6 +68,7 @@ public class ReceiptListController {
   // ── Injected dependencies ──────────────────────────────────────────────────
 
   private final FindAllReceiptsByContractIdInteractor findAllByContract;
+  private final SearchReceiptsInteractor searchReceipts;
   private final FindAllContractsInteractor findAllContracts;
   private final DeleteReceiptInteractor deleteReceipt;
   private final GenerateReceiptPdfInteractor generatePdf;
@@ -74,6 +79,7 @@ public class ReceiptListController {
   @Inject
   public ReceiptListController(
       FindAllReceiptsByContractIdInteractor findAllByContract,
+      SearchReceiptsInteractor searchReceipts,
       FindAllContractsInteractor findAllContracts,
       DeleteReceiptInteractor deleteReceipt,
       GenerateReceiptPdfInteractor generatePdf,
@@ -81,6 +87,7 @@ public class ReceiptListController {
       Provider<ReceiptFormController> formControllerProvider,
       GuiceFxmlLoader fxmlLoader) {
     this.findAllByContract = findAllByContract;
+    this.searchReceipts = searchReceipts;
     this.findAllContracts = findAllContracts;
     this.deleteReceipt = deleteReceipt;
     this.generatePdf = generatePdf;
@@ -94,6 +101,7 @@ public class ReceiptListController {
   @FXML private Label titleLabel;
   @FXML private Label subtitleLabel;
   @FXML private Button newButton;
+  @FXML private TextField searchField;
   @FXML private Label contractFilterLabel;
   @FXML private ComboBox<Contract> contractComboBox;
   @FXML private Button clearFilterButton;
@@ -126,6 +134,7 @@ public class ReceiptListController {
     titleLabel.setText(bundle.getString("receipt.list.title"));
     subtitleLabel.setText(bundle.getString("receipt.list.subtitle"));
     newButton.setText(bundle.getString("receipt.list.button.new"));
+    searchField.setPromptText(bundle.getString("receipt.list.search_prompt"));
     contractFilterLabel.setText(bundle.getString("receipt.list.filter.contract"));
     clearFilterButton.setText(bundle.getString("receipt.list.button.clear_filter"));
     prevButton.setText(bundle.getString("receipt.list.button.prev"));
@@ -145,6 +154,10 @@ public class ReceiptListController {
     });
     contractComboBox.getSelectionModel().selectedItemProperty().addListener(
         (obs, old, selected) -> loadPage(1));
+    searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+      currentPage = 1;
+      loadPage(1);
+    });
     prevButton.setOnAction(e -> { if (currentPage > 1) loadPage(currentPage - 1); });
     nextButton.setOnAction(e -> { if (currentPage < totalPages) loadPage(currentPage + 1); });
 
@@ -273,7 +286,9 @@ public class ReceiptListController {
 
   void loadPage(int page) {
     Contract selected = contractComboBox.getSelectionModel().getSelectedItem();
-    if (selected == null) {
+    String query = searchField.getText();
+
+    if (selected == null && query.isBlank()) {
       tableView.getItems().clear();
       tableView.setVisible(false);
       tableView.setManaged(false);
@@ -287,13 +302,21 @@ public class ReceiptListController {
       return;
     }
 
+    Long contractId = selected != null ? selected.getId() : null;
+
     Task<PagedResult<Receipt>> task = new Task<>() {
       @Override
       protected PagedResult<Receipt> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
-        FindAllReceiptsByContractIdOutput output = findAllByContract.execute(
-            new FindAllReceiptsByContractIdInput(selected.getId(), pagination));
-        return output.result();
+        if (query.isBlank()) {
+          FindAllReceiptsByContractIdOutput output = findAllByContract.execute(
+              new FindAllReceiptsByContractIdInput(contractId, pagination));
+          return output.result();
+        } else {
+          SearchReceiptsOutput output = searchReceipts.execute(
+              new SearchReceiptsInput(query.trim(), contractId, pagination));
+          return output.result();
+        }
       }
     };
 

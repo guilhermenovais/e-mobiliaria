@@ -18,4 +18,6 @@ public interface ContractRepository {
   PagedResult<Contract> findAll(PaginationInput pagination);
 
   PagedResult<Contract> findAllByPropertyId(Long propertyId, PaginationInput pagination);
+
+  PagedResult<Contract> search(String query, PaginationInput pagination);
 }

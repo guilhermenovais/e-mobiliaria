@@ -187,6 +187,43 @@ public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
     }
   }
 
+  @Override
+  public PagedResult<PhysicalPerson> search(String query, PaginationInput pagination) {
+    int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String searchTerm = "%" + query + "%";
+    try (Connection conn = dataSource.getConnection()) {
+      long total;
+      try (PreparedStatement countStmt = conn.prepareStatement(
+          "SELECT COUNT(*) FROM physical_persons WHERE name ILIKE ? OR cpf ILIKE ? OR id_card_number ILIKE ?")) {
+        countStmt.setString(1, searchTerm);
+        countStmt.setString(2, searchTerm);
+        countStmt.setString(3, searchTerm);
+        try (ResultSet countRs = countStmt.executeQuery()) {
+          countRs.next();
+          total = countRs.getLong(1);
+        }
+      }
+      String sql = "SELECT id, name, nationality, civil_state, occupation, cpf, id_card_number, address_id FROM physical_persons WHERE name ILIKE ? OR cpf ILIKE ? OR id_card_number ILIKE ? LIMIT ? OFFSET ?";
+      try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, searchTerm);
+        stmt.setString(2, searchTerm);
+        stmt.setString(3, searchTerm);
+        stmt.setInt(4, limit);
+        stmt.setInt(5, offset);
+        try (ResultSet rs = stmt.executeQuery()) {
+          List<PhysicalPerson> items = new ArrayList<>();
+          while (rs.next()) {
+            items.add(map(rs, conn));
+          }
+          return new PagedResult<>(items, total);
+        }
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.PhysicalPerson.NOT_FOUND, e);
+    }
+  }
+
   private PhysicalPerson map(ResultSet rs, Connection conn) throws SQLException {
     Address address = loadAddress(conn, rs.getLong("address_id"));
     return PhysicalPerson.restore(

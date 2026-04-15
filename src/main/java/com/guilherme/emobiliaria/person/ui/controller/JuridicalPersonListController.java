@@ -3,9 +3,12 @@ package com.guilherme.emobiliaria.person.ui.controller;
 import com.google.inject.Provider;
 import com.guilherme.emobiliaria.person.application.input.DeleteJuridicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllJuridicalPeopleInput;
+import com.guilherme.emobiliaria.person.application.input.SearchJuridicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.output.FindAllJuridicalPeopleOutput;
+import com.guilherme.emobiliaria.person.application.output.SearchJuridicalPeopleOutput;
 import com.guilherme.emobiliaria.person.application.usecase.DeleteJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.SearchJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
@@ -25,6 +28,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 import java.util.Locale;
@@ -35,6 +39,7 @@ import java.util.stream.Collectors;
 public class JuridicalPersonListController {
 
   private final FindAllJuridicalPeopleInteractor findAll;
+  private final SearchJuridicalPeopleInteractor search;
   private final DeleteJuridicalPersonInteractor deleteJuridicalPerson;
   private final NavigationService navigationService;
   private final Provider<JuridicalPersonController> juridicalControllerProvider;
@@ -42,10 +47,12 @@ public class JuridicalPersonListController {
   @Inject
   public JuridicalPersonListController(
       FindAllJuridicalPeopleInteractor findAll,
+      SearchJuridicalPeopleInteractor search,
       DeleteJuridicalPersonInteractor deleteJuridicalPerson,
       NavigationService navigationService,
       Provider<JuridicalPersonController> juridicalControllerProvider) {
     this.findAll = findAll;
+    this.search = search;
     this.deleteJuridicalPerson = deleteJuridicalPerson;
     this.navigationService = navigationService;
     this.juridicalControllerProvider = juridicalControllerProvider;
@@ -54,6 +61,7 @@ public class JuridicalPersonListController {
   @FXML private Label titleLabel;
   @FXML private Label subtitleLabel;
   @FXML private Button newButton;
+  @FXML private TextField searchField;
   @FXML private TableView<JuridicalPerson> tableView;
   @FXML private Button prevButton;
   @FXML private Label pageLabel;
@@ -91,10 +99,14 @@ public class JuridicalPersonListController {
     if (subtitleLabel == null) {
       subtitleLabel = new Label();
     }
+    if (searchField == null) {
+      searchField = new TextField();
+    }
 
     titleLabel.setText(bundle.getString("juridical_person.list.title"));
     subtitleLabel.setText(bundle.getString("juridical_person.list.subtitle"));
     newButton.setText(bundle.getString("juridical_person.list.button.new"));
+    searchField.setPromptText(bundle.getString("juridical_person.list.search_prompt"));
     prevButton.setText(bundle.getString("juridical_person.list.button.prev"));
     nextButton.setText(bundle.getString("juridical_person.list.button.next"));
 
@@ -111,6 +123,10 @@ public class JuridicalPersonListController {
       if (currentPage < totalPages) {
         loadPage(currentPage + 1);
       }
+    });
+    searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+      currentPage = 1;
+      loadPage(1);
     });
 
     loadPage(1);
@@ -158,13 +174,20 @@ public class JuridicalPersonListController {
   }
 
   void loadPage(int page) {
+    String query = searchField.getText();
     Task<PagedResult<JuridicalPerson>> task = new Task<>() {
       @Override
       protected PagedResult<JuridicalPerson> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
-        FindAllJuridicalPeopleOutput output = findAll.execute(
-            new FindAllJuridicalPeopleInput(pagination));
-        return output.result();
+        if (query.isBlank()) {
+          FindAllJuridicalPeopleOutput output = findAll.execute(
+              new FindAllJuridicalPeopleInput(pagination));
+          return output.result();
+        } else {
+          SearchJuridicalPeopleOutput output = search.execute(
+              new SearchJuridicalPeopleInput(query.trim(), pagination));
+          return output.result();
+        }
       }
     };
 

@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.person.ui.controller;
 
 import com.guilherme.emobiliaria.person.application.usecase.DeleteJuridicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.SearchJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
@@ -74,9 +75,10 @@ class JuridicalPersonListControllerTest {
 
   private JuridicalPersonListController createController(FakeJuridicalPersonRepository repo) {
     FindAllJuridicalPeopleInteractor findAll = new FindAllJuridicalPeopleInteractor(repo);
+    SearchJuridicalPeopleInteractor search = new SearchJuridicalPeopleInteractor(repo);
     DeleteJuridicalPersonInteractor deleteInteractor = new DeleteJuridicalPersonInteractor(repo);
     NavigationService navigationService = new NavigationService();
-    return new JuridicalPersonListController(findAll, deleteInteractor, navigationService, null);
+    return new JuridicalPersonListController(findAll, search, deleteInteractor, navigationService, null);
   }
 
   @Nested

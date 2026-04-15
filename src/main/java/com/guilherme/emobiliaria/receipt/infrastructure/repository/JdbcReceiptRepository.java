@@ -150,6 +150,44 @@ public class JdbcReceiptRepository implements ReceiptRepository {
     }
   }
 
+  @Override
+  public PagedResult<Receipt> search(String query, Long contractId, PaginationInput pagination) {
+    int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String searchTerm = "%" + query + "%";
+    String contractFilter = contractId != null
+        ? "AND contract_id = " + contractId
+        : "";
+    String countSql = "SELECT COUNT(*) FROM receipts WHERE (FORMATDATETIME(interval_start, 'dd/MM/yyyy') LIKE ? OR FORMATDATETIME(interval_end, 'dd/MM/yyyy') LIKE ?) " + contractFilter;
+    String dataSql = "SELECT id, date, interval_start, interval_end, discount, fine, observation, contract_id FROM receipts WHERE (FORMATDATETIME(interval_start, 'dd/MM/yyyy') LIKE ? OR FORMATDATETIME(interval_end, 'dd/MM/yyyy') LIKE ?) " + contractFilter + " LIMIT ? OFFSET ?";
+    try (Connection conn = dataSource.getConnection()) {
+      long total;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
+        countStmt.setString(1, searchTerm);
+        countStmt.setString(2, searchTerm);
+        try (ResultSet countRs = countStmt.executeQuery()) {
+          countRs.next();
+          total = countRs.getLong(1);
+        }
+      }
+      try (PreparedStatement stmt = conn.prepareStatement(dataSql)) {
+        stmt.setString(1, searchTerm);
+        stmt.setString(2, searchTerm);
+        stmt.setInt(3, limit);
+        stmt.setInt(4, offset);
+        try (ResultSet rs = stmt.executeQuery()) {
+          List<Receipt> items = new ArrayList<>();
+          while (rs.next()) {
+            items.add(map(rs, conn));
+          }
+          return new PagedResult<>(items, total);
+        }
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Receipt.NOT_FOUND, e);
+    }
+  }
+
   private Receipt map(ResultSet rs, Connection conn) throws SQLException {
     Contract contract = loadContract(conn, rs.getLong("contract_id"));
     return Receipt.restore(

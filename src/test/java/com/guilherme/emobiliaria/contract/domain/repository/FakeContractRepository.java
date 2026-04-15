@@ -1,6 +1,8 @@
 package com.guilherme.emobiliaria.contract.domain.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
+import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
@@ -59,6 +61,30 @@ public class FakeContractRepository extends FakeImplementation implements Contra
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     int limit = pagination.limit() != null ? pagination.limit() : all.size();
     List<Contract> page = all.stream().skip(offset).limit(limit).toList();
+    return new PagedResult<>(page, total);
+  }
+
+  @Override
+  public PagedResult<Contract> search(String query, PaginationInput pagination) {
+    maybeFail();
+    String lower = query.toLowerCase();
+    List<Contract> filtered = store.values().stream()
+        .filter(c -> {
+          String propName = c.getProperty() != null && c.getProperty().getName() != null
+              ? c.getProperty().getName().toLowerCase() : "";
+          boolean matchesProperty = propName.contains(lower);
+          boolean matchesTenant = c.getTenants() != null && c.getTenants().stream().anyMatch(t -> {
+            if (t instanceof PhysicalPerson pp) return pp.getName().toLowerCase().contains(lower);
+            if (t instanceof JuridicalPerson jp) return jp.getCorporateName().toLowerCase().contains(lower);
+            return false;
+          });
+          return matchesProperty || matchesTenant;
+        })
+        .toList();
+    long total = filtered.size();
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    int limit = pagination.limit() != null ? pagination.limit() : filtered.size();
+    List<Contract> page = filtered.stream().skip(offset).limit(limit).toList();
     return new PagedResult<>(page, total);
   }
 

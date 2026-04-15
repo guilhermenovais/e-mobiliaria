@@ -55,6 +55,23 @@ public class FakeJuridicalPersonRepository extends FakeImplementation
   }
 
   @Override
+  public PagedResult<JuridicalPerson> search(String query, PaginationInput pagination) {
+    maybeFail();
+    String lower = query.toLowerCase();
+    List<JuridicalPerson> matched = store.values().stream()
+        .filter(p -> p.getCorporateName().toLowerCase().contains(lower)
+            || (p.getCnpj() != null && p.getCnpj().toLowerCase().contains(lower))
+            || p.getRepresentatives().stream()
+                .anyMatch(r -> r.getName().toLowerCase().contains(lower)))
+        .toList();
+    long total = matched.size();
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    int limit = pagination.limit() != null ? pagination.limit() : matched.size();
+    List<JuridicalPerson> page = matched.stream().skip(offset).limit(limit).toList();
+    return new PagedResult<>(page, total);
+  }
+
+  @Override
   public void delete(Long id) {
     maybeFail();
     if (!store.containsKey(id)) {

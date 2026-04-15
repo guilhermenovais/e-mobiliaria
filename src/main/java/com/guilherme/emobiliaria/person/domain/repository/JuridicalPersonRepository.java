@@ -16,5 +16,7 @@ public interface JuridicalPersonRepository {
 
   PagedResult<JuridicalPerson> findAll(PaginationInput pagination);
 
+  PagedResult<JuridicalPerson> search(String query, PaginationInput pagination);
+
   void delete(Long id);
 }

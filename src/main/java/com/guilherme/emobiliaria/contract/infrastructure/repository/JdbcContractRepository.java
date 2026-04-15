@@ -208,6 +208,70 @@ public class JdbcContractRepository implements ContractRepository {
     }
   }
 
+  @Override
+  public PagedResult<Contract> search(String query, PaginationInput pagination) {
+    int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String searchTerm = "%" + query + "%";
+    String matchingSql = """
+        SELECT DISTINCT c.id
+        FROM contracts c
+        JOIN properties p ON p.id = c.property_id
+        LEFT JOIN contract_tenants ct ON ct.contract_id = c.id
+        LEFT JOIN physical_persons pp ON pp.id = ct.tenant_id AND ct.tenant_type = 'PHYSICAL'
+        LEFT JOIN juridical_persons jp ON jp.id = ct.tenant_id AND ct.tenant_type = 'JURIDICAL'
+        WHERE p.name ILIKE ? OR pp.name ILIKE ? OR jp.corporate_name ILIKE ?
+        """;
+    try (Connection conn = dataSource.getConnection()) {
+      long total;
+      try (PreparedStatement countStmt = conn.prepareStatement(
+          "WITH matching_ids AS (" + matchingSql + ") SELECT COUNT(*) FROM matching_ids")) {
+        countStmt.setString(1, searchTerm);
+        countStmt.setString(2, searchTerm);
+        countStmt.setString(3, searchTerm);
+        try (ResultSet countRs = countStmt.executeQuery()) {
+          countRs.next();
+          total = countRs.getLong(1);
+        }
+      }
+      String sql = """
+          WITH matching_ids AS (
+            SELECT DISTINCT c.id
+            FROM contracts c
+            JOIN properties p ON p.id = c.property_id
+            LEFT JOIN contract_tenants ct ON ct.contract_id = c.id
+            LEFT JOIN physical_persons pp ON pp.id = ct.tenant_id AND ct.tenant_type = 'PHYSICAL'
+            LEFT JOIN juridical_persons jp ON jp.id = ct.tenant_id AND ct.tenant_type = 'JURIDICAL'
+            WHERE p.name ILIKE ? OR pp.name ILIKE ? OR jp.corporate_name ILIKE ?
+          ),
+          ranked AS (
+            SELECT id, start_date, duration, payment_day, rent, purpose,
+                   payment_account_id, property_id, landlord_id, landlord_type,
+                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+            FROM contracts
+            WHERE id IN (SELECT id FROM matching_ids)
+          )
+          SELECT * FROM ranked LIMIT ? OFFSET ?
+          """;
+      try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, searchTerm);
+        stmt.setString(2, searchTerm);
+        stmt.setString(3, searchTerm);
+        stmt.setInt(4, limit);
+        stmt.setInt(5, offset);
+        try (ResultSet rs = stmt.executeQuery()) {
+          List<Contract> items = new ArrayList<>();
+          while (rs.next()) {
+            items.add(mapWithStatus(rs, conn));
+          }
+          return new PagedResult<>(items, total);
+        }
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, e);
+    }
+  }
+
   private Contract map(ResultSet rs, Connection conn) throws SQLException {
     long id = rs.getLong("id");
     Period duration = Period.parse(rs.getString("duration"));

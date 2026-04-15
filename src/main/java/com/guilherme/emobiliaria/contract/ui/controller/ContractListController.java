@@ -4,10 +4,13 @@ import com.google.inject.Provider;
 import com.guilherme.emobiliaria.contract.application.input.DeleteContractInput;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
 import com.guilherme.emobiliaria.contract.application.input.GenerateContractPdfInput;
+import com.guilherme.emobiliaria.contract.application.input.SearchContractsInput;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsOutput;
+import com.guilherme.emobiliaria.contract.application.output.SearchContractsOutput;
 import com.guilherme.emobiliaria.contract.application.usecase.DeleteContractInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractPdfInteractor;
+import com.guilherme.emobiliaria.contract.application.usecase.SearchContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
@@ -37,6 +40,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 import java.awt.*;
@@ -55,6 +59,7 @@ public class ContractListController {
   // ── Injected dependencies ──────────────────────────────────────────────────
 
   private final FindAllContractsInteractor findAll;
+  private final SearchContractsInteractor search;
   private final DeleteContractInteractor deleteContract;
   private final GenerateContractPdfInteractor generatePdf;
   private final NavigationService navigationService;
@@ -68,6 +73,8 @@ public class ContractListController {
   private Label subtitleLabel;
   @FXML
   private Button newButton;
+  @FXML
+  private TextField searchField;
   @FXML
   private TableView<Contract> tableView;
   @FXML
@@ -86,11 +93,13 @@ public class ContractListController {
   private ResourceBundle bundle;
   @Inject
   public ContractListController(FindAllContractsInteractor findAll,
+      SearchContractsInteractor search,
       DeleteContractInteractor deleteContract, GenerateContractPdfInteractor generatePdf,
       NavigationService navigationService,
       Provider<ContractWizardController> wizardControllerProvider,
       Provider<ReceiptListController> receiptListControllerProvider) {
     this.findAll = findAll;
+    this.search = search;
     this.deleteContract = deleteContract;
     this.generatePdf = generatePdf;
     this.navigationService = navigationService;
@@ -130,10 +139,13 @@ public class ContractListController {
       subtitleLabel = new Label();
     if (emptyLabel == null)
       emptyLabel = new Label();
+    if (searchField == null)
+      searchField = new TextField();
 
     titleLabel.setText(bundle.getString("contract.list.title"));
     subtitleLabel.setText(bundle.getString("contract.list.subtitle"));
     newButton.setText(bundle.getString("contract.list.button.new"));
+    searchField.setPromptText(bundle.getString("contract.list.search_prompt"));
     prevButton.setText(bundle.getString("contract.list.button.prev"));
     nextButton.setText(bundle.getString("contract.list.button.next"));
     emptyLabel.setText(bundle.getString("contract.list.empty"));
@@ -149,6 +161,10 @@ public class ContractListController {
     nextButton.setOnAction(e -> {
       if (currentPage < totalPages)
         loadPage(currentPage + 1);
+    });
+    searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+      currentPage = 1;
+      loadPage(1);
     });
 
     loadPage(1);
@@ -267,12 +283,18 @@ public class ContractListController {
   // ── Pagination ─────────────────────────────────────────────────────────────
 
   void loadPage(int page) {
+    String query = searchField.getText();
     Task<PagedResult<Contract>> task = new Task<>() {
       @Override
       protected PagedResult<Contract> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
-        FindAllContractsOutput output = findAll.execute(new FindAllContractsInput(pagination));
-        return output.result();
+        if (query.isBlank()) {
+          FindAllContractsOutput output = findAll.execute(new FindAllContractsInput(pagination));
+          return output.result();
+        } else {
+          SearchContractsOutput output = search.execute(new SearchContractsInput(query.trim(), pagination));
+          return output.result();
+        }
       }
     };
 

@@ -7,6 +7,7 @@ import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FakeReceiptRepository extends FakeImplementation implements ReceiptRepository {
+
+  private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private final Map<Long, Receipt> store = new HashMap<>();
   private final AtomicLong idSequence = new AtomicLong(1);
 
@@ -49,6 +52,27 @@ public class FakeReceiptRepository extends FakeImplementation implements Receipt
   public Optional<Receipt> findById(Long id) {
     maybeFail();
     return Optional.ofNullable(store.get(id));
+  }
+
+  @Override
+  public PagedResult<Receipt> search(String query, Long contractId, PaginationInput pagination) {
+    maybeFail();
+    String lower = query.toLowerCase();
+    List<Receipt> filtered = store.values().stream()
+        .filter(r -> {
+          if (contractId != null && (r.getContract() == null || !contractId.equals(r.getContract().getId()))) {
+            return false;
+          }
+          String start = r.getIntervalStart() != null ? r.getIntervalStart().format(DATE_FMT) : "";
+          String end = r.getIntervalEnd() != null ? r.getIntervalEnd().format(DATE_FMT) : "";
+          return start.toLowerCase().contains(lower) || end.toLowerCase().contains(lower);
+        })
+        .toList();
+    long total = filtered.size();
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    int limit = pagination.limit() != null ? pagination.limit() : filtered.size();
+    List<Receipt> page = new ArrayList<>(filtered).stream().skip(offset).limit(limit).toList();
+    return new PagedResult<>(page, total);
   }
 
   @Override

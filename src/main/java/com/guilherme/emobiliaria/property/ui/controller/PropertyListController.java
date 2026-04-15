@@ -3,9 +3,12 @@ package com.guilherme.emobiliaria.property.ui.controller;
 import com.google.inject.Provider;
 import com.guilherme.emobiliaria.property.application.input.DeletePropertyInput;
 import com.guilherme.emobiliaria.property.application.input.FindAllPropertiesInput;
+import com.guilherme.emobiliaria.property.application.input.SearchPropertiesInput;
 import com.guilherme.emobiliaria.property.application.output.FindAllPropertiesOutput;
+import com.guilherme.emobiliaria.property.application.output.SearchPropertiesOutput;
 import com.guilherme.emobiliaria.property.application.usecase.DeletePropertyInteractor;
 import com.guilherme.emobiliaria.property.application.usecase.FindAllPropertiesInteractor;
+import com.guilherme.emobiliaria.property.application.usecase.SearchPropertiesInteractor;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -24,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 import java.util.Locale;
@@ -35,6 +39,7 @@ public class PropertyListController {
   // ── Injected dependencies ──────────────────────────────────────────────────
 
   private final FindAllPropertiesInteractor findAll;
+  private final SearchPropertiesInteractor search;
   private final DeletePropertyInteractor deleteProperty;
   private final NavigationService navigationService;
   private final Provider<PropertyCreateController> createControllerProvider;
@@ -43,11 +48,13 @@ public class PropertyListController {
   @Inject
   public PropertyListController(
       FindAllPropertiesInteractor findAll,
+      SearchPropertiesInteractor search,
       DeletePropertyInteractor deleteProperty,
       NavigationService navigationService,
       Provider<PropertyCreateController> createControllerProvider,
       Provider<PropertyEditController> editControllerProvider) {
     this.findAll = findAll;
+    this.search = search;
     this.deleteProperty = deleteProperty;
     this.navigationService = navigationService;
     this.createControllerProvider = createControllerProvider;
@@ -59,6 +66,7 @@ public class PropertyListController {
   @FXML private Label titleLabel;
   @FXML private Label subtitleLabel;
   @FXML private Button newButton;
+  @FXML private TextField searchField;
   @FXML private TableView<Property> tableView;
   @FXML private Button prevButton;
   @FXML private Label pageLabel;
@@ -86,10 +94,12 @@ public class PropertyListController {
     if (newButton == null) newButton = new Button();
     if (titleLabel == null) titleLabel = new Label();
     if (subtitleLabel == null) subtitleLabel = new Label();
+    if (searchField == null) searchField = new TextField();
 
     titleLabel.setText(bundle.getString("property.list.title"));
     subtitleLabel.setText(bundle.getString("property.list.subtitle"));
     newButton.setText(bundle.getString("property.list.button.new"));
+    searchField.setPromptText(bundle.getString("property.list.search_prompt"));
     prevButton.setText(bundle.getString("property.list.button.prev"));
     nextButton.setText(bundle.getString("property.list.button.next"));
 
@@ -103,6 +113,10 @@ public class PropertyListController {
     });
     nextButton.setOnAction(e -> {
       if (currentPage < totalPages) loadPage(currentPage + 1);
+    });
+    searchField.textProperty().addListener((obs, oldVal, newVal) -> {
+      currentPage = 1;
+      loadPage(1);
     });
 
     loadPage(1);
@@ -143,12 +157,18 @@ public class PropertyListController {
   // ── Load page ──────────────────────────────────────────────────────────────
 
   void loadPage(int page) {
+    String query = searchField.getText();
     Task<PagedResult<Property>> task = new Task<>() {
       @Override
       protected PagedResult<Property> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
-        FindAllPropertiesOutput output = findAll.execute(new FindAllPropertiesInput(pagination));
-        return output.result();
+        if (query.isBlank()) {
+          FindAllPropertiesOutput output = findAll.execute(new FindAllPropertiesInput(pagination));
+          return output.result();
+        } else {
+          SearchPropertiesOutput output = search.execute(new SearchPropertiesInput(query.trim(), pagination));
+          return output.result();
+        }
       }
     };
 

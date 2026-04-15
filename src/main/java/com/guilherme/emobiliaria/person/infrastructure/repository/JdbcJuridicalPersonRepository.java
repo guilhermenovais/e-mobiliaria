@@ -130,6 +130,56 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
     }
   }
 
+  @Override
+  public PagedResult<JuridicalPerson> search(String query, PaginationInput pagination) {
+    int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
+    int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String searchTerm = "%" + query + "%";
+    String countSql = """
+        SELECT COUNT(DISTINCT jp.id)
+        FROM juridical_persons jp
+        LEFT JOIN juridical_person_representatives jpr ON jpr.juridical_person_id = jp.id
+        LEFT JOIN physical_persons pp ON pp.id = jpr.physical_person_id
+        WHERE jp.corporate_name ILIKE ? OR jp.cnpj ILIKE ? OR pp.name ILIKE ?
+        """;
+    String dataSql = """
+        SELECT DISTINCT jp.id, jp.corporate_name, jp.cnpj, jp.address_id
+        FROM juridical_persons jp
+        LEFT JOIN juridical_person_representatives jpr ON jpr.juridical_person_id = jp.id
+        LEFT JOIN physical_persons pp ON pp.id = jpr.physical_person_id
+        WHERE jp.corporate_name ILIKE ? OR jp.cnpj ILIKE ? OR pp.name ILIKE ?
+        LIMIT ? OFFSET ?
+        """;
+    try (Connection conn = dataSource.getConnection()) {
+      long total;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
+        countStmt.setString(1, searchTerm);
+        countStmt.setString(2, searchTerm);
+        countStmt.setString(3, searchTerm);
+        try (ResultSet countRs = countStmt.executeQuery()) {
+          countRs.next();
+          total = countRs.getLong(1);
+        }
+      }
+      try (PreparedStatement stmt = conn.prepareStatement(dataSql)) {
+        stmt.setString(1, searchTerm);
+        stmt.setString(2, searchTerm);
+        stmt.setString(3, searchTerm);
+        stmt.setInt(4, limit);
+        stmt.setInt(5, offset);
+        try (ResultSet rs = stmt.executeQuery()) {
+          List<JuridicalPerson> items = new ArrayList<>();
+          while (rs.next()) {
+            items.add(map(rs, conn));
+          }
+          return new PagedResult<>(items, total);
+        }
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, e);
+    }
+  }
+
   private JuridicalPerson map(ResultSet rs, Connection conn) throws SQLException {
     long juridicalId = rs.getLong("id");
     List<PhysicalPerson> representatives = loadRepresentatives(conn, juridicalId);

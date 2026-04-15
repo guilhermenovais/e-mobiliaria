@@ -2,7 +2,7 @@ package com.guilherme.emobiliaria.person.ui.controller;
 
 import com.guilherme.emobiliaria.person.application.usecase.DeletePhysicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllPhysicalPeopleInteractor;
-import com.guilherme.emobiliaria.person.application.usecase.SearchPhysicalPeopleByNameInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.SearchPhysicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
@@ -70,11 +70,10 @@ class PhysicalPersonListControllerTest {
 
   private PhysicalPersonListController createController(FakePhysicalPersonRepository repo) {
     FindAllPhysicalPeopleInteractor findAll = new FindAllPhysicalPeopleInteractor(repo);
-    SearchPhysicalPeopleByNameInteractor searchByName = new SearchPhysicalPeopleByNameInteractor(
-        repo);
+    SearchPhysicalPeopleInteractor search = new SearchPhysicalPeopleInteractor(repo);
     DeletePhysicalPersonInteractor deleteInteractor = new DeletePhysicalPersonInteractor(repo);
     NavigationService navigationService = new NavigationService();
-    return new PhysicalPersonListController(findAll, searchByName, deleteInteractor,
+    return new PhysicalPersonListController(findAll, search, deleteInteractor,
         navigationService, null, null);
   }
 

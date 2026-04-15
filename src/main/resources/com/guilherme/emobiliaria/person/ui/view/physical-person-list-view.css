@@ -26,10 +26,8 @@
     -fx-text-fill: #6B7280;
 }
 
-.list-search-field {
-    -fx-pref-width: 280;
-    -fx-min-width: 280;
-    -fx-max-width: 280;
+.list-search-row {
+    -fx-padding: 20 40 0 40;
 }
 
 .list-view-header-row .btn-primary {

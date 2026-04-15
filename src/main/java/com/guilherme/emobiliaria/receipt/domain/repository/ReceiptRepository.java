@@ -16,4 +16,6 @@ public interface ReceiptRepository {
   Optional<Receipt> findById(Long id);
 
   PagedResult<Receipt> findAllByContractId(Long contractId, PaginationInput pagination);
+
+  PagedResult<Receipt> search(String query, Long contractId, PaginationInput pagination);
 }

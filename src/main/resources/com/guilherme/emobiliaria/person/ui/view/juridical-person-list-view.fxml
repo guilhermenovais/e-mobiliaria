@@ -3,10 +3,12 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.SVGPath?>
 <?import java.net.URL?>
 <VBox
     xmlns:fx="http://javafx.com/fxml"
@@ -19,6 +21,7 @@
         <URL value="@/com/guilherme/emobiliaria/shared/ui/style/buttons.css"/>
     </stylesheets>
 
+    <!-- HEADER -->
     <HBox styleClass="list-view-header-row">
         <VBox styleClass="list-view-header-texts">
             <Label fx:id="titleLabel" styleClass="list-view-title"/>
@@ -26,6 +29,14 @@
         </VBox>
         <Region HBox.hgrow="ALWAYS"/>
         <Button fx:id="newButton" styleClass="btn-primary"/>
+    </HBox>
+
+    <!-- SEARCH -->
+    <HBox styleClass="list-search-row">
+        <HBox styleClass="search-bar" HBox.hgrow="ALWAYS">
+            <SVGPath styleClass="search-bar-icon" content="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            <TextField fx:id="searchField" styleClass="search-bar-input" HBox.hgrow="ALWAYS"/>
+        </HBox>
     </HBox>
 
     <StackPane styleClass="list-table-container" VBox.vgrow="ALWAYS">

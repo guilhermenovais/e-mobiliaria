@@ -3,12 +3,12 @@ package com.guilherme.emobiliaria.person.ui.controller;
 import com.google.inject.Provider;
 import com.guilherme.emobiliaria.person.application.input.DeletePhysicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllPhysicalPeopleInput;
-import com.guilherme.emobiliaria.person.application.input.SearchPhysicalPeopleByNameInput;
+import com.guilherme.emobiliaria.person.application.input.SearchPhysicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.output.FindAllPhysicalPeopleOutput;
-import com.guilherme.emobiliaria.person.application.output.SearchPhysicalPeopleByNameOutput;
+import com.guilherme.emobiliaria.person.application.output.SearchPhysicalPeopleOutput;
 import com.guilherme.emobiliaria.person.application.usecase.DeletePhysicalPersonInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllPhysicalPeopleInteractor;
-import com.guilherme.emobiliaria.person.application.usecase.SearchPhysicalPeopleByNameInteractor;
+import com.guilherme.emobiliaria.person.application.usecase.SearchPhysicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -39,7 +39,7 @@ public class PhysicalPersonListController {
   // ── Injected dependencies ──────────────────────────────────────────────────
 
   private final FindAllPhysicalPeopleInteractor findAll;
-  private final SearchPhysicalPeopleByNameInteractor searchByName;
+  private final SearchPhysicalPeopleInteractor search;
   private final DeletePhysicalPersonInteractor deletePhysicalPerson;
   private final NavigationService navigationService;
   private final Provider<PhysicalPersonCreateController> createControllerProvider;
@@ -48,13 +48,13 @@ public class PhysicalPersonListController {
   @Inject
   public PhysicalPersonListController(
       FindAllPhysicalPeopleInteractor findAll,
-      SearchPhysicalPeopleByNameInteractor searchByName,
+      SearchPhysicalPeopleInteractor search,
       DeletePhysicalPersonInteractor deletePhysicalPerson,
       NavigationService navigationService,
       Provider<PhysicalPersonCreateController> createControllerProvider,
       Provider<PhysicalPersonEditController> editControllerProvider) {
     this.findAll = findAll;
-    this.searchByName = searchByName;
+    this.search = search;
     this.deletePhysicalPerson = deletePhysicalPerson;
     this.navigationService = navigationService;
     this.createControllerProvider = createControllerProvider;
@@ -198,8 +198,8 @@ public class PhysicalPersonListController {
               new FindAllPhysicalPeopleInput(pagination));
           return output.result();
         } else {
-          SearchPhysicalPeopleByNameOutput output = searchByName.execute(
-              new SearchPhysicalPeopleByNameInput(query.trim(), pagination));
+          SearchPhysicalPeopleOutput output = search.execute(
+              new SearchPhysicalPeopleInput(query.trim(), pagination));
           return output.result();
         }
       }
