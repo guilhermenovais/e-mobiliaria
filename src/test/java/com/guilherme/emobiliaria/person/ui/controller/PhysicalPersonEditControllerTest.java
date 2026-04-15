@@ -8,6 +8,7 @@ import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteracto
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
@@ -117,7 +118,7 @@ class PhysicalPersonEditControllerTest {
       Fixture fixture = buildFixture();
       PhysicalPersonEditController controller = fixture.controller();
       long personId = fixture.personRepo().findAll(
-          new com.guilherme.emobiliaria.shared.persistence.PaginationInput(1, 0)).items()
+          new com.guilherme.emobiliaria.shared.persistence.PaginationInput(1, 0), PersonFilter.NONE).items()
           .get(0).getId();
 
       onFX(() -> {
@@ -182,7 +183,7 @@ class PhysicalPersonEditControllerTest {
       Fixture fixture = buildFixture();
       PhysicalPersonEditController controller = fixture.controller();
       long personId = fixture.personRepo().findAll(
-          new com.guilherme.emobiliaria.shared.persistence.PaginationInput(1, 0)).items()
+          new com.guilherme.emobiliaria.shared.persistence.PaginationInput(1, 0), PersonFilter.NONE).items()
           .get(0).getId();
 
       onFX(() -> {
@@ -226,7 +227,7 @@ class PhysicalPersonEditControllerTest {
       Fixture fixture = buildFixture();
       PhysicalPersonEditController controller = fixture.controller();
       long personId = fixture.personRepo().findAll(
-          new com.guilherme.emobiliaria.shared.persistence.PaginationInput(1, 0)).items()
+          new com.guilherme.emobiliaria.shared.persistence.PaginationInput(1, 0), PersonFilter.NONE).items()
           .get(0).getId();
 
       onFX(() -> {

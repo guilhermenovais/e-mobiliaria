@@ -4,6 +4,7 @@ import com.guilherme.emobiliaria.person.application.input.CreateAddressInput;
 import com.guilherme.emobiliaria.person.application.input.CreateJuridicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.CreatePhysicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllJuridicalPeopleInput;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.application.output.FindAllJuridicalPeopleOutput;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
@@ -60,7 +61,7 @@ class FindAllJuridicalPeopleInteractorTest {
       createJuridicalPerson();
 
       FindAllJuridicalPeopleOutput output = interactor.execute(
-          new FindAllJuridicalPeopleInput(new PaginationInput(null, null)));
+          new FindAllJuridicalPeopleInput(new PaginationInput(null, null), PersonFilter.NONE));
 
       assertEquals(1, output.result().total());
       assertEquals(1, output.result().items().size());

@@ -7,6 +7,7 @@ import com.guilherme.emobiliaria.contract.application.input.GenerateContractPdfI
 import com.guilherme.emobiliaria.contract.application.input.SearchContractsInput;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsOutput;
 import com.guilherme.emobiliaria.contract.application.output.SearchContractsOutput;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.application.usecase.DeleteContractInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractPdfInteractor;
@@ -42,6 +43,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
 import java.awt.*;
 import java.io.File;
@@ -76,6 +78,8 @@ public class ContractListController {
   @FXML
   private TextField searchField;
   @FXML
+  private HBox filterChipsRow;
+  @FXML
   private TableView<Contract> tableView;
   @FXML
   private Label emptyLabel;
@@ -91,6 +95,7 @@ public class ContractListController {
   private int totalPages = 1;
   private long totalResults = 0;
   private ResourceBundle bundle;
+  private ContractStatus selectedStatus = null;
   @Inject
   public ContractListController(FindAllContractsInteractor findAll,
       SearchContractsInteractor search,
@@ -141,6 +146,8 @@ public class ContractListController {
       emptyLabel = new Label();
     if (searchField == null)
       searchField = new TextField();
+    if (filterChipsRow == null)
+      filterChipsRow = new HBox();
 
     titleLabel.setText(bundle.getString("contract.list.title"));
     subtitleLabel.setText(bundle.getString("contract.list.subtitle"));
@@ -167,7 +174,40 @@ public class ContractListController {
       loadPage(1);
     });
 
+    buildFilterChips();
     loadPage(1);
+  }
+
+  private void buildFilterChips() {
+    filterChipsRow.setSpacing(8);
+    filterChipsRow.getStyleClass().add("list-filter-row");
+
+    record ChipDef(String label, ContractStatus status) {}
+    java.util.List<ChipDef> chips = java.util.List.of(
+        new ChipDef(bundle.getString("contract.list.filter.all"), null),
+        new ChipDef(bundle.getString("contract.list.filter.active"), ContractStatus.ACTIVE),
+        new ChipDef(bundle.getString("contract.list.filter.expiring"), ContractStatus.EXPIRING),
+        new ChipDef(bundle.getString("contract.list.filter.expired"), ContractStatus.EXPIRED),
+        new ChipDef(bundle.getString("contract.list.filter.inactive"), ContractStatus.INACTIVE)
+    );
+
+    java.util.List<Button> chipButtons = new java.util.ArrayList<>();
+    for (ChipDef chip : chips) {
+      Button btn = new Button(chip.label());
+      btn.getStyleClass().add("filter-chip");
+      if (chip.status() == selectedStatus) {
+        btn.getStyleClass().add("filter-chip-selected");
+      }
+      btn.setOnAction(e -> {
+        selectedStatus = chip.status();
+        chipButtons.forEach(b -> b.getStyleClass().remove("filter-chip-selected"));
+        btn.getStyleClass().add("filter-chip-selected");
+        currentPage = 1;
+        loadPage(1);
+      });
+      chipButtons.add(btn);
+    }
+    filterChipsRow.getChildren().setAll(chipButtons);
   }
 
   // ── Load page ──────────────────────────────────────────────────────────────
@@ -284,15 +324,16 @@ public class ContractListController {
 
   void loadPage(int page) {
     String query = searchField.getText();
+    ContractFilter filter = new ContractFilter(selectedStatus);
     Task<PagedResult<Contract>> task = new Task<>() {
       @Override
       protected PagedResult<Contract> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
         if (query.isBlank()) {
-          FindAllContractsOutput output = findAll.execute(new FindAllContractsInput(pagination));
+          FindAllContractsOutput output = findAll.execute(new FindAllContractsInput(pagination, filter));
           return output.result();
         } else {
-          SearchContractsOutput output = search.execute(new SearchContractsInput(query.trim(), pagination));
+          SearchContractsOutput output = search.execute(new SearchContractsInput(query.trim(), pagination, filter));
           return output.result();
         }
       }

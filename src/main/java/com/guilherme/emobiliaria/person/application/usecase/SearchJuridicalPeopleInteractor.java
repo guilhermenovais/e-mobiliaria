@@ -17,7 +17,7 @@ public class SearchJuridicalPeopleInteractor {
   }
 
   public SearchJuridicalPeopleOutput execute(SearchJuridicalPeopleInput input) {
-    PagedResult<JuridicalPerson> result = juridicalPersonRepository.search(input.query(), input.pagination());
+    PagedResult<JuridicalPerson> result = juridicalPersonRepository.search(input.query(), input.pagination(), input.filter());
     return new SearchJuridicalPeopleOutput(result);
   }
 }

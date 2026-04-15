@@ -17,7 +17,7 @@ public class FindAllPhysicalPeopleInteractor {
   }
 
   public FindAllPhysicalPeopleOutput execute(FindAllPhysicalPeopleInput input) {
-    PagedResult<PhysicalPerson> result = physicalPersonRepository.findAll(input.pagination());
+    PagedResult<PhysicalPerson> result = physicalPersonRepository.findAll(input.pagination(), input.filter());
     return new FindAllPhysicalPeopleOutput(result);
   }
 }

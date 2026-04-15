@@ -3,6 +3,7 @@ package com.guilherme.emobiliaria.person.application.usecase;
 import com.guilherme.emobiliaria.person.application.input.CreateAddressInput;
 import com.guilherme.emobiliaria.person.application.input.CreatePhysicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllPhysicalPeopleInput;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.application.output.FindAllPhysicalPeopleOutput;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
@@ -48,7 +49,7 @@ class FindAllPhysicalPeopleInteractorTest {
       createPhysicalPerson();
 
       FindAllPhysicalPeopleOutput output = interactor.execute(
-          new FindAllPhysicalPeopleInput(new PaginationInput(null, null)));
+          new FindAllPhysicalPeopleInput(new PaginationInput(null, null), PersonFilter.NONE));
 
       assertEquals(1, output.result().total());
       assertEquals(1, output.result().items().size());

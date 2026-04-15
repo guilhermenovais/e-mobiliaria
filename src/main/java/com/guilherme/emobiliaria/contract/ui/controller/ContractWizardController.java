@@ -27,6 +27,7 @@ import com.guilherme.emobiliaria.contract.ui.component.ContractTenantsStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractWitnessesStepPane;
 import com.guilherme.emobiliaria.person.application.input.FindAllJuridicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllPhysicalPeopleInput;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllPhysicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
@@ -220,9 +221,9 @@ public class ContractWizardController {
             .execute(new FindAllPropertiesInput(all)).result().items();
 
         List<PhysicalPerson> physical = findAllPhysical
-            .execute(new FindAllPhysicalPeopleInput(all)).result().items();
+            .execute(new FindAllPhysicalPeopleInput(all, PersonFilter.NONE)).result().items();
         List<JuridicalPerson> juridical = findAllJuridical
-            .execute(new FindAllJuridicalPeopleInput(all)).result().items();
+            .execute(new FindAllJuridicalPeopleInput(all, PersonFilter.NONE)).result().items();
         List<Person> allPersons = new ArrayList<>();
         allPersons.addAll(physical);
         allPersons.addAll(juridical);

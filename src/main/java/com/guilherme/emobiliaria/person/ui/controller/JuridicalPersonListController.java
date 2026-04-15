@@ -10,6 +10,8 @@ import com.guilherme.emobiliaria.person.application.usecase.DeleteJuridicalPerso
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.SearchJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
+import com.guilherme.emobiliaria.person.domain.entity.PersonRole;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -29,7 +31,9 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -62,6 +66,8 @@ public class JuridicalPersonListController {
   @FXML private Label subtitleLabel;
   @FXML private Button newButton;
   @FXML private TextField searchField;
+  @FXML private HBox filterChipsRow;
+  @FXML private ToggleButton activeContractsToggle;
   @FXML private TableView<JuridicalPerson> tableView;
   @FXML private Button prevButton;
   @FXML private Label pageLabel;
@@ -72,6 +78,8 @@ public class JuridicalPersonListController {
   private int totalPages = 1;
   private long totalResults = 0;
   private ResourceBundle bundle;
+  private PersonRole selectedRole = null;
+  private boolean activeContractsOnly = false;
 
   @FXML
   public void initialize() {
@@ -102,6 +110,12 @@ public class JuridicalPersonListController {
     if (searchField == null) {
       searchField = new TextField();
     }
+    if (filterChipsRow == null) {
+      filterChipsRow = new HBox();
+    }
+    if (activeContractsToggle == null) {
+      activeContractsToggle = new ToggleButton();
+    }
 
     titleLabel.setText(bundle.getString("juridical_person.list.title"));
     subtitleLabel.setText(bundle.getString("juridical_person.list.subtitle"));
@@ -129,7 +143,52 @@ public class JuridicalPersonListController {
       loadPage(1);
     });
 
+    buildFilterChips();
+    activeContractsToggle.selectedProperty().addListener((obs, oldVal, newVal) -> {
+      activeContractsOnly = newVal;
+      currentPage = 1;
+      loadPage(1);
+    });
     loadPage(1);
+  }
+
+  private void buildFilterChips() {
+    filterChipsRow.setSpacing(8);
+    filterChipsRow.getStyleClass().add("list-filter-row");
+
+    record ChipDef(String label, PersonRole role) {}
+    java.util.List<ChipDef> chips = java.util.List.of(
+        new ChipDef(bundle.getString("juridical_person.list.filter.all"), null),
+        new ChipDef(bundle.getString("juridical_person.list.filter.landlords"), PersonRole.LANDLORD),
+        new ChipDef(bundle.getString("juridical_person.list.filter.tenants"), PersonRole.TENANT),
+        new ChipDef(bundle.getString("juridical_person.list.filter.witnesses"), PersonRole.WITNESS),
+        new ChipDef(bundle.getString("juridical_person.list.filter.guarantors"), PersonRole.GUARANTOR)
+    );
+
+    java.util.List<Button> chipButtons = new java.util.ArrayList<>();
+    for (ChipDef chip : chips) {
+      Button btn = new Button(chip.label());
+      btn.getStyleClass().add("filter-chip");
+      if (chip.role() == selectedRole) {
+        btn.getStyleClass().add("filter-chip-selected");
+      }
+      btn.setOnAction(e -> {
+        selectedRole = chip.role();
+        chipButtons.forEach(b -> b.getStyleClass().remove("filter-chip-selected"));
+        btn.getStyleClass().add("filter-chip-selected");
+        currentPage = 1;
+        loadPage(1);
+      });
+      chipButtons.add(btn);
+    }
+
+    Region spacer = new Region();
+    HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+    Label toggleLabel = new Label(bundle.getString("juridical_person.list.filter.active_contracts"));
+    toggleLabel.getStyleClass().add("filter-toggle-label");
+
+    filterChipsRow.getChildren().setAll(chipButtons);
+    filterChipsRow.getChildren().addAll(spacer, toggleLabel, activeContractsToggle);
   }
 
   @SuppressWarnings("unchecked")
@@ -175,17 +234,18 @@ public class JuridicalPersonListController {
 
   void loadPage(int page) {
     String query = searchField.getText();
+    PersonFilter filter = new PersonFilter(selectedRole, activeContractsOnly);
     Task<PagedResult<JuridicalPerson>> task = new Task<>() {
       @Override
       protected PagedResult<JuridicalPerson> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
         if (query.isBlank()) {
           FindAllJuridicalPeopleOutput output = findAll.execute(
-              new FindAllJuridicalPeopleInput(pagination));
+              new FindAllJuridicalPeopleInput(pagination, filter));
           return output.result();
         } else {
           SearchJuridicalPeopleOutput output = search.execute(
-              new SearchJuridicalPeopleInput(query.trim(), pagination));
+              new SearchJuridicalPeopleInput(query.trim(), pagination, filter));
           return output.result();
         }
       }

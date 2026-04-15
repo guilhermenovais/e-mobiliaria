@@ -4,6 +4,8 @@ import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
+import com.guilherme.emobiliaria.person.domain.entity.PersonRole;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.JuridicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -23,6 +25,32 @@ import java.util.List;
 import java.util.Optional;
 
 public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository {
+
+  private static final String ACTIVE_CONTRACTS_CONDITION = """
+      jp.id IN (
+        SELECT landlord_id FROM contracts
+        WHERE landlord_type = 'JURIDICAL'
+          AND id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = contracts.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date) >= CURRENT_DATE
+        UNION
+        SELECT tenant_id FROM contract_tenants ct
+        JOIN contracts c ON c.id = ct.contract_id
+        WHERE ct.tenant_type = 'JURIDICAL'
+          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
+        UNION
+        SELECT witness_id FROM contract_witnesses cw
+        JOIN contracts c ON c.id = cw.contract_id
+        WHERE cw.witness_type = 'JURIDICAL'
+          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
+        UNION
+        SELECT guarantor_id FROM contract_guarantors cg
+        JOIN contracts c ON c.id = cg.contract_id
+        WHERE cg.guarantor_type = 'JURIDICAL'
+          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
+      )""";
 
   private final DataSource dataSource;
 
@@ -103,17 +131,20 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
   }
 
   @Override
-  public PagedResult<JuridicalPerson> findAll(PaginationInput pagination) {
+  public PagedResult<JuridicalPerson> findAll(PaginationInput pagination, PersonFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String whereClause = buildFilterWhereClause(filter, "jp");
     try (Connection conn = dataSource.getConnection()) {
       long total;
-      try (PreparedStatement countStmt = conn.prepareStatement("SELECT COUNT(*) FROM juridical_persons");
+      String countSql = "SELECT COUNT(*) FROM juridical_persons jp" + whereClause;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql);
           ResultSet countRs = countStmt.executeQuery()) {
         countRs.next();
         total = countRs.getLong(1);
       }
-      String sql = "SELECT id, corporate_name, cnpj, address_id FROM juridical_persons LIMIT ? OFFSET ?";
+      String sql = "SELECT jp.id, jp.corporate_name, jp.cnpj, jp.address_id FROM juridical_persons jp"
+          + whereClause + " LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setInt(1, limit);
         stmt.setInt(2, offset);
@@ -131,25 +162,26 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
   }
 
   @Override
-  public PagedResult<JuridicalPerson> search(String query, PaginationInput pagination) {
+  public PagedResult<JuridicalPerson> search(String query, PaginationInput pagination, PersonFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     String searchTerm = "%" + query + "%";
+    String filterClause = buildFilterWhereClause(filter, "jp");
+    String searchCondition = filterClause.isEmpty()
+        ? " WHERE (jp.corporate_name ILIKE ? OR jp.cnpj ILIKE ? OR pp.name ILIKE ?)"
+        : filterClause + " AND (jp.corporate_name ILIKE ? OR jp.cnpj ILIKE ? OR pp.name ILIKE ?)";
     String countSql = """
         SELECT COUNT(DISTINCT jp.id)
         FROM juridical_persons jp
         LEFT JOIN juridical_person_representatives jpr ON jpr.juridical_person_id = jp.id
         LEFT JOIN physical_persons pp ON pp.id = jpr.physical_person_id
-        WHERE jp.corporate_name ILIKE ? OR jp.cnpj ILIKE ? OR pp.name ILIKE ?
-        """;
+        """ + searchCondition;
     String dataSql = """
         SELECT DISTINCT jp.id, jp.corporate_name, jp.cnpj, jp.address_id
         FROM juridical_persons jp
         LEFT JOIN juridical_person_representatives jpr ON jpr.juridical_person_id = jp.id
         LEFT JOIN physical_persons pp ON pp.id = jpr.physical_person_id
-        WHERE jp.corporate_name ILIKE ? OR jp.cnpj ILIKE ? OR pp.name ILIKE ?
-        LIMIT ? OFFSET ?
-        """;
+        """ + searchCondition + " LIMIT ? OFFSET ?";
     try (Connection conn = dataSource.getConnection()) {
       long total;
       try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
@@ -179,6 +211,36 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
       throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, e);
     }
   }
+
+  // ── Filter helpers ─────────────────────────────────────────────────────────
+
+  private String buildFilterWhereClause(PersonFilter filter, String alias) {
+    if (filter == null || filter.equals(PersonFilter.NONE)) {
+      return "";
+    }
+    List<String> conditions = new ArrayList<>();
+    if (filter.role() != null) {
+      conditions.add(roleCondition(filter.role(), alias));
+    }
+    if (filter.activeContractsOnly()) {
+      conditions.add(ACTIVE_CONTRACTS_CONDITION.replace("jp.", alias + "."));
+    }
+    if (conditions.isEmpty()) {
+      return "";
+    }
+    return " WHERE " + String.join(" AND ", conditions);
+  }
+
+  private String roleCondition(PersonRole role, String alias) {
+    return switch (role) {
+      case LANDLORD -> alias + ".id IN (SELECT landlord_id FROM contracts WHERE landlord_type = 'JURIDICAL')";
+      case TENANT -> alias + ".id IN (SELECT tenant_id FROM contract_tenants WHERE tenant_type = 'JURIDICAL')";
+      case WITNESS -> alias + ".id IN (SELECT witness_id FROM contract_witnesses WHERE witness_type = 'JURIDICAL')";
+      case GUARANTOR -> alias + ".id IN (SELECT guarantor_id FROM contract_guarantors WHERE guarantor_type = 'JURIDICAL')";
+    };
+  }
+
+  // ── Mapping helpers ────────────────────────────────────────────────────────
 
   private JuridicalPerson map(ResultSet rs, Connection conn) throws SQLException {
     long juridicalId = rs.getLong("id");

@@ -6,6 +6,7 @@ import com.guilherme.emobiliaria.person.application.output.CreatePhysicalPersonO
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -86,7 +87,7 @@ class CreatePhysicalPersonInteractorTest {
 
       assertEquals(firstId, second.physicalPerson().getId());
       assertTrue(
-          physicalPersonRepository.findAll(new com.guilherme.emobiliaria.shared.persistence.PaginationInput(100, 0))
+          physicalPersonRepository.findAll(new com.guilherme.emobiliaria.shared.persistence.PaginationInput(100, 0), PersonFilter.NONE)
               .items().size() == 1);
     }
   }

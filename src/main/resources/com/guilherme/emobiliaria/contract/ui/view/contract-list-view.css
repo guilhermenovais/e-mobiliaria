@@ -224,3 +224,35 @@
     -fx-border-color: #DC2626;
     -fx-border-width: 1;
 }
+
+.list-filter-row {
+    -fx-padding: 12 40 0 40;
+    -fx-spacing: 8;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.filter-chip {
+    -fx-background-color: white;
+    -fx-text-fill: #374151;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-background-radius: 100;
+    -fx-border-radius: 100;
+    -fx-font-size: 13px;
+    -fx-padding: 5 14;
+    -fx-cursor: hand;
+}
+
+.filter-chip:hover {
+    -fx-background-color: #F9FAFB;
+}
+
+.filter-chip-selected {
+    -fx-background-color: #1F2D3D;
+    -fx-text-fill: white;
+    -fx-border-color: #1F2D3D;
+}
+
+.filter-chip-selected:hover {
+    -fx-background-color: #2d3f54;
+}

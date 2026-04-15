@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.receipt.ui.controller;
 
 import com.google.inject.Provider;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
@@ -201,7 +202,7 @@ public class ReceiptListController {
       @Override
       protected List<Contract> call() {
         return findAllContracts.execute(
-            new FindAllContractsInput(new PaginationInput(LOAD_ALL_LIMIT, 0))).result().items();
+            new FindAllContractsInput(new PaginationInput(LOAD_ALL_LIMIT, 0), ContractFilter.NONE)).result().items();
       }
     };
 

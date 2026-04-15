@@ -17,7 +17,7 @@ public class FindAllJuridicalPeopleInteractor {
   }
 
   public FindAllJuridicalPeopleOutput execute(FindAllJuridicalPeopleInput input) {
-    PagedResult<JuridicalPerson> result = juridicalPersonRepository.findAll(input.pagination());
+    PagedResult<JuridicalPerson> result = juridicalPersonRepository.findAll(input.pagination(), input.filter());
     return new FindAllJuridicalPeopleOutput(result);
   }
 }

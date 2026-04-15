@@ -7,6 +7,7 @@ import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -149,7 +150,7 @@ class JuridicalPersonListControllerTest {
       runOnFX(() -> controller.handleDelete(person, false));
       Thread.sleep(200);
 
-      long count = repo.findAll(new PaginationInput(100, 0)).total();
+      long count = repo.findAll(new PaginationInput(100, 0), PersonFilter.NONE).total();
       assertEquals(1, count, "Juridical person should NOT have been deleted");
     }
 
@@ -166,7 +167,7 @@ class JuridicalPersonListControllerTest {
       runOnFX(() -> controller.handleDelete(person, true));
       Thread.sleep(500);
 
-      long count = repo.findAll(new PaginationInput(100, 0)).total();
+      long count = repo.findAll(new PaginationInput(100, 0), PersonFilter.NONE).total();
       assertEquals(0, count, "Juridical person should have been deleted");
     }
   }

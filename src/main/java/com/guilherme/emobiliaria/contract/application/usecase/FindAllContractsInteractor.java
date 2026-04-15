@@ -17,7 +17,7 @@ public class FindAllContractsInteractor {
   }
 
   public FindAllContractsOutput execute(FindAllContractsInput input) {
-    PagedResult<Contract> result = contractRepository.findAll(input.pagination());
+    PagedResult<Contract> result = contractRepository.findAll(input.pagination(), input.filter());
     return new FindAllContractsOutput(result);
   }
 }

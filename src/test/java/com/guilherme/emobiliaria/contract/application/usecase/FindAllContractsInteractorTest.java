@@ -3,6 +3,7 @@ package com.guilherme.emobiliaria.contract.application.usecase;
 import com.guilherme.emobiliaria.contract.application.input.CreateContractInput;
 import com.guilherme.emobiliaria.contract.application.input.CreatePaymentAccountInput;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference.PersonType;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsOutput;
@@ -78,7 +79,7 @@ class FindAllContractsInteractorTest {
     void shouldReturnAllContracts() {
       createContract(LocalDate.of(2026, 1, 1));
       createContract(LocalDate.of(2026, 3, 1));
-      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(null, null));
+      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(null, null), ContractFilter.NONE);
 
       FindAllContractsOutput output = interactor.execute(input);
 
@@ -89,7 +90,7 @@ class FindAllContractsInteractorTest {
     @Test
     @DisplayName("When no contracts exist, should return empty result")
     void shouldReturnEmptyWhenNoContracts() {
-      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(null, null));
+      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(null, null), ContractFilter.NONE);
 
       FindAllContractsOutput output = interactor.execute(input);
 
@@ -103,7 +104,7 @@ class FindAllContractsInteractorTest {
       createContract(LocalDate.of(2026, 1, 1));
       createContract(LocalDate.of(2026, 3, 1));
       createContract(LocalDate.of(2026, 6, 1));
-      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(2, 0));
+      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(2, 0), ContractFilter.NONE);
 
       FindAllContractsOutput output = interactor.execute(input);
 

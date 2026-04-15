@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.contract.domain.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -54,7 +55,7 @@ public class FakeContractRepository extends FakeImplementation implements Contra
   }
 
   @Override
-  public PagedResult<Contract> findAll(PaginationInput pagination) {
+  public PagedResult<Contract> findAll(PaginationInput pagination, ContractFilter filter) {
     maybeFail();
     List<Contract> all = new ArrayList<>(store.values());
     long total = all.size();
@@ -65,7 +66,7 @@ public class FakeContractRepository extends FakeImplementation implements Contra
   }
 
   @Override
-  public PagedResult<Contract> search(String query, PaginationInput pagination) {
+  public PagedResult<Contract> search(String query, PaginationInput pagination, ContractFilter filter) {
     maybeFail();
     String lower = query.toLowerCase();
     List<Contract> filtered = store.values().stream()

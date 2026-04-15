@@ -3,6 +3,8 @@ package com.guilherme.emobiliaria.person.infrastructure.repository;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
+import com.guilherme.emobiliaria.person.domain.entity.PersonRole;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.PhysicalPersonRepository;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -22,6 +24,32 @@ import java.util.List;
 import java.util.Optional;
 
 public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
+
+  private static final String ACTIVE_CONTRACTS_CONDITION = """
+      pp.id IN (
+        SELECT landlord_id FROM contracts
+        WHERE landlord_type = 'PHYSICAL'
+          AND id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = contracts.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date) >= CURRENT_DATE
+        UNION
+        SELECT tenant_id FROM contract_tenants ct
+        JOIN contracts c ON c.id = ct.contract_id
+        WHERE ct.tenant_type = 'PHYSICAL'
+          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
+        UNION
+        SELECT witness_id FROM contract_witnesses cw
+        JOIN contracts c ON c.id = cw.contract_id
+        WHERE cw.witness_type = 'PHYSICAL'
+          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
+        UNION
+        SELECT guarantor_id FROM contract_guarantors cg
+        JOIN contracts c ON c.id = cg.contract_id
+        WHERE cg.guarantor_type = 'PHYSICAL'
+          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
+      )""";
 
   private final DataSource dataSource;
 
@@ -128,17 +156,20 @@ public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
   }
 
   @Override
-  public PagedResult<PhysicalPerson> findAll(PaginationInput pagination) {
+  public PagedResult<PhysicalPerson> findAll(PaginationInput pagination, PersonFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String whereClause = buildFilterWhereClause(filter, "pp");
     try (Connection conn = dataSource.getConnection()) {
       long total;
-      try (PreparedStatement countStmt = conn.prepareStatement("SELECT COUNT(*) FROM physical_persons");
+      String countSql = "SELECT COUNT(*) FROM physical_persons pp" + whereClause;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql);
           ResultSet countRs = countStmt.executeQuery()) {
         countRs.next();
         total = countRs.getLong(1);
       }
-      String sql = "SELECT id, name, nationality, civil_state, occupation, cpf, id_card_number, address_id FROM physical_persons LIMIT ? OFFSET ?";
+      String sql = "SELECT pp.id, pp.name, pp.nationality, pp.civil_state, pp.occupation, pp.cpf, pp.id_card_number, pp.address_id FROM physical_persons pp"
+          + whereClause + " LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setInt(1, limit);
         stmt.setInt(2, offset);
@@ -188,14 +219,18 @@ public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
   }
 
   @Override
-  public PagedResult<PhysicalPerson> search(String query, PaginationInput pagination) {
+  public PagedResult<PhysicalPerson> search(String query, PaginationInput pagination, PersonFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     String searchTerm = "%" + query + "%";
+    String filterClause = buildFilterWhereClause(filter, "pp");
+    String searchCondition = filterClause.isEmpty()
+        ? " WHERE (pp.name ILIKE ? OR pp.cpf ILIKE ? OR pp.id_card_number ILIKE ?)"
+        : filterClause + " AND (pp.name ILIKE ? OR pp.cpf ILIKE ? OR pp.id_card_number ILIKE ?)";
     try (Connection conn = dataSource.getConnection()) {
       long total;
-      try (PreparedStatement countStmt = conn.prepareStatement(
-          "SELECT COUNT(*) FROM physical_persons WHERE name ILIKE ? OR cpf ILIKE ? OR id_card_number ILIKE ?")) {
+      String countSql = "SELECT COUNT(*) FROM physical_persons pp" + searchCondition;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
         countStmt.setString(1, searchTerm);
         countStmt.setString(2, searchTerm);
         countStmt.setString(3, searchTerm);
@@ -204,7 +239,8 @@ public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
           total = countRs.getLong(1);
         }
       }
-      String sql = "SELECT id, name, nationality, civil_state, occupation, cpf, id_card_number, address_id FROM physical_persons WHERE name ILIKE ? OR cpf ILIKE ? OR id_card_number ILIKE ? LIMIT ? OFFSET ?";
+      String sql = "SELECT pp.id, pp.name, pp.nationality, pp.civil_state, pp.occupation, pp.cpf, pp.id_card_number, pp.address_id FROM physical_persons pp"
+          + searchCondition + " LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setString(1, searchTerm);
         stmt.setString(2, searchTerm);
@@ -223,6 +259,36 @@ public class JdbcPhysicalPersonRepository implements PhysicalPersonRepository {
       throw new PersistenceException(ErrorMessage.PhysicalPerson.NOT_FOUND, e);
     }
   }
+
+  // ── Filter helpers ─────────────────────────────────────────────────────────
+
+  private String buildFilterWhereClause(PersonFilter filter, String alias) {
+    if (filter == null || filter.equals(PersonFilter.NONE)) {
+      return "";
+    }
+    List<String> conditions = new ArrayList<>();
+    if (filter.role() != null) {
+      conditions.add(roleCondition(filter.role(), alias));
+    }
+    if (filter.activeContractsOnly()) {
+      conditions.add(ACTIVE_CONTRACTS_CONDITION.replace("pp.", alias + "."));
+    }
+    if (conditions.isEmpty()) {
+      return "";
+    }
+    return " WHERE " + String.join(" AND ", conditions);
+  }
+
+  private String roleCondition(PersonRole role, String alias) {
+    return switch (role) {
+      case LANDLORD -> alias + ".id IN (SELECT landlord_id FROM contracts WHERE landlord_type = 'PHYSICAL')";
+      case TENANT -> alias + ".id IN (SELECT tenant_id FROM contract_tenants WHERE tenant_type = 'PHYSICAL')";
+      case WITNESS -> alias + ".id IN (SELECT witness_id FROM contract_witnesses WHERE witness_type = 'PHYSICAL')";
+      case GUARANTOR -> alias + ".id IN (SELECT guarantor_id FROM contract_guarantors WHERE guarantor_type = 'PHYSICAL')";
+    };
+  }
+
+  // ── Mapping helpers ────────────────────────────────────────────────────────
 
   private PhysicalPerson map(ResultSet rs, Connection conn) throws SQLException {
     Address address = loadAddress(conn, rs.getLong("address_id"));

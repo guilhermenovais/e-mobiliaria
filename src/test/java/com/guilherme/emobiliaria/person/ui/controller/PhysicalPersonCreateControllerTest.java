@@ -7,6 +7,7 @@ import com.guilherme.emobiliaria.person.application.usecase.ValidateCpfInteracto
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.repository.FakePhysicalPersonRepository;
 import com.guilherme.emobiliaria.person.domain.service.CpfValidationService;
 import com.guilherme.emobiliaria.person.domain.service.FakeAddressSearchService;
@@ -192,7 +193,7 @@ class PhysicalPersonCreateControllerTest {
       Thread.sleep(500);
 
       assertTrue(
-          personRepo.findAll(new PaginationInput(0, 100)).items().isEmpty(),
+          personRepo.findAll(new PaginationInput(0, 100), PersonFilter.NONE).items().isEmpty(),
           "Expected no person to be created when form is invalid");
     }
 

@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.contract.infrastructure.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.contract.domain.repository.ContractRepository;
@@ -134,12 +135,21 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   @Override
-  public PagedResult<Contract> findAll(PaginationInput pagination) {
+  public PagedResult<Contract> findAll(PaginationInput pagination, ContractFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
+    String statusWhere = statusWhereClause(filter);
     try (Connection conn = dataSource.getConnection()) {
       long total;
-      try (PreparedStatement countStmt = conn.prepareStatement("SELECT COUNT(*) FROM contracts");
+      String countSql = """
+          WITH ranked AS (
+            SELECT id, start_date, duration,
+                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+            FROM contracts
+          )
+          SELECT COUNT(*) FROM ranked
+          """ + statusWhere;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql);
           ResultSet countRs = countStmt.executeQuery()) {
         countRs.next();
         total = countRs.getLong(1);
@@ -151,8 +161,8 @@ public class JdbcContractRepository implements ContractRepository {
                    MAX(id) OVER (PARTITION BY property_id) AS latest_id
             FROM contracts
           )
-          SELECT * FROM ranked LIMIT ? OFFSET ?
-          """;
+          SELECT * FROM ranked
+          """ + statusWhere + " LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setInt(1, limit);
         stmt.setInt(2, offset);
@@ -209,10 +219,11 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   @Override
-  public PagedResult<Contract> search(String query, PaginationInput pagination) {
+  public PagedResult<Contract> search(String query, PaginationInput pagination, ContractFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     String searchTerm = "%" + query + "%";
+    String statusWhere = statusWhereClause(filter);
     String matchingSql = """
         SELECT DISTINCT c.id
         FROM contracts c
@@ -224,8 +235,19 @@ public class JdbcContractRepository implements ContractRepository {
         """;
     try (Connection conn = dataSource.getConnection()) {
       long total;
-      try (PreparedStatement countStmt = conn.prepareStatement(
-          "WITH matching_ids AS (" + matchingSql + ") SELECT COUNT(*) FROM matching_ids")) {
+      String countSql = """
+          WITH matching_ids AS (
+          """ + matchingSql + """
+          ),
+          ranked AS (
+            SELECT id, start_date, duration,
+                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+            FROM contracts
+            WHERE id IN (SELECT id FROM matching_ids)
+          )
+          SELECT COUNT(*) FROM ranked
+          """ + statusWhere;
+      try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
         countStmt.setString(1, searchTerm);
         countStmt.setString(2, searchTerm);
         countStmt.setString(3, searchTerm);
@@ -251,8 +273,8 @@ public class JdbcContractRepository implements ContractRepository {
             FROM contracts
             WHERE id IN (SELECT id FROM matching_ids)
           )
-          SELECT * FROM ranked LIMIT ? OFFSET ?
-          """;
+          SELECT * FROM ranked
+          """ + statusWhere + " LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setString(1, searchTerm);
         stmt.setString(2, searchTerm);
@@ -270,6 +292,22 @@ public class JdbcContractRepository implements ContractRepository {
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, e);
     }
+  }
+
+  // ── Filter helpers ─────────────────────────────────────────────────────────
+
+  private String statusWhereClause(ContractFilter filter) {
+    if (filter == null || filter.status() == null) {
+      return "";
+    }
+    String endDate = "DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date)";
+    String in30Days = "DATEADD('DAY', 30, CURRENT_DATE)";
+    return switch (filter.status()) {
+      case INACTIVE -> " WHERE id != latest_id";
+      case EXPIRED -> " WHERE id = latest_id AND " + endDate + " < CURRENT_DATE";
+      case EXPIRING -> " WHERE id = latest_id AND " + endDate + " >= CURRENT_DATE AND " + endDate + " < " + in30Days;
+      case ACTIVE -> " WHERE id = latest_id AND " + endDate + " >= " + in30Days;
+    };
   }
 
   private Contract map(ResultSet rs, Connection conn) throws SQLException {

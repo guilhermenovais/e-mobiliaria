@@ -11,6 +11,7 @@ import com.guilherme.emobiliaria.person.application.usecase.ValidateCnpjInteract
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.domain.repository.FakeAddressRepository;
 import com.guilherme.emobiliaria.person.domain.repository.FakeJuridicalPersonRepository;
@@ -178,9 +179,9 @@ class JuridicalPersonControllerTest {
 
       // Select the pre-existing representative from the available list
       controller.representativesPane.setAllPersons(
-          fixture.physicalRepo().findAll(new PaginationInput(null, null)).items());
+          fixture.physicalRepo().findAll(new PaginationInput(null, null), PersonFilter.NONE).items());
       controller.representativesPane.populate(List.of());
-      PhysicalPerson rep = fixture.physicalRepo().findAll(new PaginationInput(null, null)).items().get(0);
+      PhysicalPerson rep = fixture.physicalRepo().findAll(new PaginationInput(null, null), PersonFilter.NONE).items().get(0);
       controller.representativesPane.setAllPersons(List.of(rep));
       // Move the rep to selected by populating available and then triggering selection
       controller.representativesPane.populate(List.of(rep));
@@ -191,7 +192,7 @@ class JuridicalPersonControllerTest {
     Thread.sleep(2000);
 
     long total = fixture.juridicalRepo()
-        .findAll(new PaginationInput(100, 0))
+        .findAll(new PaginationInput(100, 0), PersonFilter.NONE)
         .total();
     assertEquals(1, total);
     assertFalse(fixture.navigationService().canGoBack());

@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.person.domain.repository;
 
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import com.guilherme.emobiliaria.shared.exception.PersistenceException;
@@ -56,7 +57,7 @@ public class FakePhysicalPersonRepository extends FakeImplementation
   }
 
   @Override
-  public PagedResult<PhysicalPerson> findAll(PaginationInput pagination) {
+  public PagedResult<PhysicalPerson> findAll(PaginationInput pagination, PersonFilter filter) {
     maybeFail();
     List<PhysicalPerson> all = new ArrayList<>(store.values());
     long total = all.size();
@@ -80,7 +81,7 @@ public class FakePhysicalPersonRepository extends FakeImplementation
   }
 
   @Override
-  public PagedResult<PhysicalPerson> search(String query, PaginationInput pagination) {
+  public PagedResult<PhysicalPerson> search(String query, PaginationInput pagination, PersonFilter filter) {
     maybeFail();
     String lower = query.toLowerCase();
     List<PhysicalPerson> matched = store.values().stream()

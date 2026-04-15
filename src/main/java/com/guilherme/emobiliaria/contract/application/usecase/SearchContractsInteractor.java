@@ -17,7 +17,7 @@ public class SearchContractsInteractor {
   }
 
   public SearchContractsOutput execute(SearchContractsInput input) {
-    PagedResult<Contract> result = contractRepository.search(input.query(), input.pagination());
+    PagedResult<Contract> result = contractRepository.search(input.query(), input.pagination(), input.filter());
     return new SearchContractsOutput(result);
   }
 }

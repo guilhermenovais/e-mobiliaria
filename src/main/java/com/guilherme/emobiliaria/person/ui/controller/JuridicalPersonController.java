@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.person.ui.controller;
 
 import com.guilherme.emobiliaria.person.application.input.EditJuridicalPersonInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllPhysicalPeopleInput;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.application.input.FindJuridicalPersonByIdInput;
 import com.guilherme.emobiliaria.person.application.usecase.CreateAddressInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.CreateJuridicalPersonInteractor;
@@ -158,7 +159,7 @@ public class JuridicalPersonController {
       @Override
       protected List<PhysicalPerson> call() {
         return findAllPhysicalPeople.execute(
-            new FindAllPhysicalPeopleInput(new PaginationInput(null, null))).result().items();
+            new FindAllPhysicalPeopleInput(new PaginationInput(null, null), PersonFilter.NONE)).result().items();
       }
     };
 

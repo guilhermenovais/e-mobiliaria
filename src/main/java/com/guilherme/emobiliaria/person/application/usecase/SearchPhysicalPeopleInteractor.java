@@ -17,7 +17,7 @@ public class SearchPhysicalPeopleInteractor {
   }
 
   public SearchPhysicalPeopleOutput execute(SearchPhysicalPeopleInput input) {
-    PagedResult<PhysicalPerson> result = physicalPersonRepository.search(input.query(), input.pagination());
+    PagedResult<PhysicalPerson> result = physicalPersonRepository.search(input.query(), input.pagination(), input.filter());
     return new SearchPhysicalPeopleOutput(result);
   }
 }

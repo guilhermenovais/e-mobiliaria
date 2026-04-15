@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.SVGPath?>
 <?import java.net.URL?>
+<?import javafx.scene.control.ToggleButton?>
 <VBox
     xmlns:fx="http://javafx.com/fxml"
     fx:controller="com.guilherme.emobiliaria.contract.ui.controller.ContractListController"
@@ -38,6 +39,9 @@
             <TextField fx:id="searchField" styleClass="search-bar-input" HBox.hgrow="ALWAYS"/>
         </HBox>
     </HBox>
+
+    <!-- FILTERS -->
+    <HBox fx:id="filterChipsRow" styleClass="list-filter-row"/>
 
     <!-- TABLE -->
     <StackPane styleClass="list-table-container" VBox.vgrow="ALWAYS">

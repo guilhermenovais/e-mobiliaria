@@ -4,6 +4,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -39,6 +40,13 @@
         </HBox>
     </HBox>
 
+    <!-- FILTERS -->
+    <HBox fx:id="filterChipsRow" styleClass="list-filter-row">
+        <Region HBox.hgrow="ALWAYS"/>
+        <ToggleButton fx:id="activeContractsToggle" styleClass="filter-toggle"/>
+    </HBox>
+
+    <!-- TABLE -->
     <StackPane styleClass="list-table-container" VBox.vgrow="ALWAYS">
         <TableView fx:id="tableView" styleClass="list-table-view"/>
     </StackPane>
