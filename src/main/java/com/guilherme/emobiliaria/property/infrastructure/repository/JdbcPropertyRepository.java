@@ -82,8 +82,15 @@ public class JdbcPropertyRepository implements PropertyRepository {
         throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, null);
       }
     } catch (SQLException e) {
+      if (isConstraintViolation(e)) {
+        throw new PersistenceException(ErrorMessage.Property.HAS_ASSOCIATED_CONTRACTS, e);
+      }
       throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, e);
     }
+  }
+
+  private static boolean isConstraintViolation(SQLException e) {
+    return e.getSQLState() != null && e.getSQLState().startsWith("23");
   }
 
   @Override

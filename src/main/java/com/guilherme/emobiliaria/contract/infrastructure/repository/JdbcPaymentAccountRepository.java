@@ -76,8 +76,15 @@ public class JdbcPaymentAccountRepository implements PaymentAccountRepository {
         throw new PersistenceException(ErrorMessage.PaymentAccount.NOT_FOUND, null);
       }
     } catch (SQLException e) {
+      if (isConstraintViolation(e)) {
+        throw new PersistenceException(ErrorMessage.PaymentAccount.HAS_ASSOCIATED_CONTRACTS, e);
+      }
       throw new PersistenceException(ErrorMessage.PaymentAccount.NOT_FOUND, e);
     }
+  }
+
+  private static boolean isConstraintViolation(SQLException e) {
+    return e.getSQLState() != null && e.getSQLState().startsWith("23");
   }
 
   @Override

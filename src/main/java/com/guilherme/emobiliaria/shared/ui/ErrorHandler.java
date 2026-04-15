@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.shared.ui;
 
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
+import com.guilherme.emobiliaria.shared.exception.PersistenceException;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import org.slf4j.Logger;
@@ -21,8 +22,9 @@ public final class ErrorHandler {
   public static void handle(Throwable t, ResourceBundle bundle) {
     log.error(t.getMessage(), t);
     Platform.runLater(() -> {
-      String message = t instanceof BusinessException be ?
-          bundle.getString(be.getErrorMessage().getTranslationKey()) :
+      String message =
+          t instanceof BusinessException be ? bundle.getString(be.getErrorMessage().getTranslationKey()) :
+          t instanceof PersistenceException pe ? bundle.getString(pe.getErrorMessage().getTranslationKey()) :
           bundle.getString("error.generic");
 
       Alert alert = new Alert(Alert.AlertType.ERROR);

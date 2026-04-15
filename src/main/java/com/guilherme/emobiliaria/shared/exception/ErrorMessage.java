@@ -21,7 +21,9 @@ public interface ErrorMessage {
         "ID card number must contain less than 20 characters"),
     CIVIL_STATE_NULL("physical_person.civil_state_null", "Civil state must not be null"),
     ADDRESS_NULL("physical_person.address_null", "Address must not be null"),
-    NOT_FOUND("physical_person.not_found", "Physical person not found");
+    NOT_FOUND("physical_person.not_found", "Physical person not found"),
+    HAS_ASSOCIATED_RECORDS("physical_person.has_associated_records",
+        "Cannot delete physical person: they are referenced by other records");
 
     private final String translationKey;
     private final String logMessage;
@@ -51,7 +53,9 @@ public interface ErrorMessage {
     REPRESENTATIVES_EMPTY("juridical_person.representatives_empty",
         "At least one representative must be selected"),
     ADDRESS_NULL("juridical_person.address_null", "Address must not be null"),
-    NOT_FOUND("juridical_person.not_found", "Juridical person not found");
+    NOT_FOUND("juridical_person.not_found", "Juridical person not found"),
+    HAS_ASSOCIATED_RECORDS("juridical_person.has_associated_records",
+        "Cannot delete juridical person: they are referenced by other records");
 
     private final String translationKey;
     private final String logMessage;
@@ -79,7 +83,9 @@ public interface ErrorMessage {
         "CEMIG must not be empty"), COPASA_EMPTY("property.copasa_empty",
         "COPASA must not be empty"), IPTU_EMPTY("property.iptu_empty",
         "IPTU must not be empty"), ADDRESS_NULL("property.address_null",
-        "Address must not be null"), NOT_FOUND("property.not_found", "Property not found");
+        "Address must not be null"), NOT_FOUND("property.not_found", "Property not found"),
+    HAS_ASSOCIATED_CONTRACTS("property.has_associated_contracts",
+        "Cannot delete property: it has associated contracts");
 
     private final String translationKey;
     private final String logMessage;
@@ -113,7 +119,9 @@ public interface ErrorMessage {
         "contract.tenants_empty", "Tenants list must not be empty"), PURPOSE_EMPTY(
         "contract.purpose_empty", "Purpose must not be empty"), PURPOSE_TOO_LONG(
         "contract.purpose_too_long", "Purpose must contain at most 100 characters"), NOT_FOUND(
-        "contract.not_found", "Contract not found");
+        "contract.not_found", "Contract not found"), HAS_ASSOCIATED_RECEIPTS(
+        "contract.has_associated_receipts",
+        "Cannot delete contract: it has associated receipts");
 
     private final String translationKey;
     private final String logMessage;
@@ -139,7 +147,9 @@ public interface ErrorMessage {
     BANK_EMPTY("payment_account.bank_empty", "Bank must not be empty"), BANK_BRANCH_EMPTY(
         "payment_account.bank_branch_empty", "Bank branch must not be empty"), ACCOUNT_NUMBER_EMPTY(
         "payment_account.account_number_empty", "Account number must not be empty"), NOT_FOUND(
-        "payment_account.not_found", "Payment account not found");
+        "payment_account.not_found", "Payment account not found"), HAS_ASSOCIATED_CONTRACTS(
+        "payment_account.has_associated_contracts",
+        "Cannot delete payment account: it has associated contracts");
 
     private final String translationKey;
     private final String logMessage;

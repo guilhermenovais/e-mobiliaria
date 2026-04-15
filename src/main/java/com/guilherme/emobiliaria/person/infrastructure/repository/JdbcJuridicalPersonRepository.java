@@ -109,8 +109,15 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
         throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, null);
       }
     } catch (SQLException e) {
+      if (isConstraintViolation(e)) {
+        throw new PersistenceException(ErrorMessage.JuridicalPerson.HAS_ASSOCIATED_RECORDS, e);
+      }
       throw new PersistenceException(ErrorMessage.JuridicalPerson.NOT_FOUND, e);
     }
+  }
+
+  private static boolean isConstraintViolation(SQLException e) {
+    return e.getSQLState() != null && e.getSQLState().startsWith("23");
   }
 
   @Override
