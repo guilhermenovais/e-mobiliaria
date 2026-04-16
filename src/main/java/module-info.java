@@ -14,6 +14,7 @@ module com.guilherme.emobiliaria {
   requires ch.qos.logback.classic;
   requires java.net.http;
   requires java.desktop;
+  requires org.jfree.jfreechart;
 
   opens com.guilherme.emobiliaria to javafx.fxml;
   exports com.guilherme.emobiliaria;
@@ -40,6 +41,11 @@ module com.guilherme.emobiliaria {
 
   opens com.guilherme.emobiliaria.shared.pdf;
   opens com.guilherme.emobiliaria.shared.pdf.templates;
+  opens com.guilherme.emobiliaria.shared.chart;
+
+  opens com.guilherme.emobiliaria.reports.di to com.google.guice;
+  opens com.guilherme.emobiliaria.reports.application.usecase to com.google.guice;
+  opens com.guilherme.emobiliaria.reports.infrastructure.service to com.google.guice;
 
   opens com.guilherme.emobiliaria.dashboard.di to com.google.guice;
   opens com.guilherme.emobiliaria.dashboard.application.usecase to com.google.guice;

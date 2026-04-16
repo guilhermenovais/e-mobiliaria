@@ -4,6 +4,7 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PropertyRepository {
@@ -15,6 +16,8 @@ public interface PropertyRepository {
   void delete(Long id);
 
   Optional<Property> findById(Long id);
+
+  List<Property> findAll();
 
   PagedResult<Property> findAll(PaginationInput pagination);
 

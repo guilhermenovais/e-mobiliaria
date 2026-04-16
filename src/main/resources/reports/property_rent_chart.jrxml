@@ -1,0 +1,19 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="property_rent_chart" language="java" pageWidth="555" pageHeight="842" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+    <field name="property_name" class="java.lang.String"/>
+    <field name="chart" class="java.awt.image.BufferedImage"/>
+    <query language="sql"><![CDATA[]]></query>
+    <background splitType="Stretch"/>
+    <detail>
+        <band height="320" splitType="Prevent">
+            <element kind="textField" uuid="b1c2d3e4-f5a6-7890-bcde-f12345678901" positionType="Float" x="0" y="10"
+                     width="555" height="20" fontName="Arial" fontSize="11.0" bold="true" hTextAlign="Left">
+                <expression><![CDATA[$F{property_name}]]></expression>
+            </element>
+            <element kind="image" uuid="c2d3e4f5-a6b7-8901-cdef-123456789012" positionType="Float" x="0" y="30"
+                     width="555" height="280" usingCache="false" hImageAlign="Center">
+                <expression><![CDATA[$F{chart}]]></expression>
+            </element>
+        </band>
+    </detail>
+</jasperReport>
