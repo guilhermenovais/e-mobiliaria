@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<StackPane
+    xmlns:fx="http://javafx.com/fxml"
+    styleClass="dashboard-root">
+
+    <stylesheets>
+        <URL value="@dashboard-view.css"/>
+    </stylesheets>
+
+    <!-- LOADING OVERLAY -->
+    <ProgressIndicator fx:id="loadingIndicator" styleClass="dashboard-loading" StackPane.alignment="CENTER"/>
+
+    <!-- MAIN CONTENT -->
+    <ScrollPane fx:id="contentScrollPane" styleClass="dashboard-scroll" fitToWidth="true" visible="false">
+        <VBox styleClass="dashboard-content">
+
+            <!-- PAGE HEADER -->
+            <VBox styleClass="dashboard-header">
+                <Label fx:id="titleLabel" styleClass="dashboard-title"/>
+                <Label fx:id="subtitleLabel" styleClass="dashboard-subtitle"/>
+            </VBox>
+
+            <!-- REVENUE ROW -->
+            <HBox styleClass="dashboard-revenue-row" spacing="16">
+
+                <!-- TOTAL REVENUE CARD -->
+                <VBox styleClass="dashboard-revenue-card" HBox.hgrow="NEVER">
+                    <Label fx:id="revenueEyebrowLabel" styleClass="dashboard-revenue-card-eyebrow"/>
+                    <Label fx:id="totalRevenueLabel" styleClass="dashboard-revenue-card-amount"/>
+                    <HBox styleClass="dashboard-revenue-card-footer" spacing="8">
+                        <Region styleClass="dashboard-revenue-dot"/>
+                        <Label fx:id="activeContractsLabel" styleClass="dashboard-revenue-card-count"/>
+                    </HBox>
+                </VBox>
+
+                <!-- TOP 3 RENTS CARD -->
+                <VBox styleClass="dashboard-top-rents-card" HBox.hgrow="ALWAYS">
+                    <Label fx:id="topRentsEyebrowLabel" styleClass="dashboard-panel-eyebrow"/>
+                    <VBox fx:id="topRentsContainer" styleClass="dashboard-top-rents-list"/>
+                </VBox>
+
+            </HBox>
+
+            <!-- BOTTOM PANELS ROW -->
+            <HBox styleClass="dashboard-panels-row" spacing="16" VBox.vgrow="ALWAYS">
+
+                <!-- UNPAID RENTS PANEL -->
+                <VBox styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                    <VBox styleClass="dashboard-panel-header-section">
+                        <HBox styleClass="dashboard-panel-header-row" spacing="6">
+                            <Region styleClass="dashboard-panel-dot dashboard-panel-dot-red"/>
+                            <Label fx:id="unpaidRentsTitleLabel" styleClass="dashboard-panel-title"/>
+                        </HBox>
+                        <Label fx:id="unpaidRentsSubtitleLabel" styleClass="dashboard-panel-subtitle"/>
+                    </VBox>
+                    <VBox fx:id="unpaidRentsContainer" styleClass="dashboard-panel-list"/>
+                </VBox>
+
+                <!-- VACANT PROPERTIES PANEL -->
+                <VBox styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                    <VBox styleClass="dashboard-panel-header-section">
+                        <HBox styleClass="dashboard-panel-header-row" spacing="6">
+                            <Region styleClass="dashboard-panel-dot dashboard-panel-dot-gray"/>
+                            <Label fx:id="vacantPropertiesTitleLabel" styleClass="dashboard-panel-title"/>
+                        </HBox>
+                        <Label fx:id="vacantPropertiesSubtitleLabel" styleClass="dashboard-panel-subtitle"/>
+                    </VBox>
+                    <VBox fx:id="vacantPropertiesContainer" styleClass="dashboard-panel-list"/>
+                </VBox>
+
+                <!-- EXPIRING CONTRACTS PANEL -->
+                <VBox styleClass="dashboard-panel" HBox.hgrow="ALWAYS">
+                    <VBox styleClass="dashboard-panel-header-section">
+                        <HBox styleClass="dashboard-panel-header-row" spacing="6">
+                            <Region styleClass="dashboard-panel-dot dashboard-panel-dot-orange"/>
+                            <Label fx:id="expiringContractsTitleLabel" styleClass="dashboard-panel-title"/>
+                        </HBox>
+                        <Label fx:id="expiringContractsSubtitleLabel" styleClass="dashboard-panel-subtitle"/>
+                    </VBox>
+                    <VBox fx:id="expiringContractsContainer" styleClass="dashboard-panel-list"/>
+                </VBox>
+
+            </HBox>
+
+        </VBox>
+    </ScrollPane>
+
+</StackPane>

@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.shared.ui.layout;
 
 import com.google.inject.Provider;
+import com.guilherme.emobiliaria.dashboard.ui.controller.DashboardController;
 import com.guilherme.emobiliaria.receipt.ui.controller.ReceiptListController;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
@@ -35,6 +36,7 @@ public class MainController {
 
   private final NavigationService navigationService;
   private final GuiceFxmlLoader fxmlLoader;
+  private final Provider<DashboardController> dashboardControllerProvider;
   private final Provider<ReceiptListController> receiptListControllerProvider;
   private SidebarPane sidebarPane;
 
@@ -42,9 +44,11 @@ public class MainController {
   public MainController(
       NavigationService navigationService,
       GuiceFxmlLoader fxmlLoader,
+      Provider<DashboardController> dashboardControllerProvider,
       Provider<ReceiptListController> receiptListControllerProvider) {
     this.navigationService = navigationService;
     this.fxmlLoader = fxmlLoader;
+    this.dashboardControllerProvider = dashboardControllerProvider;
     this.receiptListControllerProvider = receiptListControllerProvider;
   }
 
@@ -60,12 +64,13 @@ public class MainController {
         getClass().getModule());
 
     sidebarPane = new SidebarPane(bundle);
+    sidebarPane.setOnDashboardAction(() -> navigateToDashboard());
     sidebarPane.setOnPhysicalPeopleAction(() -> navigateToPhysicalPersonList());
     sidebarPane.setOnJuridicalPeopleAction(() -> navigateToJuridicalPersonList());
     sidebarPane.setOnPropertiesAction(() -> navigateToPropertyList());
     sidebarPane.setOnContractsAction(() -> navigateToContractList());
     sidebarPane.setOnReceiptsAction(() -> navigateToReceiptList());
-    sidebarPane.setActiveItem("sidebar.physical_people");
+    sidebarPane.setActiveItem("sidebar.dashboard");
     sidebarContainer.getChildren().add(sidebarPane);
 
     navigationService.setContentPane(contentPane);
@@ -79,7 +84,11 @@ public class MainController {
     backButton.setOnAction(e -> navigationService.goBack());
     forwardButton.setOnAction(e -> navigationService.goForward());
 
-    navigateToPhysicalPersonList();
+    navigateToDashboard();
+  }
+
+  private void navigateToDashboard() {
+    navigationService.navigate(() -> dashboardControllerProvider.get().buildView(), "sidebar.dashboard");
   }
 
   private void navigateToPhysicalPersonList() {

@@ -20,6 +20,7 @@ public class SidebarPane extends VBox {
   private static final String CSS_SIDEBAR_MENU = "sidebar-menu";
 
   private static final String KEY_BRAND = "sidebar.brand";
+  private static final String KEY_DASHBOARD = "sidebar.dashboard";
   private static final String KEY_PHYSICAL_PEOPLE = "sidebar.physical_people";
   private static final String KEY_JURIDICAL_PEOPLE = "sidebar.juridical_people";
   private static final String KEY_PROPERTIES = "sidebar.properties";
@@ -44,6 +45,7 @@ public class SidebarPane extends VBox {
     getChildren().addAll(brandContainer, menuContainer);
 
     String[] keys = {
+        KEY_DASHBOARD,
         KEY_PHYSICAL_PEOPLE,
         KEY_JURIDICAL_PEOPLE,
         KEY_PROPERTIES,
@@ -58,12 +60,13 @@ public class SidebarPane extends VBox {
       button.setMaxWidth(Double.MAX_VALUE);
       button.setAlignment(Pos.CENTER_LEFT);
 
-      boolean enabled = KEY_PHYSICAL_PEOPLE.equals(key) || KEY_JURIDICAL_PEOPLE.equals(key)
-          || KEY_PROPERTIES.equals(key) || KEY_CONTRACTS.equals(key) || KEY_RECEIPTS.equals(key);
+      boolean enabled = KEY_DASHBOARD.equals(key) || KEY_PHYSICAL_PEOPLE.equals(key)
+          || KEY_JURIDICAL_PEOPLE.equals(key) || KEY_PROPERTIES.equals(key)
+          || KEY_CONTRACTS.equals(key) || KEY_RECEIPTS.equals(key);
       button.setDisable(!enabled);
 
       entries.put(key, button);
-      VBox.setMargin(button, new Insets(2, 8, 2, 8));
+      VBox.setMargin(button, new Insets(1, 12, 1, 12));
       menuContainer.getChildren().add(button);
     }
   }
@@ -74,6 +77,13 @@ public class SidebarPane extends VBox {
     Button active = entries.get(key);
     if (active != null) {
       active.getStyleClass().add(CSS_SIDEBAR_ITEM_ACTIVE);
+    }
+  }
+
+  public void setOnDashboardAction(Runnable r) {
+    Button button = entries.get(KEY_DASHBOARD);
+    if (button != null) {
+      button.setOnAction(e -> r.run());
     }
   }
 

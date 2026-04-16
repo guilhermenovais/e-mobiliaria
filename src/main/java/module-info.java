@@ -41,6 +41,11 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.shared.pdf;
   opens com.guilherme.emobiliaria.shared.pdf.templates;
 
+  opens com.guilherme.emobiliaria.dashboard.di to com.google.guice;
+  opens com.guilherme.emobiliaria.dashboard.application.usecase to com.google.guice;
+  opens com.guilherme.emobiliaria.dashboard.infrastructure.repository to com.google.guice;
+  opens com.guilherme.emobiliaria.dashboard.ui.controller to javafx.fxml, com.google.guice;
+
   opens com.guilherme.emobiliaria.shared.ui to com.google.guice;
   opens com.guilherme.emobiliaria.shared.ui.layout to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.shared.di to com.google.guice;

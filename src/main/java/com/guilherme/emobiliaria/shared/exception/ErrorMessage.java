@@ -205,6 +205,28 @@ public interface ErrorMessage {
     }
   }
 
+  enum Dashboard implements ErrorMessage {
+    LOAD_ERROR("dashboard.load_error", "Failed to load dashboard data");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Dashboard(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
   enum Config implements ErrorMessage {
     NOT_FOUND("config.not_found", "Config not found");
 

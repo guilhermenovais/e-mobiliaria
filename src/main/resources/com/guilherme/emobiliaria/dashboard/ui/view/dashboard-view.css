@@ -1,0 +1,405 @@
+/* ============================================================
+   Dashboard View Styles
+   ============================================================ */
+
+.dashboard-root {
+    -fx-background-color: #F9FAFB;
+}
+
+.dashboard-scroll {
+    -fx-background: #F9FAFB;
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent;
+}
+
+.dashboard-scroll .viewport {
+    -fx-background-color: #F9FAFB;
+}
+
+.dashboard-loading {
+    -fx-max-width: 48;
+    -fx-max-height: 48;
+}
+
+.dashboard-content {
+    -fx-spacing: 28;
+    -fx-padding: 0 0 40 0;
+}
+
+/* ── Page Header ───────────────────────────────────────────── */
+
+.dashboard-header {
+    -fx-spacing: 3;
+    -fx-padding: 40 44 0 44;
+}
+
+.dashboard-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-subtitle {
+    -fx-font-size: 14px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+}
+
+/* ── Revenue Row ───────────────────────────────────────────── */
+
+.dashboard-revenue-row {
+    -fx-padding: 0 44 0 44;
+    -fx-alignment: TOP_LEFT;
+}
+
+/* -- Total Revenue Card -- */
+
+.dashboard-revenue-card {
+    -fx-background-color: #1C2333;
+    -fx-padding: 28 32;
+    -fx-spacing: 16;
+    -fx-min-width: 320;
+    -fx-pref-width: 320;
+    -fx-max-width: 320;
+    -fx-background-radius: 10;
+}
+
+.dashboard-revenue-card-eyebrow {
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #8A97AD;
+}
+
+.dashboard-revenue-card-amount {
+    -fx-font-size: 38px;
+    -fx-font-weight: 700;
+    -fx-text-fill: white;
+}
+
+.dashboard-revenue-card-footer {
+    -fx-alignment: CENTER_LEFT;
+}
+
+.dashboard-revenue-dot {
+    -fx-background-color: #4ADE80;
+    -fx-min-width: 6;
+    -fx-min-height: 6;
+    -fx-max-width: 6;
+    -fx-max-height: 6;
+    -fx-background-radius: 3;
+}
+
+.dashboard-revenue-card-count {
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #8A97AD;
+}
+
+/* -- Top 3 Rents Card -- */
+
+.dashboard-top-rents-card {
+    -fx-background-color: white;
+    -fx-padding: 24 28;
+    -fx-spacing: 14;
+    -fx-border-color: #EBEBEA;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.dashboard-panel-eyebrow {
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #71717A;
+}
+
+.dashboard-top-rents-list {
+    -fx-spacing: 0;
+}
+
+/* Top rent rows */
+
+.dashboard-top-rent-row {
+    -fx-padding: 10 0;
+    -fx-border-color: transparent transparent #F4F3F1 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.dashboard-top-rent-rank {
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #D4A843;
+    -fx-min-width: 20;
+    -fx-max-width: 20;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+.dashboard-top-rent-info {
+    -fx-spacing: 2;
+}
+
+.dashboard-top-rent-property {
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-top-rent-tenant {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+}
+
+.dashboard-top-rent-amount {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #1A1A18;
+}
+
+/* ── Bottom Panels Row ─────────────────────────────────────── */
+
+.dashboard-panels-row {
+    -fx-padding: 0 44 0 44;
+    -fx-alignment: TOP_LEFT;
+}
+
+/* Panel card — no outer padding; sections carry their own */
+
+.dashboard-panel {
+    -fx-background-color: white;
+    -fx-border-color: #EBEBEA;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+/* Panel header section (title + subtitle block) */
+
+.dashboard-panel-header-section {
+    -fx-padding: 20 24 16 24;
+    -fx-spacing: 3;
+    -fx-border-color: transparent transparent #F0EFED transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dashboard-panel-header-row {
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 6;
+}
+
+.dashboard-panel-dot {
+    -fx-min-width: 8;
+    -fx-min-height: 8;
+    -fx-max-width: 8;
+    -fx-max-height: 8;
+    -fx-background-radius: 4;
+}
+
+.dashboard-panel-dot-red {
+    -fx-background-color: #DC2626;
+}
+
+.dashboard-panel-dot-gray {
+    -fx-background-color: #71717A;
+}
+
+.dashboard-panel-dot-orange {
+    -fx-background-color: #D97706;
+}
+
+.dashboard-panel-title {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-panel-subtitle {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+    -fx-padding: 0 0 0 16;
+}
+
+.dashboard-panel-list {
+    -fx-spacing: 0;
+}
+
+/* ── Unpaid Rent Rows ──────────────────────────────────────── */
+
+.dashboard-unpaid-row {
+    -fx-padding: 14 24;
+    -fx-border-color: transparent transparent #FAFAFA transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.dashboard-unpaid-info {
+    -fx-spacing: 2;
+}
+
+.dashboard-unpaid-property {
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-unpaid-tenant {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+}
+
+.dashboard-unpaid-amount-col {
+    -fx-spacing: 2;
+    -fx-alignment: TOP_RIGHT;
+}
+
+.dashboard-unpaid-amount {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #DC2626;
+}
+
+.dashboard-unpaid-due-date {
+    -fx-font-size: 11px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #9CA3AF;
+}
+
+/* ── Vacant Property Rows ──────────────────────────────────── */
+
+.dashboard-vacant-row {
+    -fx-padding: 14 24;
+    -fx-border-color: transparent transparent #FAFAFA transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.dashboard-vacant-icon-box {
+    -fx-background-color: #F4F3F1;
+    -fx-min-width: 32;
+    -fx-min-height: 32;
+    -fx-max-width: 32;
+    -fx-max-height: 32;
+    -fx-alignment: CENTER;
+    -fx-background-radius: 6;
+}
+
+.dashboard-vacant-icon {
+    -fx-font-size: 14px;
+    -fx-text-fill: #71717A;
+}
+
+.dashboard-vacant-info {
+    -fx-spacing: 2;
+}
+
+.dashboard-vacant-property {
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-vacant-address {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+}
+
+/* ── Expiring Contract Rows ────────────────────────────────── */
+
+.dashboard-expiring-row {
+    -fx-padding: 14 24;
+    -fx-border-color: transparent transparent #FAFAFA transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+    -fx-spacing: 12;
+}
+
+.dashboard-expiring-date-col {
+    -fx-spacing: 0;
+    -fx-alignment: CENTER;
+    -fx-min-width: 40;
+    -fx-max-width: 40;
+}
+
+.dashboard-expiring-day {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-expiring-day-urgent {
+    -fx-text-fill: #DC2626;
+}
+
+.dashboard-expiring-day-warning {
+    -fx-text-fill: #D97706;
+}
+
+.dashboard-expiring-month {
+    -fx-font-size: 10px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #9CA3AF;
+}
+
+.dashboard-expiring-separator {
+    -fx-background-color: #F0EFED;
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 32;
+    -fx-max-height: 32;
+}
+
+.dashboard-expiring-info {
+    -fx-spacing: 2;
+}
+
+.dashboard-expiring-property {
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1A1A18;
+}
+
+.dashboard-expiring-tenant {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+}
+
+/* ── Urgency Badges ────────────────────────────────────────── */
+
+.dashboard-badge {
+    -fx-padding: 2 8;
+    -fx-background-radius: 4;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+.dashboard-badge-urgent {
+    -fx-background-color: #FEF3C7;
+    -fx-text-fill: #B45309;
+}
+
+.dashboard-badge-warning {
+    -fx-background-color: #FFF7ED;
+    -fx-text-fill: #C2410C;
+}
+
+.dashboard-badge-normal {
+    -fx-background-color: #F4F3F1;
+    -fx-text-fill: #71717A;
+}
+
+/* ── Empty States ──────────────────────────────────────────── */
+
+.dashboard-panel-empty {
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #9CA3AF;
+    -fx-padding: 14 24;
+}

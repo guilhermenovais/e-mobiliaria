@@ -58,6 +58,7 @@ class SidebarPaneTest {
       protected Object[][] getContents() {
         return new Object[][]{
             {"sidebar.brand", "e-mobiliaria"},
+            {"sidebar.dashboard", "Painel"},
             {"sidebar.physical_people", "Pessoas Físicas"},
             {"sidebar.juridical_people", "Pessoas Jurídicas"},
             {"sidebar.properties", "Imóveis"},
@@ -92,15 +93,15 @@ class SidebarPaneTest {
   class Constructor {
 
     @Test
-    @DisplayName("Should create six entries when constructed")
+    @DisplayName("Should create seven entries when constructed")
     void shouldCreateSixEntriesWhenConstructed() throws Exception {
       SidebarPane pane = onFX(() -> new SidebarPane(testBundle()));
 
-      assertEquals(6, getAllButtons(pane).size(), "SidebarPane should have exactly 6 buttons");
+      assertEquals(7, getAllButtons(pane).size(), "SidebarPane should have exactly 7 buttons");
     }
 
     @Test
-    @DisplayName("Should disable all entries except physical people when constructed")
+    @DisplayName("Should disable only config entry when constructed")
     void shouldDisableAllEntriesExceptPhysicalPeopleWhenConstructed() throws Exception {
       SidebarPane pane = onFX(() -> new SidebarPane(testBundle()));
 
@@ -111,8 +112,8 @@ class SidebarPaneTest {
         long enabledCount = getAllButtons(pane).stream()
             .filter(n -> !n.isDisable())
             .count();
-        assertEquals(1, disabledCount, "One buttons should be disabled");
-        assertEquals(5, enabledCount, "Five buttons should be enabled");
+        assertEquals(1, disabledCount, "One button should be disabled");
+        assertEquals(6, enabledCount, "Six buttons should be enabled");
         return null;
       });
     }
