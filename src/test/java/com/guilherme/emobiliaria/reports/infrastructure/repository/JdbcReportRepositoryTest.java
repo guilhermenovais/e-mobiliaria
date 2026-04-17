@@ -1,5 +1,7 @@
 package com.guilherme.emobiliaria.reports.infrastructure.repository;
 
+import com.guilherme.emobiliaria.inflation.domain.repository.InflationIndexRepository;
+import com.guilherme.emobiliaria.inflation.infrastructure.repository.JdbcInflationIndexRepository;
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
 import com.zaxxer.hikari.HikariConfig;
@@ -29,6 +31,7 @@ class JdbcReportRepositoryTest {
 
   private JdbcReportRepository repository;
   private DataSource dataSource;
+  private int cpfCounter = 0;
 
   @BeforeEach
   void setUp() {
@@ -38,22 +41,19 @@ class JdbcReportRepositoryTest {
     config.setUsername("sa");
     config.setPassword("");
     dataSource = new HikariDataSource(config);
-    Flyway.configure()
-        .dataSource(dataSource)
-        .locations("classpath:db/migration")
-        .load()
-        .migrate();
-    repository = new JdbcReportRepository(dataSource);
+    Flyway.configure().dataSource(dataSource).locations("classpath:db/migration").load().migrate();
+    InflationIndexRepository inflationIndexRepository =
+        new JdbcInflationIndexRepository(dataSource);
+    repository = new JdbcReportRepository(dataSource, inflationIndexRepository);
   }
-
-  private int cpfCounter = 0;
 
   private String uniqueCpf() {
     return String.format("%011d", ++cpfCounter);
   }
 
   private long insertAddress(Connection conn) throws SQLException {
-    String sql = "INSERT INTO addresses (cep, address, number, neighborhood, city, state) VALUES ('01001000', 'Rua Teste', '1', 'Centro', 'São Paulo', 'SP')";
+    String sql =
+        "INSERT INTO addresses (cep, address, number, neighborhood, city, state) VALUES ('01001000', 'Rua Teste', '1', 'Centro', 'São Paulo', 'SP')";
     try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
@@ -64,7 +64,8 @@ class JdbcReportRepositoryTest {
   }
 
   private long insertPhysicalPerson(Connection conn, long addressId) throws SQLException {
-    String sql = "INSERT INTO physical_persons (name, nationality, civil_state, occupation, cpf, id_card_number, address_id) VALUES ('Pessoa Teste', 'Brasileiro', 'SINGLE', 'Engenheiro', ?, '1234567', ?)";
+    String sql =
+        "INSERT INTO physical_persons (name, nationality, civil_state, occupation, cpf, id_card_number, address_id) VALUES ('Pessoa Teste', 'Brasileiro', 'SINGLE', 'Engenheiro', ?, '1234567', ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setString(1, uniqueCpf());
       stmt.setLong(2, addressId);
@@ -77,7 +78,8 @@ class JdbcReportRepositoryTest {
   }
 
   private long insertProperty(Connection conn, long addressId) throws SQLException {
-    String sql = "INSERT INTO properties (name, type, cemig, copasa, iptu, address_id) VALUES ('Imóvel Teste', 'Apartamento', 'C001', 'C002', 'I001', ?)";
+    String sql =
+        "INSERT INTO properties (name, type, cemig, copasa, iptu, address_id) VALUES ('Imóvel Teste', 'Apartamento', 'C001', 'C002', 'I001', ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setLong(1, addressId);
       stmt.executeUpdate();
@@ -89,7 +91,8 @@ class JdbcReportRepositoryTest {
   }
 
   private long insertPaymentAccount(Connection conn) throws SQLException {
-    String sql = "INSERT INTO payment_accounts (bank, bank_branch, account_number) VALUES ('Banco', '0001', '12345-6')";
+    String sql =
+        "INSERT INTO payment_accounts (bank, bank_branch, account_number) VALUES ('Banco', '0001', '12345-6')";
     try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
@@ -99,9 +102,10 @@ class JdbcReportRepositoryTest {
     }
   }
 
-  private long insertContract(Connection conn, LocalDate startDate, String duration,
-      long rent, long accountId, long propertyId, long landlordId) throws SQLException {
-    String sql = "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, 10, ?, 'Residencial', ?, ?, ?, 'PHYSICAL')";
+  private long insertContract(Connection conn, LocalDate startDate, String duration, long rent,
+      long accountId, long propertyId, long landlordId) throws SQLException {
+    String sql =
+        "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, 10, ?, 'Residencial', ?, ?, ?, 'PHYSICAL')";
     try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setObject(1, startDate);
       stmt.setString(2, duration);
@@ -119,7 +123,8 @@ class JdbcReportRepositoryTest {
 
   private void insertContractTenant(Connection conn, long contractId, long tenantId)
       throws SQLException {
-    String sql = "INSERT INTO contract_tenants (contract_id, tenant_id, tenant_type) VALUES (?, ?, 'PHYSICAL')";
+    String sql =
+        "INSERT INTO contract_tenants (contract_id, tenant_id, tenant_type) VALUES (?, ?, 'PHYSICAL')";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, contractId);
       stmt.setLong(2, tenantId);
@@ -127,9 +132,10 @@ class JdbcReportRepositoryTest {
     }
   }
 
-  private void insertReceipt(Connection conn, long contractId, LocalDate date,
-      LocalDate start, LocalDate end) throws SQLException {
-    String sql = "INSERT INTO receipts (date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, 0, 0, ?)";
+  private void insertReceipt(Connection conn, long contractId, LocalDate date, LocalDate start,
+      LocalDate end) throws SQLException {
+    String sql =
+        "INSERT INTO receipts (date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, 0, 0, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setObject(1, date);
       stmt.setObject(2, start);
@@ -161,11 +167,12 @@ class JdbcReportRepositoryTest {
         long personId = insertPhysicalPerson(conn, addressId);
         long propertyId = insertProperty(conn, addressId);
         long accountId = insertPaymentAccount(conn);
-        long contractId = insertContract(conn, LocalDate.of(2026, 1, 1), "P3M",
-            150000L, accountId, propertyId, personId);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P3M", 150000L, accountId, propertyId,
+                personId);
         insertContractTenant(conn, contractId, personId);
-        insertReceipt(conn, contractId, LocalDate.of(2026, 1, 15),
-            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
+        insertReceipt(conn, contractId, LocalDate.of(2026, 1, 15), LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31));
       }
 
       RentEvolutionData data = repository.loadRentEvolutionData();
@@ -177,18 +184,20 @@ class JdbcReportRepositoryTest {
     }
 
     @Test
-    @DisplayName("When receipts exist for a month, should include that month's total in monthly totals")
+    @DisplayName(
+        "When receipts exist for a month, should include that month's total in monthly totals")
     void shouldIncludeReceiptTotalsInMonthlyTotals() throws SQLException {
       try (Connection conn = dataSource.getConnection()) {
         long addressId = insertAddress(conn);
         long personId = insertPhysicalPerson(conn, addressId);
         long propertyId = insertProperty(conn, addressId);
         long accountId = insertPaymentAccount(conn);
-        long contractId = insertContract(conn, LocalDate.of(2026, 1, 1), "P12M",
-            150000L, accountId, propertyId, personId);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
         insertContractTenant(conn, contractId, personId);
-        insertReceipt(conn, contractId, LocalDate.of(2026, 1, 15),
-            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
+        insertReceipt(conn, contractId, LocalDate.of(2026, 1, 15), LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31));
       }
 
       RentEvolutionData data = repository.loadRentEvolutionData();
@@ -198,6 +207,7 @@ class JdbcReportRepositoryTest {
       assertEquals(150000L, data.monthlyTotalCents().get(janIndex));
     }
   }
+
 
   @Nested
   class LoadOccupationRateData {
@@ -214,15 +224,17 @@ class JdbcReportRepositoryTest {
     }
 
     @Test
-    @DisplayName("When a property has an active contract, should show it as occupied in the correct months")
+    @DisplayName(
+        "When a property has an active contract, should show it as occupied in the correct months")
     void shouldMarkPropertyAsOccupiedWhenActiveContract() throws SQLException {
       try (Connection conn = dataSource.getConnection()) {
         long addressId = insertAddress(conn);
         long personId = insertPhysicalPerson(conn, addressId);
         long propertyId = insertProperty(conn, addressId);
         long accountId = insertPaymentAccount(conn);
-        long contractId = insertContract(conn, LocalDate.of(2026, 1, 1), "P3M",
-            100000L, accountId, propertyId, personId);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P3M", 100000L, accountId, propertyId,
+                personId);
         insertContractTenant(conn, contractId, personId);
       }
 
@@ -240,7 +252,8 @@ class JdbcReportRepositoryTest {
     }
 
     @Test
-    @DisplayName("When total properties are counted, should include all properties even without contracts")
+    @DisplayName(
+        "When total properties are counted, should include all properties even without contracts")
     void shouldCountAllPropertiesInTotal() throws SQLException {
       try (Connection conn = dataSource.getConnection()) {
         long addressId = insertAddress(conn);
@@ -254,14 +267,16 @@ class JdbcReportRepositoryTest {
     }
   }
 
+
   @Nested
   class Project {
 
     @Test
     @DisplayName("When from equals to, should return initial value unchanged")
     void shouldReturnInitialValueWhenFromEqualsTo() {
-      long result = JdbcReportRepository.project(100000L, YearMonth.of(2026, 1),
-          YearMonth.of(2026, 1), java.util.Map.of());
+      long result =
+          JdbcReportRepository.project(100000L, YearMonth.of(2026, 1), YearMonth.of(2026, 1),
+              java.util.Map.of());
 
       assertEquals(100000L, result);
     }
@@ -269,11 +284,9 @@ class JdbcReportRepositoryTest {
     @Test
     @DisplayName("When rate is zero for all months, should return initial value unchanged")
     void shouldReturnInitialValueWhenRatesAreZero() {
-      long result = JdbcReportRepository.project(100000L, YearMonth.of(2026, 1),
-          YearMonth.of(2026, 3), java.util.Map.of(
-              YearMonth.of(2026, 1), 0.0,
-              YearMonth.of(2026, 2), 0.0
-          ));
+      long result =
+          JdbcReportRepository.project(100000L, YearMonth.of(2026, 1), YearMonth.of(2026, 3),
+              java.util.Map.of(YearMonth.of(2026, 1), 0.0, YearMonth.of(2026, 2), 0.0));
 
       assertEquals(100000L, result);
     }
@@ -281,10 +294,9 @@ class JdbcReportRepositoryTest {
     @Test
     @DisplayName("When rate is applied for one month, should return compounded value")
     void shouldReturnCompoundedValueAfterApplyingRate() {
-      long result = JdbcReportRepository.project(100000L, YearMonth.of(2026, 1),
-          YearMonth.of(2026, 2), java.util.Map.of(
-              YearMonth.of(2026, 1), 0.01
-          ));
+      long result =
+          JdbcReportRepository.project(100000L, YearMonth.of(2026, 1), YearMonth.of(2026, 2),
+              java.util.Map.of(YearMonth.of(2026, 1), 0.01));
 
       assertEquals(101000L, result);
     }

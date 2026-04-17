@@ -3,6 +3,7 @@ package com.guilherme.emobiliaria;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
+import com.guilherme.emobiliaria.inflation.application.usecase.SyncInflationIndexesInteractor;
 import com.guilherme.emobiliaria.shared.di.AppModule;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.persistence.AppDataPaths;
@@ -42,6 +43,13 @@ public class EMobiliariaApplication extends Application {
     updateThread.setDaemon(true);
     updateThread.setName("update-checker");
     updateThread.start();
+
+    SyncInflationIndexesInteractor syncInflation =
+        injector.getInstance(SyncInflationIndexesInteractor.class);
+    Thread inflationThread = new Thread(syncInflation::execute);
+    inflationThread.setDaemon(true);
+    inflationThread.setName("inflation-sync");
+    inflationThread.start();
   }
 
   @Override

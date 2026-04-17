@@ -4,6 +4,8 @@ import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyOccupationHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyRentHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
+import com.guilherme.emobiliaria.inflation.domain.entity.IndexType;
+import com.guilherme.emobiliaria.inflation.domain.repository.InflationIndexRepository;
 import com.guilherme.emobiliaria.reports.domain.repository.ReportRepository;
 import com.guilherme.emobiliaria.shared.chart.InflationIndexes;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -18,6 +20,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +28,13 @@ import java.util.Map;
 public class JdbcReportRepository implements ReportRepository {
 
   private final DataSource dataSource;
+  private final InflationIndexRepository inflationIndexRepository;
 
   @Inject
-  public JdbcReportRepository(DataSource dataSource) {
+  public JdbcReportRepository(DataSource dataSource,
+      InflationIndexRepository inflationIndexRepository) {
     this.dataSource = dataSource;
+    this.inflationIndexRepository = inflationIndexRepository;
   }
 
   @Override
@@ -39,7 +45,7 @@ public class JdbcReportRepository implements ReportRepository {
         return new RentEvolutionData(months, List.of(), List.of());
       }
       List<Long> monthlyTotals = loadMonthlyTotals(conn, months);
-      List<PropertyRentHistory> propertyHistories = loadPropertyRentHistories(conn, months);
+      List<PropertyRentHistory> propertyHistories = loadPropertyRentHistories(conn);
       return new RentEvolutionData(months, monthlyTotals, propertyHistories);
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Report.LOAD_ERROR, e);
@@ -86,28 +92,41 @@ public class JdbcReportRepository implements ReportRepository {
   private List<Long> loadMonthlyTotals(Connection conn, List<YearMonth> months)
       throws SQLException {
     String sql = """
-        SELECT YEAR(date) AS yr, MONTH(date) AS mo, SUM(c.rent) AS total
-        FROM receipts r
-        JOIN contracts c ON c.id = r.contract_id
-        GROUP BY YEAR(date), MONTH(date)
+        SELECT p.id AS property_id, c.start_date, c.rent,
+               DATEADD('MONTH',
+                 CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
+                 c.start_date) AS end_date
+        FROM contracts c
+        JOIN properties p ON p.id = c.property_id
+        ORDER BY p.id, c.start_date
         """;
-    Map<YearMonth, Long> totalsMap = new LinkedHashMap<>();
+    Map<Long, List<ContractSegment>> byProperty = new LinkedHashMap<>();
     try (PreparedStatement stmt = conn.prepareStatement(sql);
          ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
-        YearMonth ym = YearMonth.of(rs.getInt("yr"), rs.getInt("mo"));
-        totalsMap.put(ym, rs.getLong("total"));
+        long propertyId = rs.getLong("property_id");
+        LocalDate start = rs.getDate("start_date").toLocalDate();
+        LocalDate end = rs.getDate("end_date").toLocalDate();
+        long rent = rs.getLong("rent");
+        byProperty.computeIfAbsent(propertyId, k -> new ArrayList<>())
+            .add(new ContractSegment(start, end, rent));
       }
     }
     List<Long> result = new ArrayList<>();
-    for (YearMonth m : months) {
-      result.add(totalsMap.getOrDefault(m, 0L));
+    for (YearMonth month : months) {
+      long total = 0L;
+      for (List<ContractSegment> segments : byProperty.values()) {
+        ContractSegment active = findMostRecentActiveSegment(segments, month);
+        if (active != null) {
+          total += active.initialRent();
+        }
+      }
+      result.add(total);
     }
     return result;
   }
 
-  private List<PropertyRentHistory> loadPropertyRentHistories(Connection conn,
-      List<YearMonth> months) throws SQLException {
+  private List<PropertyRentHistory> loadPropertyRentHistories(Connection conn) throws SQLException {
     String sql = """
         SELECT p.name AS property_name, c.start_date, c.rent AS initial_rent,
                DATEADD('MONTH',
@@ -130,29 +149,37 @@ public class JdbcReportRepository implements ReportRepository {
       }
     }
 
+    Map<YearMonth, Double> ipcaRates = new HashMap<>(InflationIndexes.IPCA);
+    ipcaRates.putAll(inflationIndexRepository.findAll(IndexType.IPCA));
+    Map<YearMonth, Double> igpmRates = new HashMap<>(InflationIndexes.IGP_M);
+    igpmRates.putAll(inflationIndexRepository.findAll(IndexType.IGP_M));
+
+    YearMonth today = YearMonth.now();
     List<PropertyRentHistory> histories = new ArrayList<>();
     for (Map.Entry<String, List<ContractSegment>> entry : byProperty.entrySet()) {
       String propertyName = entry.getKey();
       List<ContractSegment> segments = entry.getValue();
+
+      // segments are ordered by start_date from SQL; first segment is the earliest
+      YearMonth propertyStart = YearMonth.from(segments.get(0).start());
+      long baselineRent = segments.get(0).initialRent();
+
+      List<YearMonth> propertyMonths = new ArrayList<>();
+      for (YearMonth m = propertyStart; !m.isAfter(today); m = m.plusMonths(1)) {
+        propertyMonths.add(m);
+      }
+
       List<Long> actual = new ArrayList<>();
       List<Long> ipca = new ArrayList<>();
       List<Long> igpm = new ArrayList<>();
 
-      for (YearMonth month : months) {
-        ContractSegment active = findActiveSegment(segments, month);
-        if (active == null) {
-          actual.add(0L);
-          ipca.add(0L);
-          igpm.add(0L);
-        } else {
-          actual.add(active.initialRent());
-          ipca.add(project(active.initialRent(), YearMonth.from(active.start()), month,
-              InflationIndexes.IPCA));
-          igpm.add(project(active.initialRent(), YearMonth.from(active.start()), month,
-              InflationIndexes.IGP_M));
-        }
+      for (YearMonth month : propertyMonths) {
+        ContractSegment active = findMostRecentActiveSegment(segments, month);
+        actual.add(active != null ? active.initialRent() : 0L);
+        ipca.add(project(baselineRent, propertyStart, month, ipcaRates));
+        igpm.add(project(baselineRent, propertyStart, month, igpmRates));
       }
-      histories.add(new PropertyRentHistory(propertyName, months, actual, ipca, igpm));
+      histories.add(new PropertyRentHistory(propertyName, propertyMonths, actual, ipca, igpm));
     }
     return histories;
   }
@@ -246,16 +273,19 @@ public class JdbcReportRepository implements ReportRepository {
     return !month.isBefore(contractStart) && !month.isAfter(contractEnd);
   }
 
-  private static ContractSegment findActiveSegment(List<ContractSegment> segments,
+  private static ContractSegment findMostRecentActiveSegment(List<ContractSegment> segments,
       YearMonth month) {
+    ContractSegment mostRecent = null;
     for (ContractSegment seg : segments) {
       YearMonth segStart = YearMonth.from(seg.start());
       YearMonth segEnd = YearMonth.from(seg.end());
       if (!month.isBefore(segStart) && !month.isAfter(segEnd)) {
-        return seg;
+        if (mostRecent == null || seg.start().isAfter(mostRecent.start())) {
+          mostRecent = seg;
+        }
       }
     }
-    return null;
+    return mostRecent;
   }
 
   static long project(long initialCents, YearMonth from, YearMonth to,

@@ -74,6 +74,11 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.receipt.infrastructure.repository to com.google.guice;
   opens com.guilherme.emobiliaria.receipt.infrastructure.service to com.google.guice;
 
+  opens com.guilherme.emobiliaria.inflation.di to com.google.guice;
+  opens com.guilherme.emobiliaria.inflation.application.usecase to com.google.guice;
+  opens com.guilherme.emobiliaria.inflation.infrastructure.repository to com.google.guice;
+  opens com.guilherme.emobiliaria.inflation.infrastructure.service to com.google.guice, com.fasterxml.jackson.databind;
+
   opens com.guilherme.emobiliaria.reports.di to com.google.guice;
   opens com.guilherme.emobiliaria.reports.application.usecase to com.google.guice;
   opens com.guilherme.emobiliaria.reports.infrastructure.repository to com.google.guice;

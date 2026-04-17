@@ -7,6 +7,7 @@ import com.google.inject.Scopes;
 import com.guilherme.emobiliaria.config.di.ConfigModule;
 import com.guilherme.emobiliaria.contract.di.ContractModule;
 import com.guilherme.emobiliaria.dashboard.di.DashboardModule;
+import com.guilherme.emobiliaria.inflation.di.InflationModule;
 import com.guilherme.emobiliaria.person.di.PersonModule;
 import com.guilherme.emobiliaria.property.di.PropertyModule;
 import com.guilherme.emobiliaria.receipt.di.ReceiptModule;
@@ -27,6 +28,7 @@ public class AppModule extends AbstractModule {
 
     install(new ConfigModule());
     install(new DashboardModule());
+    install(new InflationModule());
     install(new PersonModule());
     install(new ContractModule());
     install(new PropertyModule());
