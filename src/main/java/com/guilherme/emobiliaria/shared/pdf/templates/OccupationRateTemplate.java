@@ -13,18 +13,24 @@ public class OccupationRateTemplate
 
   private final BufferedImage overallOccupationChart;
   private final List<PropertyChartBean> propertyCharts;
+  private final String generationDate;
+  private final String period;
 
   public OccupationRateTemplate(BufferedImage overallOccupationChart,
-      List<PropertyChartBean> propertyCharts) {
+      List<PropertyChartBean> propertyCharts, String generationDate, String period) {
     super("occupation_rate");
     this.overallOccupationChart = overallOccupationChart;
     this.propertyCharts = propertyCharts;
+    this.generationDate = generationDate;
+    this.period = period;
   }
 
   @Override
   public EnumMap<OccupationRateParameters, Object> getParameters() {
     EnumMap<OccupationRateParameters, Object> params = new EnumMap<>(OccupationRateParameters.class);
     params.put(OccupationRateParameters.OVERALL_OCCUPATION_CHART, overallOccupationChart);
+    params.put(OccupationRateParameters.GENERATION_DATE, generationDate);
+    params.put(OccupationRateParameters.PERIOD, period);
     return params;
   }
 
@@ -38,7 +44,7 @@ public class OccupationRateTemplate
   }
 
   public enum OccupationRateParameters {
-    OVERALL_OCCUPATION_CHART
+    OVERALL_OCCUPATION_CHART, GENERATION_DATE, PERIOD
   }
 
   public enum OccupationRateCollections {

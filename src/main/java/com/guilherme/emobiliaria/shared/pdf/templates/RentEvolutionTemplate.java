@@ -13,18 +13,24 @@ public class RentEvolutionTemplate
 
   private final BufferedImage monthlyEarningsChart;
   private final List<PropertyChartBean> propertyCharts;
+  private final String generationDate;
+  private final String period;
 
   public RentEvolutionTemplate(BufferedImage monthlyEarningsChart,
-      List<PropertyChartBean> propertyCharts) {
+      List<PropertyChartBean> propertyCharts, String generationDate, String period) {
     super("rent_evolution");
     this.monthlyEarningsChart = monthlyEarningsChart;
     this.propertyCharts = propertyCharts;
+    this.generationDate = generationDate;
+    this.period = period;
   }
 
   @Override
   public EnumMap<RentEvolutionParameters, Object> getParameters() {
     EnumMap<RentEvolutionParameters, Object> params = new EnumMap<>(RentEvolutionParameters.class);
     params.put(RentEvolutionParameters.MONTHLY_EARNINGS_CHART, monthlyEarningsChart);
+    params.put(RentEvolutionParameters.GENERATION_DATE, generationDate);
+    params.put(RentEvolutionParameters.PERIOD, period);
     return params;
   }
 
@@ -38,7 +44,7 @@ public class RentEvolutionTemplate
   }
 
   public enum RentEvolutionParameters {
-    MONTHLY_EARNINGS_CHART
+    MONTHLY_EARNINGS_CHART, GENERATION_DATE, PERIOD
   }
 
   public enum RentEvolutionCollections {

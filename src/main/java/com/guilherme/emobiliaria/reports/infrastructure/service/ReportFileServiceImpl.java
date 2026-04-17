@@ -13,10 +13,17 @@ import com.guilherme.emobiliaria.shared.pdf.templates.RentEvolutionTemplate;
 import jakarta.inject.Inject;
 
 import java.awt.image.BufferedImage;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ReportFileServiceImpl implements ReportFileService {
+
+  private static final String[] PT_MONTHS =
+      {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
+  private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
   private final PdfGenerationService pdfGenerationService;
   private final ChartGenerator chartGenerator;
@@ -45,7 +52,8 @@ public class ReportFileServiceImpl implements ReportFileService {
     }
 
     return pdfGenerationService.generatePdf(
-        new RentEvolutionTemplate(monthlyEarningsChart, propertyCharts));
+        new RentEvolutionTemplate(monthlyEarningsChart, propertyCharts,
+            generationDate(), periodLabel(data.months())));
   }
 
   @Override
@@ -61,6 +69,22 @@ public class ReportFileServiceImpl implements ReportFileService {
     }
 
     return pdfGenerationService.generatePdf(
-        new OccupationRateTemplate(overallChart, propertyCharts));
+        new OccupationRateTemplate(overallChart, propertyCharts,
+            generationDate(), periodLabel(data.months())));
+  }
+
+  private String generationDate() {
+    return LocalDate.now().format(DATE_FMT);
+  }
+
+  private String periodLabel(List<YearMonth> months) {
+    if (months.isEmpty()) return "";
+    YearMonth first = months.get(0);
+    YearMonth last = months.get(months.size() - 1);
+    return monthLabel(first) + " a " + monthLabel(last);
+  }
+
+  private String monthLabel(YearMonth ym) {
+    return PT_MONTHS[ym.getMonthValue() - 1] + "/" + ym.getYear();
   }
 }

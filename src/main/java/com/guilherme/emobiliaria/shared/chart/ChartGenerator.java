@@ -5,6 +5,8 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.SymbolAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
@@ -16,6 +18,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.time.YearMonth;
 import java.util.List;
@@ -24,6 +27,16 @@ public class ChartGenerator {
 
   private static final int CHART_WIDTH = 555;
   private static final int CHART_HEIGHT = 280;
+  private static final int RENDER_SCALE = 4;
+
+  private static final String[] PT_MONTHS =
+      {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
+
+  private String[] monthLabels(List<YearMonth> months) {
+    return months.stream()
+        .map(m -> PT_MONTHS[m.getMonthValue() - 1] + "/" + String.format("%02d", m.getYear() % 100))
+        .toArray(String[]::new);
+  }
 
   /** Line chart showing total monthly rent earnings over time. */
   public BufferedImage monthlyEarnings(List<YearMonth> months, List<Long> centsList) {
@@ -33,14 +46,18 @@ public class ChartGenerator {
     }
     XYSeriesCollection dataset = new XYSeriesCollection(series);
     JFreeChart chart = ChartFactory.createXYLineChart(
-        "Receita Mensal Total",
-        null, "R$",
+        null,
+        null, null,
         dataset,
         PlotOrientation.VERTICAL,
         false, false, false
     );
-    styleTimeSeriesChart(chart, months);
-    return chart.createBufferedImage(CHART_WIDTH, CHART_HEIGHT);
+    styleTimeSeriesChart(chart, months, "Valor (R$)");
+    XYPlot plot = chart.getXYPlot();
+    XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+    renderer.setSeriesPaint(0, new Color(0x2196F3));
+    renderer.setSeriesStroke(0, new BasicStroke(2.0f * RENDER_SCALE));
+    return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, CHART_HEIGHT * RENDER_SCALE);
   }
 
   /** Three-line chart: actual rent vs IPCA-adjusted vs IGP-M-adjusted initial rent. */
@@ -62,67 +79,71 @@ public class ChartGenerator {
     dataset.addSeries(ipca);
     dataset.addSeries(igpm);
     JFreeChart chart = ChartFactory.createXYLineChart(
-        propertyName,
-        null, "R$",
+        null,
+        null, null,
         dataset,
         PlotOrientation.VERTICAL,
         true, false, false
     );
-    styleTimeSeriesChart(chart, months);
+    styleTimeSeriesChart(chart, months, "Valor (R$)");
     XYPlot plot = chart.getXYPlot();
     XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0x2196F3));
     renderer.setSeriesPaint(1, new Color(0xE53935));
     renderer.setSeriesPaint(2, new Color(0x43A047));
-    renderer.setSeriesStroke(0, new BasicStroke(2.0f));
-    renderer.setSeriesStroke(1, new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{6, 4}, 0.0f));
-    renderer.setSeriesStroke(2, new BasicStroke(1.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{3, 3}, 0.0f));
-    return chart.createBufferedImage(CHART_WIDTH, CHART_HEIGHT);
+    float s = RENDER_SCALE;
+    renderer.setSeriesStroke(0, new BasicStroke(2.0f * s));
+    renderer.setSeriesStroke(1, new BasicStroke(1.5f * s, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+        10.0f, new float[]{6 * s, 4 * s}, 0.0f));
+    renderer.setSeriesStroke(2, new BasicStroke(1.5f * s, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER,
+        10.0f, new float[]{3 * s, 3 * s}, 0.0f));
+    if (chart.getLegend() != null) {
+      chart.getLegend().setItemFont(new Font("Arial", Font.PLAIN, 10 * RENDER_SCALE));
+    }
+    return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, CHART_HEIGHT * RENDER_SCALE);
   }
 
-  /** Line chart showing number of occupied properties per month vs total. */
+  /** Line chart showing occupation percentage per month (0–100%). */
   public BufferedImage overallOccupation(List<YearMonth> months,
       List<Integer> occupiedCount, int totalProperties) {
-    XYSeries occupied = new XYSeries("Imóveis ocupados");
-    XYSeries total = new XYSeries("Total de imóveis");
+    XYSeries occupationRate = new XYSeries("Taxa de Ocupação");
     for (int i = 0; i < months.size(); i++) {
-      occupied.add(i, occupiedCount.get(i));
-      total.add(i, totalProperties);
+      double pct = totalProperties > 0 ? occupiedCount.get(i) * 100.0 / totalProperties : 0.0;
+      occupationRate.add(i, pct);
     }
-    XYSeriesCollection dataset = new XYSeriesCollection();
-    dataset.addSeries(occupied);
-    dataset.addSeries(total);
+    XYSeriesCollection dataset = new XYSeriesCollection(occupationRate);
     JFreeChart chart = ChartFactory.createXYLineChart(
-        "Ocupação Geral",
-        null, "Imóveis",
+        null,
+        null, null,
         dataset,
         PlotOrientation.VERTICAL,
-        true, false, false
+        false, false, false
     );
-    styleTimeSeriesChart(chart, months);
+    styleTimeSeriesChart(chart, months, "Taxa (%)");
     XYPlot plot = chart.getXYPlot();
     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-    rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-    rangeAxis.setLowerBound(0);
-    rangeAxis.setUpperBound(totalProperties + 1);
+    rangeAxis.setRange(0, 110);
+    rangeAxis.setTickUnit(new NumberTickUnit(25));
     XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0x2196F3));
-    renderer.setSeriesPaint(1, new Color(0xBDBDBD));
-    renderer.setSeriesStroke(0, new BasicStroke(2.5f));
-    renderer.setSeriesStroke(1, new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{5, 5}, 0.0f));
-    return chart.createBufferedImage(CHART_WIDTH, CHART_HEIGHT);
+    renderer.setSeriesStroke(0, new BasicStroke(2.5f * RENDER_SCALE));
+    return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, CHART_HEIGHT * RENDER_SCALE);
   }
 
-  /** Bar chart showing occupied (1) or vacant (0) per month for a single property. */
+  /** Bar chart showing occupied (100%) or vacant (0%) per month for a single property. */
   public BufferedImage propertyOccupation(String propertyName,
       List<YearMonth> months, List<Boolean> occupied) {
+    int skip = months.size() > 24 ? Math.max(2, months.size() / 12) : 1;
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
     for (int i = 0; i < months.size(); i++) {
-      String label = months.get(i).getMonth().getValue() + "/" + (months.get(i).getYear() % 100);
-      dataset.addValue(occupied.get(i) ? 1 : 0, "Ocupação", label);
+      YearMonth ym = months.get(i);
+      String label = (i % skip == 0)
+          ? PT_MONTHS[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100)
+          : " ".repeat(i);
+      dataset.addValue(occupied.get(i) ? 100 : 0, "Ocupação", label);
     }
     JFreeChart chart = ChartFactory.createBarChart(
-        propertyName,
+        null,
         null, null,
         dataset,
         PlotOrientation.VERTICAL,
@@ -132,31 +153,43 @@ public class ChartGenerator {
     CategoryPlot plot = chart.getCategoryPlot();
     plot.setBackgroundPaint(new Color(0xF5F5F5));
     plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+
     BarRenderer renderer = (BarRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0x2196F3));
     renderer.setDrawBarOutline(false);
+
     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-    rangeAxis.setVisible(false);
+    rangeAxis.setVisible(true);
+    rangeAxis.setLabel("Ocupação (%)");
+    rangeAxis.setLabelFont(new Font("Arial", Font.PLAIN, 11 * RENDER_SCALE));
+    rangeAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
+    rangeAxis.setRange(0, 115);
+    rangeAxis.setTickUnit(new NumberTickUnit(100));
+
     CategoryAxis domainAxis = plot.getDomainAxis();
+    domainAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
     domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
-    if (months.size() > 24) {
-      domainAxis.setTickLabelsVisible(false);
-    }
-    return chart.createBufferedImage(CHART_WIDTH, 180);
+
+    return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, 180 * RENDER_SCALE);
   }
 
-  private void styleTimeSeriesChart(JFreeChart chart, List<YearMonth> months) {
+  private void styleTimeSeriesChart(JFreeChart chart, List<YearMonth> months, String rangeAxisLabel) {
     chart.setBackgroundPaint(Color.WHITE);
     XYPlot plot = chart.getXYPlot();
     plot.setBackgroundPaint(new Color(0xF5F5F5));
     plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
     plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
-    NumberAxis domainAxis = new NumberAxis();
-    domainAxis.setVisible(false);
+
+    String[] labels = monthLabels(months);
+    SymbolAxis domainAxis = new SymbolAxis("Mês/Ano", labels);
+    domainAxis.setLabelFont(new Font("Arial", Font.PLAIN, 11 * RENDER_SCALE));
+    domainAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
+    domainAxis.setGridBandsVisible(false);
     plot.setDomainAxis(domainAxis);
-    if (!months.isEmpty()) {
-      // Add month/year labels via custom renderer tick override is complex;
-      // use domain axis range only — labels omitted for cleanliness at scale
-    }
+
+    NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+    rangeAxis.setLabel(rangeAxisLabel);
+    rangeAxis.setLabelFont(new Font("Arial", Font.PLAIN, 11 * RENDER_SCALE));
+    rangeAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
   }
 }

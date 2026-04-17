@@ -107,7 +107,7 @@ class PdfGenerationServiceTest {
           chartGenerator.rentEvolution("Imóvel Teste", months,
               List.of(150000L, 160000L), List.of(151000L, 162000L), List.of(152000L, 163000L)));
       RentEvolutionTemplate template = new RentEvolutionTemplate(monthlyChart,
-          List.of(propertyChart));
+          List.of(propertyChart), "17/04/2026", "Jan/2026 a Fev/2026");
 
       byte[] result = service.generatePdf(template);
 
@@ -126,7 +126,7 @@ class PdfGenerationServiceTest {
       PropertyChartBean propertyChart = new PropertyChartBean("Imóvel Teste",
           chartGenerator.propertyOccupation("Imóvel Teste", months, List.of(true, false)));
       OccupationRateTemplate template = new OccupationRateTemplate(overallChart,
-          List.of(propertyChart));
+          List.of(propertyChart), "17/04/2026", "Jan/2026 a Fev/2026");
 
       byte[] result = service.generatePdf(template);
 

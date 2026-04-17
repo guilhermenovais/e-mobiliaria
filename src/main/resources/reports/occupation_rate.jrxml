@@ -2,27 +2,66 @@
 <jasperReport name="occupation_rate" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="9503a68c-e07a-4cd5-ae52-b796007a07cc">
     <parameter name="overall_occupation_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
     <parameter name="property_occupation_charts" forPrompting="false" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+    <parameter name="generation_date" forPrompting="false" class="java.lang.String"/>
+    <parameter name="period" forPrompting="false" class="java.lang.String"/>
     <query language="sql"><![CDATA[]]></query>
     <background splitType="Stretch"/>
-    <title height="400" splitType="Stretch">
+    <pageHeader height="40">
+        <element kind="textField" uuid="2a000001-0000-0000-0000-000000000001" x="0" y="6"
+                 width="200" height="18" fontName="Arial" fontSize="11.0" bold="true">
+            <expression><![CDATA["e-Mobiliária"]]></expression>
+        </element>
+        <element kind="textField" uuid="2a000001-0000-0000-0000-000000000002" x="300" y="6"
+                 width="255" height="18" fontName="Arial" fontSize="9.0" hTextAlign="Right" forecolor="#888888">
+            <expression><![CDATA["Gerado em " + $P{generation_date}]]></expression>
+        </element>
+        <element kind="line" uuid="2a000001-0000-0000-0000-000000000003" x="0" y="36"
+                 width="555" height="1">
+            <pen lineWidth="0.5" lineColor="#CCCCCC"/>
+        </element>
+    </pageHeader>
+    <pageFooter height="25">
+        <element kind="line" uuid="2b000001-0000-0000-0000-000000000001" x="0" y="0"
+                 width="555" height="1">
+            <pen lineWidth="0.5" lineColor="#CCCCCC"/>
+        </element>
+        <element kind="textField" uuid="2b000001-0000-0000-0000-000000000002" x="0" y="6"
+                 width="300" height="14" fontName="Arial" fontSize="9.0" forecolor="#888888">
+            <expression><![CDATA["Período: " + $P{period}]]></expression>
+        </element>
+        <element kind="textField" uuid="2b000001-0000-0000-0000-000000000003" x="400" y="6"
+                 width="155" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
+                 forecolor="#888888" evaluationTime="Report">
+            <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / " + $V{PAGE_COUNT}]]></expression>
+        </element>
+    </pageFooter>
+    <title height="440" splitType="Stretch">
         <element kind="textField" uuid="b2222222-2222-2222-2222-222222222201" positionType="Float" x="0" y="0"
                  width="555" height="30" fontName="Arial" fontSize="18.0" bold="true" underline="true"
                  hTextAlign="Center">
             <expression><![CDATA["Taxa de Ocupação"]]></expression>
         </element>
-        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222202" positionType="Float" x="0" y="40"
-                 width="555" height="20" fontName="Arial" fontSize="13.0" bold="true">
+        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222206" positionType="Float" x="0" y="32"
+                 width="555" height="16" fontName="Arial" fontSize="10.0" hTextAlign="Center" forecolor="#555555">
+            <expression><![CDATA["Período: " + $P{period}]]></expression>
+        </element>
+        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222202" positionType="Float" x="0" y="60"
+                 width="555" height="20" fontName="Arial" fontSize="14.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Ocupação Geral"]]></expression>
         </element>
-        <element kind="image" uuid="b2222222-2222-2222-2222-222222222203" positionType="Float" x="0" y="60"
-                 width="555" height="280" usingCache="false" hImageAlign="Center">
+        <element kind="rectangle" uuid="b2222222-2222-2222-2222-222222222207" positionType="Float"
+                 x="0" y="82" width="555" height="290" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+            <pen lineWidth="1.0" lineColor="#E0E0E0"/>
+        </element>
+        <element kind="image" uuid="b2222222-2222-2222-2222-222222222203" positionType="Float" x="5" y="87"
+                 width="545" height="280" usingCache="false" hImageAlign="Center">
             <expression><![CDATA[$P{overall_occupation_chart}]]></expression>
         </element>
-        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222204" positionType="Float" x="0" y="350"
-                 width="555" height="20" fontName="Arial" fontSize="13.0" bold="true">
+        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222204" positionType="Float" x="0" y="385"
+                 width="555" height="20" fontName="Arial" fontSize="14.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Ocupação por Imóvel"]]></expression>
         </element>
-        <element kind="subreport" uuid="b2222222-2222-2222-2222-222222222205" positionType="Float" x="0" y="370"
+        <element kind="subreport" uuid="b2222222-2222-2222-2222-222222222205" positionType="Float" x="0" y="408"
                  width="555" height="20">
             <dataSourceExpression><![CDATA[$P{property_occupation_charts}]]></dataSourceExpression>
             <expression><![CDATA["reports/property_occupation_chart.jasper"]]></expression>

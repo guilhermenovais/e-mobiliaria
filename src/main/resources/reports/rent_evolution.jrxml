@@ -2,27 +2,66 @@
 <jasperReport name="rent_evolution" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="e5e7a090-dbf0-4393-a37c-9aac232a0256">
     <parameter name="monthly_earnings_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
     <parameter name="property_rent_charts" forPrompting="false" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+    <parameter name="generation_date" forPrompting="false" class="java.lang.String"/>
+    <parameter name="period" forPrompting="false" class="java.lang.String"/>
     <query language="sql"><![CDATA[]]></query>
     <background splitType="Stretch"/>
-    <title height="400" splitType="Stretch">
+    <pageHeader height="40">
+        <element kind="textField" uuid="1a000001-0000-0000-0000-000000000001" x="0" y="6"
+                 width="200" height="18" fontName="Arial" fontSize="11.0" bold="true">
+            <expression><![CDATA["e-Mobiliária"]]></expression>
+        </element>
+        <element kind="textField" uuid="1a000001-0000-0000-0000-000000000002" x="300" y="6"
+                 width="255" height="18" fontName="Arial" fontSize="9.0" hTextAlign="Right" forecolor="#888888">
+            <expression><![CDATA["Gerado em " + $P{generation_date}]]></expression>
+        </element>
+        <element kind="line" uuid="1a000001-0000-0000-0000-000000000003" x="0" y="36"
+                 width="555" height="1">
+            <pen lineWidth="0.5" lineColor="#CCCCCC"/>
+        </element>
+    </pageHeader>
+    <pageFooter height="25">
+        <element kind="line" uuid="1b000001-0000-0000-0000-000000000001" x="0" y="0"
+                 width="555" height="1">
+            <pen lineWidth="0.5" lineColor="#CCCCCC"/>
+        </element>
+        <element kind="textField" uuid="1b000001-0000-0000-0000-000000000002" x="0" y="6"
+                 width="300" height="14" fontName="Arial" fontSize="9.0" forecolor="#888888">
+            <expression><![CDATA["Período: " + $P{period}]]></expression>
+        </element>
+        <element kind="textField" uuid="1b000001-0000-0000-0000-000000000003" x="400" y="6"
+                 width="155" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
+                 forecolor="#888888" evaluationTime="Report">
+            <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / " + $V{PAGE_COUNT}]]></expression>
+        </element>
+    </pageFooter>
+    <title height="440" splitType="Stretch">
         <element kind="textField" uuid="a1111111-1111-1111-1111-111111111101" positionType="Float" x="0" y="0"
                  width="555" height="30" fontName="Arial" fontSize="18.0" bold="true" underline="true"
                  hTextAlign="Center">
             <expression><![CDATA["Evolução de Aluguéis"]]></expression>
         </element>
-        <element kind="textField" uuid="a1111111-1111-1111-1111-111111111102" positionType="Float" x="0" y="40"
-                 width="555" height="20" fontName="Arial" fontSize="13.0" bold="true">
+        <element kind="textField" uuid="a1111111-1111-1111-1111-111111111106" positionType="Float" x="0" y="32"
+                 width="555" height="16" fontName="Arial" fontSize="10.0" hTextAlign="Center" forecolor="#555555">
+            <expression><![CDATA["Período: " + $P{period}]]></expression>
+        </element>
+        <element kind="textField" uuid="a1111111-1111-1111-1111-111111111102" positionType="Float" x="0" y="60"
+                 width="555" height="20" fontName="Arial" fontSize="14.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Receita Mensal Total"]]></expression>
         </element>
-        <element kind="image" uuid="a1111111-1111-1111-1111-111111111103" positionType="Float" x="0" y="60"
-                 width="555" height="280" usingCache="false" hImageAlign="Center">
+        <element kind="rectangle" uuid="a1111111-1111-1111-1111-111111111107" positionType="Float"
+                 x="0" y="82" width="555" height="290" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+            <pen lineWidth="1.0" lineColor="#E0E0E0"/>
+        </element>
+        <element kind="image" uuid="a1111111-1111-1111-1111-111111111103" positionType="Float" x="5" y="87"
+                 width="545" height="280" usingCache="false" hImageAlign="Center">
             <expression><![CDATA[$P{monthly_earnings_chart}]]></expression>
         </element>
-        <element kind="textField" uuid="a1111111-1111-1111-1111-111111111104" positionType="Float" x="0" y="350"
-                 width="555" height="20" fontName="Arial" fontSize="13.0" bold="true">
+        <element kind="textField" uuid="a1111111-1111-1111-1111-111111111104" positionType="Float" x="0" y="385"
+                 width="555" height="20" fontName="Arial" fontSize="14.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Evolução por Imóvel"]]></expression>
         </element>
-        <element kind="subreport" uuid="a1111111-1111-1111-1111-111111111105" positionType="Float" x="0" y="370"
+        <element kind="subreport" uuid="a1111111-1111-1111-1111-111111111105" positionType="Float" x="0" y="408"
                  width="555" height="20">
             <dataSourceExpression><![CDATA[$P{property_rent_charts}]]></dataSourceExpression>
             <expression><![CDATA["reports/property_rent_chart.jasper"]]></expression>

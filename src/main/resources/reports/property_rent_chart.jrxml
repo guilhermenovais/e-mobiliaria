@@ -5,13 +5,17 @@
     <query language="sql"><![CDATA[]]></query>
     <background splitType="Stretch"/>
     <detail>
-        <band height="320" splitType="Prevent">
-            <element kind="textField" uuid="b1c2d3e4-f5a6-7890-bcde-f12345678901" positionType="Float" x="0" y="10"
-                     width="555" height="20" fontName="Arial" fontSize="11.0" bold="true" hTextAlign="Left">
+        <band height="330" splitType="Prevent">
+            <element kind="rectangle" uuid="b1c2d3e4-f5a6-7890-bcde-f12345678900" positionType="Float"
+                     x="0" y="5" width="555" height="320" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+                <pen lineWidth="1.0" lineColor="#E0E0E0"/>
+            </element>
+            <element kind="textField" uuid="b1c2d3e4-f5a6-7890-bcde-f12345678901" positionType="Float" x="10" y="14"
+                     width="535" height="20" fontName="Arial" fontSize="12.0" bold="true" hTextAlign="Left" forecolor="#333333">
                 <expression><![CDATA[$F{property_name}]]></expression>
             </element>
-            <element kind="image" uuid="c2d3e4f5-a6b7-8901-cdef-123456789012" positionType="Float" x="0" y="30"
-                     width="555" height="280" usingCache="false" hImageAlign="Center">
+            <element kind="image" uuid="c2d3e4f5-a6b7-8901-cdef-123456789012" positionType="Float" x="5" y="36"
+                     width="545" height="280" usingCache="false" hImageAlign="Center">
                 <expression><![CDATA[$F{chart}]]></expression>
             </element>
         </band>
