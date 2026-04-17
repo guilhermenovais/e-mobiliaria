@@ -143,13 +143,9 @@ class ContractTemplateTest {
       assertTrue(partiesText.contains("<b>LOCATÁRIO(A) 1: </b>"));
       assertTrue(partiesText.contains("<b>LOCATÁRIO(A) 2: </b>"));
       assertTrue(partiesText.contains("<b>FIADOR(A): </b>"));
-      assertTrue(partiesText.contains("<b>TESTEMUNHA 1: </b>"));
-      assertTrue(partiesText.contains("<b>TESTEMUNHA 2: </b>"));
       assertTrue(partiesText.contains("Maria Lima"));
       assertTrue(partiesText.contains("Carlos Nunes"));
       assertTrue(partiesText.contains("Ana Souza"));
-      assertTrue(partiesText.contains("Paulo Costa"));
-      assertTrue(partiesText.contains("Fernanda Alves"));
     }
 
     @Test
@@ -281,6 +277,38 @@ class ContractTemplateTest {
           template.getCollections().get(ContractTemplate.ContractCollections.SIGNING_TEXTS);
 
       assertEquals(3, signingTexts.size());
+    }
+
+    @Test
+    @DisplayName(
+        "When role has multiple signers, should prefix signing text with role label and ordinal")
+    void shouldPrefixSigningTextWithRoleAndOrdinalWhenRoleHasMultipleSigners() {
+      PhysicalPerson secondTenant = PhysicalPerson.create("Carlos Nunes", "Brasileiro",
+          CivilState.SINGLE, "Professor", "987.654.321-00", "MG-55555", landlordAddress());
+      PhysicalPerson guarantor = PhysicalPerson.create("Ana Souza", "Brasileira",
+          CivilState.MARRIED, "Médica", "123.456.789-09", "MG-99999", landlordAddress());
+      PhysicalPerson witnessOne = PhysicalPerson.create("Paulo Costa", "Brasileiro",
+          CivilState.SINGLE, "Contador", "111.444.777-35", "MG-11111", landlordAddress());
+      PhysicalPerson witnessTwo = PhysicalPerson.create("Fernanda Alves", "Brasileira",
+          CivilState.DIVORCED, "Arquiteta", "222.333.444-05", "MG-22222", landlordAddress());
+
+      Contract contract = buildContract(List.of(tenant(), secondTenant), List.of(guarantor),
+          List.of(witnessOne, witnessTwo));
+      ContractTemplate template = new ContractTemplate(contract);
+
+      List<String> signingTexts = template.getCollections()
+          .get(ContractTemplate.ContractCollections.SIGNING_TEXTS)
+          .stream()
+          .map(text -> ((ContractTemplate.TextBean) text).getText())
+          .toList();
+
+      assertEquals(6, signingTexts.size());
+      assertTrue(signingTexts.get(0).startsWith("<b>LOCADOR: "));
+      assertTrue(signingTexts.get(1).startsWith("<b>LOCATÁRIO(A) 1: "));
+      assertTrue(signingTexts.get(2).startsWith("<b>LOCATÁRIO(A) 2: "));
+      assertTrue(signingTexts.get(3).startsWith("<b>FIADOR(A): "));
+      assertTrue(signingTexts.get(4).startsWith("<b>TESTEMUNHA 1: "));
+      assertTrue(signingTexts.get(5).startsWith("<b>TESTEMUNHA 2: "));
     }
   }
 }

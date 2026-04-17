@@ -14,8 +14,8 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ContractTemplate
     extends PdfTemplate<ContractTemplate.ContractParameters, ContractTemplate.ContractCollections> {
@@ -49,6 +49,11 @@ public class ContractTemplate
 
   private final Contract contract;
 
+  public ContractTemplate(Contract contract) {
+    super("contract");
+    this.contract = contract;
+  }
+
   @Override
   public EnumMap<ContractParameters, Object> getParameters() {
     Property property = contract.getProperty();
@@ -59,11 +64,7 @@ public class ContractTemplate
         TemplateFormatter::formatPersonForContract);
     String guarantorsText = buildOrdinalPartiesText(contract.getGuarantors(), "FIADOR(A)",
         TemplateFormatter::formatPersonForContract);
-    String witnessesText = buildOrdinalPartiesText(contract.getWitnesses(), "TESTEMUNHA",
-        TemplateFormatter::formatPersonForContract);
-    String allPartiesText = tenantsText
-        + (guarantorsText.isEmpty() ? "" : "<br>" + guarantorsText)
-        + (witnessesText.isEmpty() ? "" : "<br>" + witnessesText);
+    String allPartiesText = tenantsText + (guarantorsText.isEmpty() ? "" : "<br>" + guarantorsText);
 
     String paymentMethodText = bold(
         "Dia de pagamento: ") + contract.getPaymentDay() + " (" + TemplateFormatter.numberInWords(
@@ -110,15 +111,24 @@ public class ContractTemplate
   @Override
   public EnumMap<ContractCollections, Collection<Object>> getCollections() {
     List<Object> signingEntries = new ArrayList<>();
-    signingEntries.add(new TextBean(signingText(contract.getLandlord())));
-    contract.getTenants().forEach(t -> signingEntries.add(new TextBean(signingText(t))));
-    contract.getGuarantors().forEach(g -> signingEntries.add(new TextBean(signingText(g))));
-    contract.getWitnesses().forEach(w -> signingEntries.add(new TextBean(signingText(w))));
+    addSigningEntries(signingEntries, List.of(contract.getLandlord()), "LOCADOR");
+    addSigningEntries(signingEntries, contract.getTenants(), "LOCATÁRIO(A)");
+    addSigningEntries(signingEntries, contract.getGuarantors(), "FIADOR(A)");
+    addSigningEntries(signingEntries, contract.getWitnesses(), "TESTEMUNHA");
 
     EnumMap<ContractCollections, Collection<Object>> collections =
         new EnumMap<>(ContractCollections.class);
     collections.put(ContractCollections.SIGNING_TEXTS, signingEntries);
     return collections;
+  }
+
+  private void addSigningEntries(List<Object> signingEntries, List<Person> people, String roleLabel) {
+    boolean shouldShowOrdinal = people.size() > 1;
+    IntStream.range(0, people.size()).forEach(i -> {
+      String indexedRoleLabel = shouldShowOrdinal ? roleLabel + " " + (i + 1) : roleLabel;
+      String text = bold(indexedRoleLabel + ": " + signingText(people.get(i)));
+      signingEntries.add(new TextBean(text));
+    });
   }
 
   private String signingText(Person person) {
@@ -134,26 +144,21 @@ public class ContractTemplate
   private <T> String buildOrdinalPartiesText(List<T> parties, String label,
       Function<T, String> formatter) {
     boolean shouldShowOrdinal = parties.size() > 1;
-    return IntStream.range(0, parties.size())
-        .mapToObj(i -> {
-          String indexedLabel = shouldShowOrdinal ? label + " " + (i + 1) : label;
-          return bold(indexedLabel + ": ") + formatter.apply(parties.get(i));
-        })
-        .collect(Collectors.joining("<br>"));
-  }
-
-  public ContractTemplate(Contract contract) {
-    super("contract");
-    this.contract = contract;
+    return IntStream.range(0, parties.size()).mapToObj(i -> {
+      String indexedLabel = shouldShowOrdinal ? label + " " + (i + 1) : label;
+      return bold(indexedLabel + ": ") + formatter.apply(parties.get(i));
+    }).collect(Collectors.joining("<br>"));
   }
 
   public enum ContractParameters {
     CONTRACT_TITLE, LANDLORD_TEXT, TENANTS_TEXT, PROPERTY_SECTION_TITLE, PROPERTY_TYPE_TEXT, PROPERTY_ADDRESS_TEXT, PROPERTY_PURPOSE_TEXT, CONTRACT_RENT_TEXT, PROPERTY_CEMIG_TEXT, PROPERTY_IPTU_TEXT, PERIOD_SECTION_TITLE, CONTRACT_PERIOD_TEXT, CONTRACT_START_DATE_TEXT, CONTRACT_END_DATE_TEXT, CONTRACT_PAYMENT_METHOD_TEXT, CONTRACTUAL_TERMS_SECTION_TITLE, CONTRACTUAL_TERMS_TEXT, CITY_AND_DATE_TEXT
   }
 
+
   public enum ContractCollections {
     SIGNING_TEXTS
   }
+
 
   public record TextBean(String text) {
     public String getText() {

@@ -9,7 +9,7 @@
         <band height="60" splitType="Stretch">
             <element kind="rectangle" uuid="e19e10d7-4ad3-4601-8762-709d6678b30f" x="0" y="20" width="499" height="1"/>
             <element kind="textField" uuid="36fdf7b9-8fb8-49ab-aa94-a1b32a142b73" x="0" y="20" width="499" height="30"
-                     hTextAlign="Center" vTextAlign="Middle">
+                     markup="html" hTextAlign="Center" vTextAlign="Middle">
                 <expression><![CDATA[$F{text}]]></expression>
             </element>
         </band>
