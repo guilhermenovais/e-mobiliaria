@@ -1,9 +1,18 @@
 <!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
-<jasperReport name="occupation_rate" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="9503a68c-e07a-4cd5-ae52-b796007a07cc">
-    <parameter name="overall_occupation_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
-    <parameter name="property_occupation_charts" forPrompting="false" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+<jasperReport name="occupation_rate" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20"
+              rightMargin="20" topMargin="20" bottomMargin="20" uuid="9503a68c-e07a-4cd5-ae52-b796007a07cc">
+    <parameter name="trend_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
+    <parameter name="vacancy_volume_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
+    <parameter name="vacancy_heatmap_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
     <parameter name="generation_date" forPrompting="false" class="java.lang.String"/>
     <parameter name="period" forPrompting="false" class="java.lang.String"/>
+    <parameter name="current_occupation_pct" forPrompting="false" class="java.lang.String"/>
+    <parameter name="current_vacant_units" forPrompting="false" class="java.lang.String"/>
+    <parameter name="avg_vacancy_rate" forPrompting="false" class="java.lang.String"/>
+    <parameter name="longest_streak_months" forPrompting="false" class="java.lang.String"/>
+    <parameter name="longest_streak_property" forPrompting="false" class="java.lang.String"/>
+    <parameter name="vacancy_table_rows" forPrompting="false"
+               class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
     <query language="sql"><![CDATA[]]></query>
     <background splitType="Stretch"/>
     <pageHeader height="40">
@@ -35,36 +44,197 @@
             <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / " + $V{PAGE_COUNT}]]></expression>
         </element>
     </pageFooter>
-    <title height="440" splitType="Stretch">
-        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222201" positionType="Float" x="0" y="0"
-                 width="555" height="30" fontName="Arial" fontSize="18.0" bold="true" underline="true"
-                 hTextAlign="Center">
-            <expression><![CDATA["Taxa de Ocupação"]]></expression>
+
+    <!-- PAGE 1: title, KPI cards, trend chart, vacancy volume chart -->
+    <!-- Available height: 842 - 20(top) - 20(bottom) - 40(header) - 25(footer) = 737 -->
+    <title height="700" splitType="Prevent">
+        <!-- Report title -->
+        <element kind="textField" uuid="c1000001-0000-0000-0000-000000000001" positionType="Float"
+                 x="0" y="0" width="555" height="28" fontName="Arial" fontSize="16.0" bold="true"
+                 underline="true" hTextAlign="Center">
+            <expression><![CDATA["Taxas de Ocupação"]]></expression>
         </element>
-        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222206" positionType="Float" x="0" y="32"
-                 width="555" height="16" fontName="Arial" fontSize="10.0" hTextAlign="Center" forecolor="#555555">
+        <element kind="textField" uuid="c1000001-0000-0000-0000-000000000002" positionType="Float"
+                 x="0" y="30" width="555" height="14" fontName="Arial" fontSize="9.0"
+                 hTextAlign="Center" forecolor="#555555">
             <expression><![CDATA["Período: " + $P{period}]]></expression>
         </element>
-        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222202" positionType="Float" x="0" y="60"
-                 width="555" height="20" fontName="Arial" fontSize="14.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Ocupação Geral"]]></expression>
+
+        <!-- KPI cards row (y=52) height=64 each -->
+        <!-- Card 1: Ocupação Atual -->
+        <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000001" positionType="Float"
+                 x="0" y="52" width="129" height="64" radius="4" forecolor="#E3F2FD" backcolor="#E3F2FD">
+            <pen lineWidth="1.0" lineColor="#BBDEFB"/>
         </element>
-        <element kind="rectangle" uuid="b2222222-2222-2222-2222-222222222207" positionType="Float"
-                 x="0" y="82" width="555" height="290" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000002" positionType="Float"
+                 x="2" y="55" width="125" height="13" fontName="Arial" fontSize="7.5"
+                 hTextAlign="Center" forecolor="#555555">
+            <expression><![CDATA["Ocupação Atual"]]></expression>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000003" positionType="Float"
+                 x="2" y="70" width="125" height="26" fontName="Arial" fontSize="18.0" bold="true"
+                 hTextAlign="Center" forecolor="#1565C0">
+            <expression><![CDATA[$P{current_occupation_pct}]]></expression>
+        </element>
+
+        <!-- Card 2: Imóveis Vagos -->
+        <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000004" positionType="Float"
+                 x="139" y="52" width="129" height="64" radius="4" forecolor="#FFF3E0" backcolor="#FFF3E0">
+            <pen lineWidth="1.0" lineColor="#FFE0B2"/>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000005" positionType="Float"
+                 x="141" y="55" width="125" height="13" fontName="Arial" fontSize="7.5"
+                 hTextAlign="Center" forecolor="#555555">
+            <expression><![CDATA["Imóveis Vagos"]]></expression>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000006" positionType="Float"
+                 x="141" y="70" width="125" height="26" fontName="Arial" fontSize="18.0" bold="true"
+                 hTextAlign="Center" forecolor="#E65100">
+            <expression><![CDATA[$P{current_vacant_units}]]></expression>
+        </element>
+
+        <!-- Card 3: Vacância Média -->
+        <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000007" positionType="Float"
+                 x="278" y="52" width="129" height="64" radius="4" forecolor="#FFF3E0" backcolor="#FFF3E0">
+            <pen lineWidth="1.0" lineColor="#FFE0B2"/>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000008" positionType="Float"
+                 x="280" y="55" width="125" height="13" fontName="Arial" fontSize="7.5"
+                 hTextAlign="Center" forecolor="#555555">
+            <expression><![CDATA["Vacância Média"]]></expression>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000009" positionType="Float"
+                 x="280" y="70" width="125" height="26" fontName="Arial" fontSize="18.0" bold="true"
+                 hTextAlign="Center" forecolor="#E65100">
+            <expression><![CDATA[$P{avg_vacancy_rate}]]></expression>
+        </element>
+
+        <!-- Card 4: Maior Sequência Vaga -->
+        <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000010" positionType="Float"
+                 x="417" y="52" width="138" height="64" radius="4" forecolor="#FCE4EC" backcolor="#FCE4EC">
+            <pen lineWidth="1.0" lineColor="#F8BBD0"/>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000011" positionType="Float"
+                 x="419" y="55" width="134" height="13" fontName="Arial" fontSize="7.5"
+                 hTextAlign="Center" forecolor="#555555">
+            <expression><![CDATA["Maior Seq. Vaga"]]></expression>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000012" positionType="Float"
+                 x="419" y="70" width="134" height="18" fontName="Arial" fontSize="13.0" bold="true"
+                 hTextAlign="Center" forecolor="#880E4F">
+            <expression><![CDATA[$P{longest_streak_months}]]></expression>
+        </element>
+        <element kind="textField" uuid="c1000002-0000-0000-0000-000000000013" positionType="Float"
+                 x="419" y="89" width="134" height="20" fontName="Arial" fontSize="7.0"
+                 hTextAlign="Center" forecolor="#880E4F">
+            <expression><![CDATA[$P{longest_streak_property}]]></expression>
+        </element>
+
+        <!-- Chart A: Occupation + Vacancy Trend (y=126) -->
+        <element kind="textField" uuid="c1000003-0000-0000-0000-000000000001" positionType="Float"
+                 x="0" y="126" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
+                 forecolor="#333333">
+            <expression><![CDATA["Tendência de Ocupação e Vacância"]]></expression>
+        </element>
+        <element kind="rectangle" uuid="c1000003-0000-0000-0000-000000000002" positionType="Float"
+                 x="0" y="146" width="555" height="276" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
             <pen lineWidth="1.0" lineColor="#E0E0E0"/>
         </element>
-        <element kind="image" uuid="b2222222-2222-2222-2222-222222222203" positionType="Float" x="5" y="87"
-                 width="545" height="280" usingCache="false" hImageAlign="Center">
-            <expression><![CDATA[$P{overall_occupation_chart}]]></expression>
+        <element kind="image" uuid="c1000003-0000-0000-0000-000000000003" positionType="Float"
+                 x="5" y="150" width="545" height="268" usingCache="false" hImageAlign="Center">
+            <expression><![CDATA[$P{trend_chart}]]></expression>
         </element>
-        <element kind="textField" uuid="b2222222-2222-2222-2222-222222222204" positionType="Float" x="0" y="385"
-                 width="555" height="20" fontName="Arial" fontSize="14.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Ocupação por Imóvel"]]></expression>
+
+        <!-- Chart B: Vacancy Volume (y=430) -->
+        <element kind="textField" uuid="c1000004-0000-0000-0000-000000000001" positionType="Float"
+                 x="0" y="430" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
+                 forecolor="#333333">
+            <expression><![CDATA["Volume de Imóveis Vagos por Mês"]]></expression>
         </element>
-        <element kind="subreport" uuid="b2222222-2222-2222-2222-222222222205" positionType="Float" x="0" y="408"
-                 width="555" height="20">
-            <dataSourceExpression><![CDATA[$P{property_occupation_charts}]]></dataSourceExpression>
-            <expression><![CDATA["reports/property_occupation_chart.jasper"]]></expression>
+        <element kind="rectangle" uuid="c1000004-0000-0000-0000-000000000002" positionType="Float"
+                 x="0" y="450" width="555" height="246" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+            <pen lineWidth="1.0" lineColor="#E0E0E0"/>
+        </element>
+        <element kind="image" uuid="c1000004-0000-0000-0000-000000000003" positionType="Float"
+                 x="5" y="454" width="545" height="238" usingCache="false" hImageAlign="Center">
+            <expression><![CDATA[$P{vacancy_volume_chart}]]></expression>
         </element>
     </title>
+
+    <!-- PAGE 2: heatmap + vacancy table -->
+    <summary height="720" splitType="Stretch">
+        <!-- Heatmap section -->
+        <element kind="textField" uuid="c2000001-0000-0000-0000-000000000001" positionType="Float"
+                 x="0" y="0" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
+                 forecolor="#333333">
+            <expression><![CDATA["Mapa de Vacância por Imóvel"]]></expression>
+        </element>
+        <!-- Legend -->
+        <element kind="rectangle" uuid="c2000001-0000-0000-0000-000000000006" positionType="Float"
+                 x="0" y="20" width="12" height="12" forecolor="#42A5F5" backcolor="#42A5F5">
+            <pen lineWidth="0.0"/>
+        </element>
+        <element kind="staticText" uuid="c2000001-0000-0000-0000-000000000007" positionType="Float"
+                 x="16" y="20" width="60" height="12" fontName="Arial" fontSize="8.0" forecolor="#555555">
+            <text><![CDATA[Ocupado]]></text>
+        </element>
+        <element kind="rectangle" uuid="c2000001-0000-0000-0000-000000000008" positionType="Float"
+                 x="80" y="20" width="12" height="12" forecolor="#EF5350" backcolor="#EF5350">
+            <pen lineWidth="0.0"/>
+        </element>
+        <element kind="staticText" uuid="c2000001-0000-0000-0000-000000000009" positionType="Float"
+                 x="96" y="20" width="60" height="12" fontName="Arial" fontSize="8.0" forecolor="#555555">
+            <text><![CDATA[Vago]]></text>
+        </element>
+        <element kind="rectangle" uuid="c2000001-0000-0000-0000-000000000002" positionType="Float"
+                 x="0" y="34" width="555" height="248" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+            <pen lineWidth="1.0" lineColor="#E0E0E0"/>
+        </element>
+        <element kind="image" uuid="c2000001-0000-0000-0000-000000000003" positionType="Float"
+                 x="5" y="38" width="545" height="240" usingCache="false" hImageAlign="Center">
+            <expression><![CDATA[$P{vacancy_heatmap_chart}]]></expression>
+        </element>
+
+        <!-- Vacancy table section -->
+        <element kind="textField" uuid="c2000002-0000-0000-0000-000000000001" positionType="Float"
+                 x="0" y="292" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
+                 forecolor="#333333">
+            <expression><![CDATA["Imóveis com Maior Vacância"]]></expression>
+        </element>
+        <!-- Table header row -->
+        <element kind="rectangle" uuid="c2000002-0000-0000-0000-000000000002" positionType="Float"
+                 x="0" y="312" width="555" height="20" forecolor="#E0E0E0" backcolor="#E0E0E0">
+            <pen lineWidth="0.0"/>
+        </element>
+        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000003" positionType="Float"
+                 x="4" y="314" width="170" height="16" fontName="Arial" fontSize="9.0" bold="true">
+            <text><![CDATA[Imóvel]]></text>
+        </element>
+        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000004" positionType="Float"
+                 x="178" y="314" width="75" height="16" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Center">
+            <text><![CDATA[Meses Vagos]]></text>
+        </element>
+        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000005" positionType="Float"
+                 x="257" y="314" width="80" height="16" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Center">
+            <text><![CDATA[Maior Seq.]]></text>
+        </element>
+        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000006" positionType="Float"
+                 x="341" y="314" width="110" height="16" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Center">
+            <text><![CDATA[Fim Últ. Contrato]]></text>
+        </element>
+        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000007" positionType="Float"
+                 x="455" y="314" width="96" height="16" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Center">
+            <text><![CDATA[Status Atual]]></text>
+        </element>
+        <!-- Table rows via subreport -->
+        <element kind="subreport" uuid="c2000002-0000-0000-0000-000000000008" positionType="Float"
+                 x="0" y="332" width="555" height="20">
+            <dataSourceExpression><![CDATA[$P{vacancy_table_rows}]]></dataSourceExpression>
+            <expression><![CDATA["reports/vacancy_table_row.jasper"]]></expression>
+        </element>
+    </summary>
 </jasperReport>

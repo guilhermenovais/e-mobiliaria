@@ -1,11 +1,12 @@
 package com.guilherme.emobiliaria.reports.infrastructure.repository;
 
+import com.guilherme.emobiliaria.inflation.domain.entity.IndexType;
+import com.guilherme.emobiliaria.inflation.domain.repository.InflationIndexRepository;
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyOccupationHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyRentHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
-import com.guilherme.emobiliaria.inflation.domain.entity.IndexType;
-import com.guilherme.emobiliaria.inflation.domain.repository.InflationIndexRepository;
+import com.guilherme.emobiliaria.reports.domain.entity.VacancyTableRow;
 import com.guilherme.emobiliaria.reports.domain.repository.ReportRepository;
 import com.guilherme.emobiliaria.shared.chart.InflationIndexes;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
@@ -20,6 +21,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,6 +29,8 @@ import java.util.Map;
 
 public class JdbcReportRepository implements ReportRepository {
 
+  private static final String[] PT_MONTHS_SHORT =
+      {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
   private final DataSource dataSource;
   private final InflationIndexRepository inflationIndexRepository;
 
@@ -35,6 +39,62 @@ public class JdbcReportRepository implements ReportRepository {
       InflationIndexRepository inflationIndexRepository) {
     this.dataSource = dataSource;
     this.inflationIndexRepository = inflationIndexRepository;
+  }
+
+  private static int maxConsecutiveFalse(List<Boolean> occupied) {
+    int max = 0, current = 0;
+    for (boolean b : occupied) {
+      if (!b) {
+        current++;
+        if (current > max)
+          max = current;
+      } else {
+        current = 0;
+      }
+    }
+    return max;
+  }
+
+  private static String lastOccupiedMonth(List<YearMonth> months, List<Boolean> occupied) {
+    for (int i = occupied.size() - 1; i >= 0; i--) {
+      if (occupied.get(i)) {
+        YearMonth ym = months.get(i);
+        return PT_MONTHS_SHORT[ym.getMonthValue() - 1] + "/" + String.format("%02d",
+            ym.getYear() % 100);
+      }
+    }
+    return "";
+  }
+
+  private static boolean isOccupied(ContractInterval ci, YearMonth month) {
+    YearMonth contractStart = YearMonth.from(ci.start());
+    YearMonth contractEnd = YearMonth.from(ci.end());
+    return !month.isBefore(contractStart) && !month.isAfter(contractEnd);
+  }
+
+  private static ContractSegment findMostRecentActiveSegment(List<ContractSegment> segments,
+      YearMonth month) {
+    ContractSegment mostRecent = null;
+    for (ContractSegment seg : segments) {
+      YearMonth segStart = YearMonth.from(seg.start());
+      YearMonth segEnd = YearMonth.from(seg.end());
+      if (!month.isBefore(segStart) && !month.isAfter(segEnd)) {
+        if (mostRecent == null || seg.start().isAfter(mostRecent.start())) {
+          mostRecent = seg;
+        }
+      }
+    }
+    return mostRecent;
+  }
+
+  static long project(long initialCents, YearMonth from, YearMonth to,
+      Map<YearMonth, Double> rates) {
+    double value = initialCents;
+    for (YearMonth m = from; m.isBefore(to); m = m.plusMonths(1)) {
+      double rate = rates.getOrDefault(m, 0.0);
+      value = value * (1 + rate);
+    }
+    return Math.round(value);
   }
 
   @Override
@@ -58,15 +118,57 @@ public class JdbcReportRepository implements ReportRepository {
       List<YearMonth> months = loadMonthRange(conn);
       int totalProperties = loadTotalPropertyCount(conn);
       if (months.isEmpty()) {
-        return new OccupationRateData(months, List.of(), totalProperties, List.of());
+        return new OccupationRateData(months, List.of(), totalProperties, List.of(), 0.0,
+            totalProperties, 0, "", List.of());
       }
       List<Integer> occupiedCounts = loadMonthlyOccupiedCounts(conn, months);
       List<PropertyOccupationHistory> propertyHistories =
           loadPropertyOccupationHistories(conn, months);
-      return new OccupationRateData(months, occupiedCounts, totalProperties, propertyHistories);
+      return buildOccupationRateData(months, occupiedCounts, totalProperties, propertyHistories);
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Report.LOAD_ERROR, e);
     }
+  }
+
+  private OccupationRateData buildOccupationRateData(List<YearMonth> months,
+      List<Integer> occupiedCounts, int totalProperties,
+      List<PropertyOccupationHistory> propertyHistories) {
+    double avgVacancyRate = 0.0;
+    if (totalProperties > 0 && !months.isEmpty()) {
+      double sumVacancy = 0;
+      for (int count : occupiedCounts) {
+        sumVacancy += (totalProperties - count) * 100.0 / totalProperties;
+      }
+      avgVacancyRate = sumVacancy / months.size();
+    }
+
+    int currentVacancyCount =
+        totalProperties > 0 ? totalProperties - occupiedCounts.get(occupiedCounts.size() - 1) : 0;
+
+    int longestStreakMonths = 0;
+    String longestStreakProperty = "";
+
+    List<VacancyTableRow> tableRows = new ArrayList<>();
+    for (PropertyOccupationHistory history : propertyHistories) {
+      List<Boolean> occupied = history.occupied();
+      int vacantMonths = (int) occupied.stream().filter(b -> !b).count();
+      int maxStreak = maxConsecutiveFalse(occupied);
+      String lastTenantEnd = lastOccupiedMonth(history.months(), occupied);
+      String currentStatus = occupied.get(occupied.size() - 1) ? "Ocupado" : "Vago";
+
+      tableRows.add(
+          new VacancyTableRow(history.propertyName(), vacantMonths, maxStreak, lastTenantEnd,
+              currentStatus));
+
+      if (maxStreak > longestStreakMonths) {
+        longestStreakMonths = maxStreak;
+        longestStreakProperty = history.propertyName();
+      }
+    }
+    tableRows.sort(Comparator.comparingInt(VacancyTableRow::vacantMonths).reversed());
+
+    return new OccupationRateData(months, occupiedCounts, totalProperties, propertyHistories,
+        avgVacancyRate, currentVacancyCount, longestStreakMonths, longestStreakProperty, tableRows);
   }
 
   private List<YearMonth> loadMonthRange(Connection conn) throws SQLException {
@@ -74,8 +176,7 @@ public class JdbcReportRepository implements ReportRepository {
         SELECT MIN(start_date) AS earliest, CURRENT_DATE AS today
         FROM contracts
         """;
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       if (!rs.next() || rs.getDate("earliest") == null) {
         return List.of();
       }
@@ -101,8 +202,7 @@ public class JdbcReportRepository implements ReportRepository {
         ORDER BY p.id, c.start_date
         """;
     Map<Long, List<ContractSegment>> byProperty = new LinkedHashMap<>();
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
         long propertyId = rs.getLong("property_id");
         LocalDate start = rs.getDate("start_date").toLocalDate();
@@ -137,8 +237,7 @@ public class JdbcReportRepository implements ReportRepository {
         ORDER BY p.name, c.start_date
         """;
     Map<String, List<ContractSegment>> byProperty = new LinkedHashMap<>();
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
         String name = rs.getString("property_name");
         LocalDate start = rs.getDate("start_date").toLocalDate();
@@ -186,8 +285,7 @@ public class JdbcReportRepository implements ReportRepository {
 
   private int loadTotalPropertyCount(Connection conn) throws SQLException {
     String sql = "SELECT COUNT(*) AS cnt FROM properties";
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       rs.next();
       return rs.getInt("cnt");
     }
@@ -205,19 +303,16 @@ public class JdbcReportRepository implements ReportRepository {
         JOIN properties p ON p.id = c.property_id
         """;
     List<ContractInterval> intervals = new ArrayList<>();
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
-        intervals.add(new ContractInterval(
-            rs.getLong("id"),
-            rs.getDate("start_date").toLocalDate(),
-            rs.getDate("end_date").toLocalDate()
-        ));
+        intervals.add(new ContractInterval(rs.getLong("id"), rs.getDate("start_date").toLocalDate(),
+            rs.getDate("end_date").toLocalDate()));
       }
     }
     List<Integer> counts = new ArrayList<>();
     for (YearMonth month : months) {
-      int count = (int) intervals.stream().filter(ci -> isOccupied(ci, month)).count();
+      int count = (int) intervals.stream().filter(ci -> isOccupied(ci, month))
+          .map(ContractInterval::propertyId).distinct().count();
       counts.add(count);
     }
     return counts;
@@ -237,18 +332,15 @@ public class JdbcReportRepository implements ReportRepository {
         """;
     Map<Long, String> propertyNames = new LinkedHashMap<>();
     Map<Long, List<ContractInterval>> propertyContracts = new LinkedHashMap<>();
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
         long propertyId = rs.getLong("property_id");
         propertyNames.put(propertyId, rs.getString("property_name"));
         propertyContracts.computeIfAbsent(propertyId, k -> new ArrayList<>());
         if (rs.getDate("start_date") != null) {
-          propertyContracts.get(propertyId).add(new ContractInterval(
-              propertyId,
-              rs.getDate("start_date").toLocalDate(),
-              rs.getDate("end_date").toLocalDate()
-          ));
+          propertyContracts.get(propertyId).add(
+              new ContractInterval(propertyId, rs.getDate("start_date").toLocalDate(),
+                  rs.getDate("end_date").toLocalDate()));
         }
       }
     }
@@ -267,38 +359,11 @@ public class JdbcReportRepository implements ReportRepository {
     return histories;
   }
 
-  private static boolean isOccupied(ContractInterval ci, YearMonth month) {
-    YearMonth contractStart = YearMonth.from(ci.start());
-    YearMonth contractEnd = YearMonth.from(ci.end());
-    return !month.isBefore(contractStart) && !month.isAfter(contractEnd);
+
+  private record ContractSegment(LocalDate start, LocalDate end, long initialRent) {
   }
 
-  private static ContractSegment findMostRecentActiveSegment(List<ContractSegment> segments,
-      YearMonth month) {
-    ContractSegment mostRecent = null;
-    for (ContractSegment seg : segments) {
-      YearMonth segStart = YearMonth.from(seg.start());
-      YearMonth segEnd = YearMonth.from(seg.end());
-      if (!month.isBefore(segStart) && !month.isAfter(segEnd)) {
-        if (mostRecent == null || seg.start().isAfter(mostRecent.start())) {
-          mostRecent = seg;
-        }
-      }
-    }
-    return mostRecent;
+
+  private record ContractInterval(long propertyId, LocalDate start, LocalDate end) {
   }
-
-  static long project(long initialCents, YearMonth from, YearMonth to,
-      Map<YearMonth, Double> rates) {
-    double value = initialCents;
-    for (YearMonth m = from; m.isBefore(to); m = m.plusMonths(1)) {
-      double rate = rates.getOrDefault(m, 0.0);
-      value = value * (1 + rate);
-    }
-    return Math.round(value);
-  }
-
-  private record ContractSegment(LocalDate start, LocalDate end, long initialRent) {}
-
-  private record ContractInterval(long propertyId, LocalDate start, LocalDate end) {}
 }

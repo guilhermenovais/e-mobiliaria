@@ -1,0 +1,61 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="vacancy_table_row" language="java" pageWidth="555" pageHeight="842" columnWidth="555" leftMargin="0"
+              rightMargin="0" topMargin="0" bottomMargin="0" uuid="d3000001-0000-0000-0000-000000000001">
+    <field name="property_name" class="java.lang.String"/>
+    <field name="vacant_months" class="java.lang.Integer"/>
+    <field name="longest_streak" class="java.lang.Integer"/>
+    <field name="last_tenant_end" class="java.lang.String"/>
+    <field name="current_status" class="java.lang.String"/>
+    <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count" resetType="Report">
+        <expression><![CDATA[1]]></expression>
+    </variable>
+    <background splitType="Stretch"/>
+    <detail>
+        <band height="18" splitType="Stretch">
+            <!-- Alternating background -->
+            <element kind="rectangle" uuid="d3000002-0000-0000-0000-000000000001"
+                     x="0" y="0" width="555" height="18" forecolor="#F5F5F5" backcolor="#F5F5F5">
+                <pen lineWidth="0.0"/>
+                <printWhenExpression><![CDATA[$V{ROW_NUMBER} % 2 == 0]]></printWhenExpression>
+            </element>
+            <element kind="textField" uuid="d3000002-0000-0000-0000-000000000002"
+                     x="4" y="2" width="170" height="14" fontName="Arial" fontSize="9.0">
+                <expression><![CDATA[$F{property_name}]]></expression>
+            </element>
+            <element kind="textField" uuid="d3000002-0000-0000-0000-000000000003"
+                     x="178" y="2" width="75" height="14" fontName="Arial" fontSize="9.0"
+                     hTextAlign="Center">
+                <expression><![CDATA[$F{vacant_months}.toString()]]></expression>
+            </element>
+            <element kind="textField" uuid="d3000002-0000-0000-0000-000000000004"
+                     x="257" y="2" width="80" height="14" fontName="Arial" fontSize="9.0"
+                     hTextAlign="Center">
+                <expression><![CDATA[$F{longest_streak}.toString()]]></expression>
+            </element>
+            <element kind="textField" uuid="d3000002-0000-0000-0000-000000000005"
+                     x="341" y="2" width="110" height="14" fontName="Arial" fontSize="9.0"
+                     hTextAlign="Center">
+                <expression><![CDATA[$F{last_tenant_end}.isEmpty() ? "—" : $F{last_tenant_end}]]></expression>
+            </element>
+            <!-- Status: Vago (red) -->
+            <element kind="textField" uuid="d3000002-0000-0000-0000-000000000006"
+                     x="455" y="2" width="96" height="14" fontName="Arial" fontSize="9.0"
+                     bold="true" hTextAlign="Center" forecolor="#C62828">
+                <expression><![CDATA[$F{current_status}]]></expression>
+                <printWhenExpression><![CDATA[$F{current_status}.equals("Vago")]]></printWhenExpression>
+            </element>
+            <!-- Status: Ocupado (green) -->
+            <element kind="textField" uuid="d3000002-0000-0000-0000-000000000010"
+                     x="455" y="2" width="96" height="14" fontName="Arial" fontSize="9.0"
+                     bold="true" hTextAlign="Center" forecolor="#2E7D32">
+                <expression><![CDATA[$F{current_status}]]></expression>
+                <printWhenExpression><![CDATA[!$F{current_status}.equals("Vago")]]></printWhenExpression>
+            </element>
+            <!-- Bottom divider line -->
+            <element kind="line" uuid="d3000002-0000-0000-0000-000000000007"
+                     x="0" y="17" width="555" height="1">
+                <pen lineWidth="0.3" lineColor="#E0E0E0"/>
+            </element>
+        </band>
+    </detail>
+</jasperReport>

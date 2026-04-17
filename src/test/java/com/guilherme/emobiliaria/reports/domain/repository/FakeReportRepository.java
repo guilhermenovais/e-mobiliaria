@@ -9,18 +9,12 @@ import java.util.List;
 
 public class FakeReportRepository extends FakeImplementation implements ReportRepository {
 
-  private RentEvolutionData rentEvolutionData = new RentEvolutionData(
-      List.of(YearMonth.of(2026, 1)),
-      List.of(150000L),
-      List.of()
-  );
+  private RentEvolutionData rentEvolutionData =
+      new RentEvolutionData(List.of(YearMonth.of(2026, 1)), List.of(150000L), List.of());
 
-  private OccupationRateData occupationRateData = new OccupationRateData(
-      List.of(YearMonth.of(2026, 1)),
-      List.of(1),
-      2,
-      List.of()
-  );
+  private OccupationRateData occupationRateData =
+      new OccupationRateData(List.of(YearMonth.of(2026, 1)), List.of(1), 2, List.of(), 50.0, 1, 0,
+          "", List.of());
 
   public void setRentEvolutionData(RentEvolutionData data) {
     this.rentEvolutionData = data;
