@@ -141,7 +141,7 @@
 
         <element kind="textField" uuid="a1000003-0000-0000-0000-000000000001" positionType="Float" x="0" y="174"
                  width="555" height="18" fontName="Arial" fontSize="12.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Portfólio: Aluguel Real vs Referências Inflacionárias"]]></expression>
+            <expression><![CDATA["Portfólio: Evolução da Soma dos Aluguéis Mensais"]]></expression>
         </element>
         <element kind="rectangle" uuid="a1000003-0000-0000-0000-000000000002" positionType="Float" x="0" y="196"
                  width="555" height="232" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
