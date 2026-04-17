@@ -14,6 +14,7 @@ import com.guilherme.emobiliaria.shared.chart.ChartGenerator;
 import com.guilherme.emobiliaria.shared.pdf.templates.ContractTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.OccupationRateTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.PropertyChartBean;
+import com.guilherme.emobiliaria.shared.pdf.templates.PropertyInflationLagRowBean;
 import com.guilherme.emobiliaria.shared.pdf.templates.ReceiptTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.RentEvolutionTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.VacancyTableRowBean;
@@ -103,14 +104,26 @@ class PdfGenerationServiceTest {
     void shouldGenerateRentEvolutionPdf() {
       ChartGenerator chartGenerator = new ChartGenerator();
       List<YearMonth> months = List.of(YearMonth.of(2026, 1), YearMonth.of(2026, 2));
-      List<Long> totals = List.of(150000L, 160000L);
-      BufferedImage monthlyChart = chartGenerator.monthlyEarnings(months, totals);
+      List<Long> totals = List.of(150000L, 158000L);
+      List<Long> ipcaTotals = List.of(150000L, 154500L);
+      List<Long> igpmTotals = List.of(150000L, 155500L);
+      List<Long> ipcaGap = List.of(0L, 3500L);
+      List<Long> igpmGap = List.of(0L, 2500L);
+      BufferedImage portfolioInflationChart =
+          chartGenerator.portfolioInflationComparison(months, totals, ipcaTotals, igpmTotals);
+      BufferedImage portfolioGapChart =
+          chartGenerator.portfolioInflationGap(months, ipcaGap, igpmGap);
       PropertyChartBean propertyChart = new PropertyChartBean("Imóvel Teste",
           chartGenerator.rentEvolution("Imóvel Teste", months, List.of(150000L, 160000L),
               List.of(151000L, 162000L), List.of(152000L, 163000L)));
+      PropertyInflationLagRowBean lagRow =
+          new PropertyInflationLagRowBean("Imóvel Teste", "R$ 1.600,00", "R$ -20,00 (-1,2%)",
+              "R$ +10,00 (+0,6%)", "IPCA R$ -20,00 (-1,2%)", "Defasado");
       RentEvolutionTemplate template =
-          new RentEvolutionTemplate(monthlyChart, List.of(propertyChart), "17/04/2026",
-              "Jan/2026 a Fev/2026");
+          new RentEvolutionTemplate(portfolioInflationChart, portfolioGapChart,
+              List.of(propertyChart), List.of(lagRow), "17/04/2026", "Jan/2026 a Fev/2026",
+              "Portfólio abaixo da inflação (IPCA e IGP-M)", "R$ -30,00 (-1,9%)",
+              "R$ -20,00 (-1,3%)", "+5,3%", "IPCA -1,9% | IGP-M -1,3%");
 
       byte[] result = service.generatePdf(template);
 

@@ -1,0 +1,56 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3 -->
+<jasperReport name="property_inflation_lag_row" language="java" pageWidth="555" pageHeight="842"
+              columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0"
+              uuid="e8000001-0000-0000-0000-000000000001">
+    <field name="property_name" class="java.lang.String"/>
+    <field name="current_rent" class="java.lang.String"/>
+    <field name="gap_vs_ipca" class="java.lang.String"/>
+    <field name="gap_vs_igpm" class="java.lang.String"/>
+    <field name="worst_gap" class="java.lang.String"/>
+    <field name="status" class="java.lang.String"/>
+    <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count" resetType="Report">
+        <expression><![CDATA[1]]></expression>
+    </variable>
+    <background splitType="Stretch"/>
+    <detail>
+        <band height="20" splitType="Stretch">
+            <element kind="rectangle" uuid="e8000002-0000-0000-0000-000000000001"
+                     x="0" y="0" width="555" height="20" forecolor="#F5F5F5" backcolor="#F5F5F5">
+                <pen lineWidth="0.0"/>
+                <printWhenExpression><![CDATA[$V{ROW_NUMBER} % 2 == 0]]></printWhenExpression>
+            </element>
+            <element kind="textField" uuid="e8000002-0000-0000-0000-000000000002"
+                     x="4" y="3" width="130" height="14" fontName="Arial" fontSize="8.5">
+                <expression><![CDATA[$F{property_name}]]></expression>
+            </element>
+            <element kind="textField" uuid="e8000002-0000-0000-0000-000000000003"
+                     x="138" y="3" width="95" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center">
+                <expression><![CDATA[$F{current_rent}]]></expression>
+            </element>
+            <element kind="textField" uuid="e8000002-0000-0000-0000-000000000004"
+                     x="237" y="3" width="95" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center">
+                <expression><![CDATA[$F{gap_vs_ipca}]]></expression>
+            </element>
+            <element kind="textField" uuid="e8000002-0000-0000-0000-000000000005"
+                     x="336" y="3" width="95" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center">
+                <expression><![CDATA[$F{gap_vs_igpm}]]></expression>
+            </element>
+            <element kind="textField" uuid="e8000002-0000-0000-0000-000000000006"
+                     x="435" y="3" width="116" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center"
+                     bold="true" forecolor="#C62828">
+                <expression><![CDATA[$F{worst_gap}]]></expression>
+                <printWhenExpression><![CDATA[$F{status}.equals("Defasado")]]></printWhenExpression>
+            </element>
+            <element kind="textField" uuid="e8000002-0000-0000-0000-000000000007"
+                     x="435" y="3" width="116" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center"
+                     bold="true" forecolor="#2E7D32">
+                <expression><![CDATA[$F{worst_gap}]]></expression>
+                <printWhenExpression><![CDATA[!$F{status}.equals("Defasado")]]></printWhenExpression>
+            </element>
+            <element kind="line" uuid="e8000002-0000-0000-0000-000000000008"
+                     x="0" y="19" width="555" height="1">
+                <pen lineWidth="0.3" lineColor="#E0E0E0"/>
+            </element>
+        </band>
+    </detail>
+</jasperReport>

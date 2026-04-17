@@ -58,6 +58,82 @@ public class ChartGenerator {
     return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, CHART_HEIGHT * RENDER_SCALE);
   }
 
+  /** Three-line chart: portfolio actual total vs IPCA and IGP-M inflation benchmarks. */
+  public BufferedImage portfolioInflationComparison(List<YearMonth> months, List<Long> actualCents,
+      List<Long> ipcaCents, List<Long> igpmCents) {
+    XYSeries actual = new XYSeries("Aluguel real (portfólio)");
+    XYSeries ipca = new XYSeries("Referência IPCA");
+    XYSeries igpm = new XYSeries("Referência IGP-M");
+    for (int i = 0; i < months.size(); i++) {
+      actual.add(i, actualCents.get(i) / 100.0);
+      ipca.add(i, ipcaCents.get(i) / 100.0);
+      igpm.add(i, igpmCents.get(i) / 100.0);
+    }
+    XYSeriesCollection dataset = new XYSeriesCollection();
+    dataset.addSeries(actual);
+    dataset.addSeries(ipca);
+    dataset.addSeries(igpm);
+
+    JFreeChart chart =
+        ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, true,
+            false, false);
+    styleTimeSeriesChart(chart, months, "Valor (R$)");
+    XYPlot plot = chart.getXYPlot();
+    XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+    renderer.setSeriesPaint(0, new Color(0x1E88E5));
+    renderer.setSeriesPaint(1, new Color(0xE53935));
+    renderer.setSeriesPaint(2, new Color(0x43A047));
+    float s = RENDER_SCALE;
+    renderer.setSeriesStroke(0, new BasicStroke(2.5f * s));
+    renderer.setSeriesStroke(1,
+        new BasicStroke(1.8f * s, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f,
+            new float[] {6 * s, 4 * s}, 0.0f));
+    renderer.setSeriesStroke(2,
+        new BasicStroke(1.8f * s, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f,
+            new float[] {3 * s, 3 * s}, 0.0f));
+    if (chart.getLegend() != null) {
+      chart.getLegend().setItemFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
+    }
+    return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, CHART_HEIGHT * RENDER_SCALE);
+  }
+
+  /** Two-line chart: portfolio gap in reais versus IPCA and IGP-M. */
+  public BufferedImage portfolioInflationGap(List<YearMonth> months, List<Long> gapVsIpcaCents,
+      List<Long> gapVsIgpmCents) {
+    XYSeries gapIpca = new XYSeries("Diferença para IPCA");
+    XYSeries gapIgpm = new XYSeries("Diferença para IGP-M");
+    XYSeries baseline = new XYSeries("Linha zero");
+    for (int i = 0; i < months.size(); i++) {
+      gapIpca.add(i, gapVsIpcaCents.get(i) / 100.0);
+      gapIgpm.add(i, gapVsIgpmCents.get(i) / 100.0);
+      baseline.add(i, 0.0);
+    }
+    XYSeriesCollection dataset = new XYSeriesCollection();
+    dataset.addSeries(gapIpca);
+    dataset.addSeries(gapIgpm);
+    dataset.addSeries(baseline);
+
+    JFreeChart chart =
+        ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, true,
+            false, false);
+    styleTimeSeriesChart(chart, months, "Diferença (R$)");
+    XYPlot plot = chart.getXYPlot();
+    XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
+    renderer.setSeriesPaint(0, new Color(0xE53935));
+    renderer.setSeriesPaint(1, new Color(0x43A047));
+    renderer.setSeriesPaint(2, new Color(0x757575));
+    float s = RENDER_SCALE;
+    renderer.setSeriesStroke(0, new BasicStroke(2.0f * s));
+    renderer.setSeriesStroke(1, new BasicStroke(2.0f * s));
+    renderer.setSeriesStroke(2,
+        new BasicStroke(1.4f * s, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f,
+            new float[] {4 * s, 4 * s}, 0.0f));
+    if (chart.getLegend() != null) {
+      chart.getLegend().setItemFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
+    }
+    return chart.createBufferedImage(CHART_WIDTH * RENDER_SCALE, CHART_HEIGHT * RENDER_SCALE);
+  }
+
   /** Three-line chart: actual rent vs IPCA-adjusted vs IGP-M-adjusted initial rent. */
   public BufferedImage rentEvolution(String propertyName, List<YearMonth> months,
       List<Long> actualCents, List<Long> ipcaCents, List<Long> igpmCents) {
