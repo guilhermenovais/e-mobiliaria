@@ -1,0 +1,122 @@
+/* ============================================================
+   Config / Settings View Styles
+   ============================================================ */
+
+.config-root {
+    -fx-background-color: #F9FAFB;
+}
+
+.config-scroll {
+    -fx-background: #F9FAFB;
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent;
+}
+
+.config-scroll .viewport {
+    -fx-background-color: #F9FAFB;
+}
+
+.config-content {
+    -fx-spacing: 0;
+    -fx-padding: 0 0 40 0;
+}
+
+/* ── Page Header ───────────────────────────────────────────── */
+
+.config-header {
+    -fx-spacing: 3;
+    -fx-padding: 40 44 24 44;
+}
+
+.config-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A18;
+}
+
+.config-subtitle {
+    -fx-font-size: 14px;
+    -fx-font-weight: 400;
+    -fx-text-fill: #71717A;
+}
+
+.config-divider {
+    -fx-padding: 0 44;
+}
+
+/* ── Sections ──────────────────────────────────────────────── */
+
+.config-sections {
+    -fx-padding: 28 44 0 44;
+    -fx-spacing: 24;
+}
+
+.config-section {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E4E4E7;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 24;
+    -fx-spacing: 8;
+}
+
+.config-section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1A1A18;
+}
+
+.config-section-desc {
+    -fx-font-size: 13px;
+    -fx-text-fill: #71717A;
+    -fx-wrap-text: true;
+}
+
+/* ── Form ──────────────────────────────────────────────────── */
+
+.config-form {
+    -fx-spacing: 6;
+    -fx-padding: 16 0 8 0;
+}
+
+.config-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #3F3F46;
+}
+
+.config-combo {
+    -fx-font-size: 13px;
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #D4D4D8;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 0;
+    -fx-pref-height: 36;
+}
+
+.config-combo .list-cell {
+    -fx-font-size: 13px;
+}
+
+/* ── Form Footer ───────────────────────────────────────────── */
+
+.config-form-footer {
+    -fx-padding: 12 0 0 0;
+    -fx-spacing: 12;
+    -fx-alignment: CENTER_RIGHT;
+}
+
+.config-status {
+    -fx-font-size: 13px;
+    -fx-text-fill: #71717A;
+}
+
+.config-status-success {
+    -fx-text-fill: #16A34A;
+}
+
+.config-status-error {
+    -fx-text-fill: #DC2626;
+}

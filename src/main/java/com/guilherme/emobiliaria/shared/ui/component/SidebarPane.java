@@ -64,7 +64,8 @@ public class SidebarPane extends VBox {
 
       boolean enabled = KEY_DASHBOARD.equals(key) || KEY_PHYSICAL_PEOPLE.equals(key)
           || KEY_JURIDICAL_PEOPLE.equals(key) || KEY_PROPERTIES.equals(key)
-          || KEY_CONTRACTS.equals(key) || KEY_RECEIPTS.equals(key) || KEY_REPORTS.equals(key);
+          || KEY_CONTRACTS.equals(key) || KEY_RECEIPTS.equals(key) || KEY_REPORTS.equals(key)
+          || KEY_CONFIG.equals(key);
       button.setDisable(!enabled);
 
       entries.put(key, button);
@@ -126,6 +127,13 @@ public class SidebarPane extends VBox {
 
   public void setOnReportsAction(Runnable r) {
     Button button = entries.get(KEY_REPORTS);
+    if (button != null) {
+      button.setOnAction(e -> r.run());
+    }
+  }
+
+  public void setOnConfigAction(Runnable r) {
+    Button button = entries.get(KEY_CONFIG);
     if (button != null) {
       button.setOnAction(e -> r.run());
     }

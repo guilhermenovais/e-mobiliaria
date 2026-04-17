@@ -102,7 +102,7 @@ class SidebarPaneTest {
     }
 
     @Test
-    @DisplayName("Should disable only config entry when constructed")
+    @DisplayName("Should enable all entries when constructed")
     void shouldDisableAllEntriesExceptPhysicalPeopleWhenConstructed() throws Exception {
       SidebarPane pane = onFX(() -> new SidebarPane(testBundle()));
 
@@ -113,8 +113,8 @@ class SidebarPaneTest {
         long enabledCount = getAllButtons(pane).stream()
             .filter(n -> !n.isDisable())
             .count();
-        assertEquals(1, disabledCount, "One button should be disabled");
-        assertEquals(7, enabledCount, "Seven buttons should be enabled");
+        assertEquals(0, disabledCount, "No buttons should be disabled");
+        assertEquals(8, enabledCount, "All eight buttons should be enabled");
         return null;
       });
     }

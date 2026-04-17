@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<StackPane
+    xmlns:fx="http://javafx.com/fxml"
+    styleClass="config-root">
+
+    <stylesheets>
+        <URL value="@config-view.css"/>
+    </stylesheets>
+
+    <ScrollPane fx:id="contentScrollPane" styleClass="config-scroll" fitToWidth="true">
+        <VBox styleClass="config-content">
+
+            <!-- PAGE HEADER -->
+            <VBox styleClass="config-header">
+                <Label fx:id="titleLabel" styleClass="config-title"/>
+                <Label fx:id="subtitleLabel" styleClass="config-subtitle"/>
+            </VBox>
+
+            <Separator styleClass="config-divider"/>
+
+            <!-- SETTINGS SECTIONS -->
+            <VBox styleClass="config-sections">
+
+                <!-- Default Landlord Section -->
+                <VBox styleClass="config-section">
+                    <Label fx:id="sectionTitleLabel" styleClass="config-section-title"/>
+                    <Label fx:id="sectionDescLabel" styleClass="config-section-desc"/>
+
+                    <VBox styleClass="config-form">
+                        <Label fx:id="typeLabel" styleClass="config-label"/>
+                        <ComboBox fx:id="typeComboBox" styleClass="config-combo" maxWidth="320"/>
+
+                        <Label fx:id="personLabel" styleClass="config-label"/>
+                        <ComboBox fx:id="personComboBox" styleClass="config-combo" maxWidth="320"/>
+                    </VBox>
+
+                    <HBox styleClass="config-form-footer" alignment="CENTER_LEFT">
+                        <Label fx:id="statusLabel" styleClass="config-status" HBox.hgrow="ALWAYS"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="saveButton" styleClass="btn-primary" onAction="#onSave"/>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+
+        </VBox>
+    </ScrollPane>
+
+</StackPane>
