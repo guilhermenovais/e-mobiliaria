@@ -26,6 +26,7 @@ public class SidebarPane extends VBox {
   private static final String KEY_PROPERTIES = "sidebar.properties";
   private static final String KEY_CONTRACTS = "sidebar.contracts";
   private static final String KEY_RECEIPTS = "sidebar.receipts";
+  private static final String KEY_REPORTS = "sidebar.reports";
   private static final String KEY_CONFIG = "sidebar.config";
 
   private final Map<String, Button> entries = new LinkedHashMap<>();
@@ -51,6 +52,7 @@ public class SidebarPane extends VBox {
         KEY_PROPERTIES,
         KEY_CONTRACTS,
         KEY_RECEIPTS,
+        KEY_REPORTS,
         KEY_CONFIG
     };
 
@@ -62,7 +64,7 @@ public class SidebarPane extends VBox {
 
       boolean enabled = KEY_DASHBOARD.equals(key) || KEY_PHYSICAL_PEOPLE.equals(key)
           || KEY_JURIDICAL_PEOPLE.equals(key) || KEY_PROPERTIES.equals(key)
-          || KEY_CONTRACTS.equals(key) || KEY_RECEIPTS.equals(key);
+          || KEY_CONTRACTS.equals(key) || KEY_RECEIPTS.equals(key) || KEY_REPORTS.equals(key);
       button.setDisable(!enabled);
 
       entries.put(key, button);
@@ -117,6 +119,13 @@ public class SidebarPane extends VBox {
 
   public void setOnReceiptsAction(Runnable r) {
     Button button = entries.get(KEY_RECEIPTS);
+    if (button != null) {
+      button.setOnAction(e -> r.run());
+    }
+  }
+
+  public void setOnReportsAction(Runnable r) {
+    Button button = entries.get(KEY_REPORTS);
     if (button != null) {
       button.setOnAction(e -> r.run());
     }

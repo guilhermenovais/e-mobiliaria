@@ -227,6 +227,28 @@ public interface ErrorMessage {
     }
   }
 
+  enum Report implements ErrorMessage {
+    LOAD_ERROR("report.load_error", "Failed to load report data");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Report(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
   enum Config implements ErrorMessage {
     NOT_FOUND("config.not_found", "Config not found");
 

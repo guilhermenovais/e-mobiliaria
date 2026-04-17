@@ -64,6 +64,7 @@ class SidebarPaneTest {
             {"sidebar.properties", "Imóveis"},
             {"sidebar.contracts", "Contratos"},
             {"sidebar.receipts", "Recibos"},
+            {"sidebar.reports", "Relatórios"},
             {"sidebar.config", "Configurações"},
             {"nav.back", "Voltar"},
             {"nav.forward", "Avançar"},
@@ -93,11 +94,11 @@ class SidebarPaneTest {
   class Constructor {
 
     @Test
-    @DisplayName("Should create seven entries when constructed")
+    @DisplayName("Should create eight entries when constructed")
     void shouldCreateSixEntriesWhenConstructed() throws Exception {
       SidebarPane pane = onFX(() -> new SidebarPane(testBundle()));
 
-      assertEquals(7, getAllButtons(pane).size(), "SidebarPane should have exactly 7 buttons");
+      assertEquals(8, getAllButtons(pane).size(), "SidebarPane should have exactly 8 buttons");
     }
 
     @Test
@@ -113,7 +114,7 @@ class SidebarPaneTest {
             .filter(n -> !n.isDisable())
             .count();
         assertEquals(1, disabledCount, "One button should be disabled");
-        assertEquals(6, enabledCount, "Six buttons should be enabled");
+        assertEquals(7, enabledCount, "Seven buttons should be enabled");
         return null;
       });
     }

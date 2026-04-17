@@ -3,6 +3,7 @@ package com.guilherme.emobiliaria.shared.ui.layout;
 import com.google.inject.Provider;
 import com.guilherme.emobiliaria.dashboard.ui.controller.DashboardController;
 import com.guilherme.emobiliaria.receipt.ui.controller.ReceiptListController;
+import com.guilherme.emobiliaria.reports.ui.controller.ReportsController;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import com.guilherme.emobiliaria.shared.ui.component.SidebarPane;
@@ -38,6 +39,7 @@ public class MainController {
   private final GuiceFxmlLoader fxmlLoader;
   private final Provider<DashboardController> dashboardControllerProvider;
   private final Provider<ReceiptListController> receiptListControllerProvider;
+  private final Provider<ReportsController> reportsControllerProvider;
   private SidebarPane sidebarPane;
 
   @Inject
@@ -45,11 +47,13 @@ public class MainController {
       NavigationService navigationService,
       GuiceFxmlLoader fxmlLoader,
       Provider<DashboardController> dashboardControllerProvider,
-      Provider<ReceiptListController> receiptListControllerProvider) {
+      Provider<ReceiptListController> receiptListControllerProvider,
+      Provider<ReportsController> reportsControllerProvider) {
     this.navigationService = navigationService;
     this.fxmlLoader = fxmlLoader;
     this.dashboardControllerProvider = dashboardControllerProvider;
     this.receiptListControllerProvider = receiptListControllerProvider;
+    this.reportsControllerProvider = reportsControllerProvider;
   }
 
   @FXML private StackPane contentPane;
@@ -70,6 +74,7 @@ public class MainController {
     sidebarPane.setOnPropertiesAction(() -> navigateToPropertyList());
     sidebarPane.setOnContractsAction(() -> navigateToContractList());
     sidebarPane.setOnReceiptsAction(() -> navigateToReceiptList());
+    sidebarPane.setOnReportsAction(() -> navigateToReports());
     sidebarPane.setActiveItem("sidebar.dashboard");
     sidebarContainer.getChildren().add(sidebarPane);
 
@@ -109,6 +114,10 @@ public class MainController {
 
   private void navigateToReceiptList() {
     navigationService.navigate(() -> loadReceiptList(), "sidebar.receipts");
+  }
+
+  private void navigateToReports() {
+    navigationService.navigate(() -> reportsControllerProvider.get().buildView(), "sidebar.reports");
   }
 
   private Node loadReceiptList() {

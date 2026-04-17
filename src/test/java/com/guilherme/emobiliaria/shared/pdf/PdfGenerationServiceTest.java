@@ -8,15 +8,22 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
+import com.guilherme.emobiliaria.shared.chart.ChartGenerator;
 import com.guilherme.emobiliaria.shared.pdf.templates.ContractTemplate;
+import com.guilherme.emobiliaria.shared.pdf.templates.OccupationRateTemplate;
+import com.guilherme.emobiliaria.shared.pdf.templates.PropertyChartBean;
 import com.guilherme.emobiliaria.shared.pdf.templates.ReceiptTemplate;
+import com.guilherme.emobiliaria.shared.pdf.templates.RentEvolutionTemplate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.awt.image.BufferedImage;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.YearMonth;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -81,6 +88,45 @@ class PdfGenerationServiceTest {
       Receipt receipt = Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
           LocalDate.of(2026, 3, 31), 0, 0, null, validContract());
       ReceiptTemplate template = new ReceiptTemplate(receipt);
+
+      byte[] result = service.generatePdf(template);
+
+      assertNotNull(result);
+      assertTrue(result.length > 0);
+      assertTrue(isPdf(result));
+    }
+
+    @Test
+    @DisplayName("When given a RentEvolutionTemplate, should return valid PDF bytes")
+    void shouldGenerateRentEvolutionPdf() {
+      ChartGenerator chartGenerator = new ChartGenerator();
+      List<YearMonth> months = List.of(YearMonth.of(2026, 1), YearMonth.of(2026, 2));
+      List<Long> totals = List.of(150000L, 160000L);
+      BufferedImage monthlyChart = chartGenerator.monthlyEarnings(months, totals);
+      PropertyChartBean propertyChart = new PropertyChartBean("Imóvel Teste",
+          chartGenerator.rentEvolution("Imóvel Teste", months,
+              List.of(150000L, 160000L), List.of(151000L, 162000L), List.of(152000L, 163000L)));
+      RentEvolutionTemplate template = new RentEvolutionTemplate(monthlyChart,
+          List.of(propertyChart));
+
+      byte[] result = service.generatePdf(template);
+
+      assertNotNull(result);
+      assertTrue(result.length > 0);
+      assertTrue(isPdf(result));
+    }
+
+    @Test
+    @DisplayName("When given an OccupationRateTemplate, should return valid PDF bytes")
+    void shouldGenerateOccupationRatePdf() {
+      ChartGenerator chartGenerator = new ChartGenerator();
+      List<YearMonth> months = List.of(YearMonth.of(2026, 1), YearMonth.of(2026, 2));
+      List<Integer> occupiedCounts = List.of(1, 2);
+      BufferedImage overallChart = chartGenerator.overallOccupation(months, occupiedCounts, 3);
+      PropertyChartBean propertyChart = new PropertyChartBean("Imóvel Teste",
+          chartGenerator.propertyOccupation("Imóvel Teste", months, List.of(true, false)));
+      OccupationRateTemplate template = new OccupationRateTemplate(overallChart,
+          List.of(propertyChart));
 
       byte[] result = service.generatePdf(template);
 

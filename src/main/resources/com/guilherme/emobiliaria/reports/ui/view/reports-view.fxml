@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<StackPane
+    xmlns:fx="http://javafx.com/fxml"
+    styleClass="reports-root">
+
+    <stylesheets>
+        <URL value="@reports-view.css"/>
+    </stylesheets>
+
+    <ProgressIndicator fx:id="loadingIndicator" styleClass="reports-loading" StackPane.alignment="CENTER"/>
+
+    <ScrollPane fx:id="contentScrollPane" styleClass="reports-scroll" fitToWidth="true" visible="false">
+        <VBox styleClass="reports-content">
+
+            <!-- PAGE HEADER -->
+            <VBox styleClass="reports-header">
+                <Label fx:id="titleLabel" styleClass="reports-title"/>
+                <Label fx:id="subtitleLabel" styleClass="reports-subtitle"/>
+            </VBox>
+
+            <!-- REPORT CARDS -->
+            <VBox styleClass="reports-list">
+
+                <!-- Rent Evolution Card -->
+                <HBox styleClass="reports-card" alignment="CENTER_LEFT">
+                    <VBox styleClass="reports-card-icon-box">
+                        <Label text="↗" styleClass="reports-card-icon"/>
+                    </VBox>
+                    <VBox styleClass="reports-card-info" HBox.hgrow="ALWAYS">
+                        <Label fx:id="rentEvolutionNameLabel" styleClass="reports-card-name"/>
+                        <Label fx:id="rentEvolutionDescLabel" styleClass="reports-card-description"/>
+                    </VBox>
+                    <Button fx:id="generateRentEvolutionButton" styleClass="reports-card-button"
+                            onAction="#onGenerateRentEvolutionPdf"/>
+                </HBox>
+
+                <!-- Occupation Rate Card -->
+                <HBox styleClass="reports-card" alignment="CENTER_LEFT">
+                    <VBox styleClass="reports-card-icon-box">
+                        <Label text="⌂" styleClass="reports-card-icon"/>
+                    </VBox>
+                    <VBox styleClass="reports-card-info" HBox.hgrow="ALWAYS">
+                        <Label fx:id="occupationRateNameLabel" styleClass="reports-card-name"/>
+                        <Label fx:id="occupationRateDescLabel" styleClass="reports-card-description"/>
+                    </VBox>
+                    <Button fx:id="generateOccupationRateButton" styleClass="reports-card-button"
+                            onAction="#onGenerateOccupationRatePdf"/>
+                </HBox>
+
+            </VBox>
+
+        </VBox>
+    </ScrollPane>
+
+</StackPane>
