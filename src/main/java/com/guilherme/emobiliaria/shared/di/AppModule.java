@@ -10,7 +10,6 @@ import com.guilherme.emobiliaria.dashboard.di.DashboardModule;
 import com.guilherme.emobiliaria.person.di.PersonModule;
 import com.guilherme.emobiliaria.property.di.PropertyModule;
 import com.guilherme.emobiliaria.receipt.di.ReceiptModule;
-import com.guilherme.emobiliaria.reports.di.ReportsModule;
 import com.guilherme.emobiliaria.shared.pdf.PdfGenerationService;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import jakarta.inject.Singleton;
@@ -31,7 +30,6 @@ public class AppModule extends AbstractModule {
     install(new ContractModule());
     install(new PropertyModule());
     install(new ReceiptModule());
-    install(new ReportsModule());
   }
 
   @Provides

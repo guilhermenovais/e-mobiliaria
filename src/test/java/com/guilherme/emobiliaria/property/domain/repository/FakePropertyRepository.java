@@ -52,12 +52,6 @@ public class FakePropertyRepository extends FakeImplementation implements Proper
   }
 
   @Override
-  public List<Property> findAll() {
-    maybeFail();
-    return new ArrayList<>(store.values());
-  }
-
-  @Override
   public PagedResult<Property> findAll(PaginationInput pagination) {
     maybeFail();
     List<Property> all = new ArrayList<>(store.values());

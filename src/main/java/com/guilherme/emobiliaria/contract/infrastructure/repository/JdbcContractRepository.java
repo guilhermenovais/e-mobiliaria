@@ -142,27 +142,6 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   @Override
-  public List<Contract> findAll() {
-    String sql = """
-        SELECT id, start_date, duration, payment_day, rent, purpose,
-               payment_account_id, property_id, landlord_id, landlord_type,
-               MAX(id) OVER (PARTITION BY property_id) AS latest_id
-        FROM contracts
-        """;
-    try (Connection conn = dataSource.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery()) {
-      List<Contract> items = new ArrayList<>();
-      while (rs.next()) {
-        items.add(mapWithStatus(rs, conn));
-      }
-      return items;
-    } catch (SQLException e) {
-      throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, e);
-    }
-  }
-
-  @Override
   public PagedResult<Contract> findAll(PaginationInput pagination, ContractFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;

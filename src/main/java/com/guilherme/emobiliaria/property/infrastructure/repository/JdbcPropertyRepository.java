@@ -117,27 +117,6 @@ public class JdbcPropertyRepository implements PropertyRepository {
   }
 
   @Override
-  public List<Property> findAll() {
-    String sql = """
-        SELECT p.id, p.name, p.type, p.cemig, p.copasa, p.iptu,
-               a.id AS address_id, a.cep, a.address, a.number, a.complement, a.neighborhood, a.city, a.state
-        FROM properties p
-        JOIN addresses a ON a.id = p.address_id
-        """;
-    try (Connection conn = dataSource.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        ResultSet rs = stmt.executeQuery()) {
-      List<Property> items = new ArrayList<>();
-      while (rs.next()) {
-        items.add(map(rs));
-      }
-      return items;
-    } catch (SQLException e) {
-      throw new PersistenceException(ErrorMessage.Property.NOT_FOUND, e);
-    }
-  }
-
-  @Override
   public PagedResult<Property> findAll(PaginationInput pagination) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;

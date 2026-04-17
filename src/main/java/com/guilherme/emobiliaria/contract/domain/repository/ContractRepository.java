@@ -5,7 +5,6 @@ import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface ContractRepository {
@@ -16,8 +15,6 @@ public interface ContractRepository {
   void delete(Long id);
 
   Optional<Contract> findById(Long id);
-
-  List<Contract> findAll();
 
   PagedResult<Contract> findAll(PaginationInput pagination, ContractFilter filter);
 

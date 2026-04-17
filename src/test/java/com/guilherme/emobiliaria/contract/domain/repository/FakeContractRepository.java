@@ -55,12 +55,6 @@ public class FakeContractRepository extends FakeImplementation implements Contra
   }
 
   @Override
-  public List<Contract> findAll() {
-    maybeFail();
-    return new ArrayList<>(store.values());
-  }
-
-  @Override
   public PagedResult<Contract> findAll(PaginationInput pagination, ContractFilter filter) {
     maybeFail();
     List<Contract> all = new ArrayList<>(store.values());
