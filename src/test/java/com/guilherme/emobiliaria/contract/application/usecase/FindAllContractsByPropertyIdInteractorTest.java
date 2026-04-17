@@ -6,6 +6,8 @@ import com.guilherme.emobiliaria.contract.application.input.FindAllContractsByPr
 import com.guilherme.emobiliaria.contract.application.input.PersonReference;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference.PersonType;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsByPropertyIdOutput;
+import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.contract.domain.repository.FakeContractRepository;
 import com.guilherme.emobiliaria.contract.domain.repository.FakePaymentAccountRepository;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
@@ -27,6 +29,7 @@ import java.time.Period;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class FindAllContractsByPropertyIdInteractorTest {
 
@@ -55,22 +58,24 @@ class FindAllContractsByPropertyIdInteractorTest {
   }
 
   private Long createProperty(String name) {
-    Property property = Property.create(name, "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    Property property = Property.create(name, "Apartamento", "1234567890", "0987654321", "IPTU-001",
+        validAddress());
     return propertyRepository.create(property).getId();
   }
 
   private void createContractForProperty(Long propertyId) {
-    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository)
-        .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
+    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository).execute(
+            new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
-    PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
-        "Engenheiro", "529.982.247-25", "MG-1234567", validAddress());
+    PhysicalPerson person =
+        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
+            "529.982.247-25", "MG-1234567", validAddress());
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
-    createInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12),
-        10, 150000, "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
-        List.of()));
+    createInteractor.execute(
+        new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
+            "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
+            List.of()));
   }
 
   @Nested
@@ -104,6 +109,43 @@ class FindAllContractsByPropertyIdInteractorTest {
 
       assertEquals(0, output.result().total());
       assertEquals(0, output.result().items().size());
+    }
+
+    @Test
+    @DisplayName(
+        "When a property has multiple contracts, the oldest should be INACTIVE and the newest should not be INACTIVE")
+    void shouldMarkOlderContractsAsInactiveWhenNewerContractExists() {
+      Long propertyId = createProperty("Apto A");
+      createContractForProperty(propertyId);
+      createContractForProperty(propertyId);
+      FindAllContractsByPropertyIdInput input =
+          new FindAllContractsByPropertyIdInput(propertyId, new PaginationInput(null, null));
+
+      FindAllContractsByPropertyIdOutput output = interactor.execute(input);
+
+      List<Contract> contracts = output.result().items();
+      assertEquals(2, contracts.size());
+      Contract oldest =
+          contracts.stream().min(java.util.Comparator.comparingLong(Contract::getId)).orElseThrow();
+      Contract newest =
+          contracts.stream().max(java.util.Comparator.comparingLong(Contract::getId)).orElseThrow();
+      assertEquals(ContractStatus.INACTIVE, oldest.getStatus());
+      assertNotEquals(ContractStatus.INACTIVE, newest.getStatus());
+    }
+
+    @Test
+    @DisplayName(
+        "When a property has only one contract with a future end date, it should be ACTIVE")
+    void shouldBeActiveWhenSingleContractWithFutureEndDate() {
+      Long propertyId = createProperty("Apto B");
+      createContractForProperty(propertyId);
+      FindAllContractsByPropertyIdInput input =
+          new FindAllContractsByPropertyIdInput(propertyId, new PaginationInput(null, null));
+
+      FindAllContractsByPropertyIdOutput output = interactor.execute(input);
+
+      assertEquals(1, output.result().items().size());
+      assertEquals(ContractStatus.ACTIVE, output.result().items().getFirst().getStatus());
     }
   }
 }

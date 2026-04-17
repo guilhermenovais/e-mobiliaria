@@ -188,4 +188,18 @@ public class Contract {
   public void setStatus(ContractStatus status) {
     this.status = status;
   }
+
+  public void resolveStatus(long latestContractIdForProperty) {
+    LocalDate endDate = startDate.plus(duration);
+    LocalDate today = LocalDate.now();
+    if (!this.id.equals(latestContractIdForProperty)) {
+      this.status = ContractStatus.INACTIVE;
+    } else if (today.isAfter(endDate)) {
+      this.status = ContractStatus.EXPIRED;
+    } else if (!today.isBefore(endDate.minusDays(30))) {
+      this.status = ContractStatus.EXPIRING;
+    } else {
+      this.status = ContractStatus.ACTIVE;
+    }
+  }
 }

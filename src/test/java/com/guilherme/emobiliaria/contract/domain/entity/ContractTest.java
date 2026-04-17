@@ -27,6 +27,7 @@ class ContractTest {
   private static final Period VALID_DURATION = Period.ofMonths(12);
   private static final int VALID_PAYMENT_DAY = 10;
   private static final int VALID_RENT = 150000;
+  private static final String VALID_PURPOSE = "Residencial";
 
   private Address validAddress() {
     return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo",
@@ -38,8 +39,8 @@ class ContractTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apartamento Centro", "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    return Property.create("Apartamento Centro", "Apartamento", "1234567890", "0987654321",
+        "IPTU-001", validAddress());
   }
 
   private Person validPerson() {
@@ -47,13 +48,10 @@ class ContractTest {
         "529.982.247-25", "MG-1234567", validAddress());
   }
 
-  private static final String VALID_PURPOSE = "Residencial";
-
   private Contract validContract() {
-    return Contract.create(VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
-        VALID_RENT, VALID_PURPOSE,
-        validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
-        List.of());
+    return Contract.create(VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY, VALID_RENT,
+        VALID_PURPOSE, validPaymentAccount(), validProperty(), validPerson(),
+        List.of(validPerson()), List.of(), List.of());
   }
 
   @Nested
@@ -79,10 +77,10 @@ class ContractTest {
     @Test
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
-      Contract contract = Contract.restore(42L, VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY,
-          VALID_RENT, VALID_PURPOSE,
-          validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
-          List.of());
+      Contract contract =
+          Contract.restore(42L, VALID_START_DATE, VALID_DURATION, VALID_PAYMENT_DAY, VALID_RENT,
+              VALID_PURPOSE, validPaymentAccount(), validProperty(), validPerson(),
+              List.of(validPerson()), List.of(), List.of());
 
       assertEquals(42L, contract.getId());
     }
@@ -298,6 +296,61 @@ class ContractTest {
       List<Person> newTenants = List.of(validPerson());
       assertDoesNotThrow(() -> contract.setTenants(newTenants));
       assertEquals(newTenants, contract.getTenants());
+    }
+  }
+
+
+  @Nested
+  class ResolveStatus {
+
+    private Contract contractWithId(long id, LocalDate startDate, Period duration) {
+      return Contract.restore(id, startDate, duration, VALID_PAYMENT_DAY, VALID_RENT, VALID_PURPOSE,
+          validPaymentAccount(), validProperty(), validPerson(), List.of(validPerson()), List.of(),
+          List.of());
+    }
+
+    @Test
+    @DisplayName("When contract is not the latest for its property, should be INACTIVE")
+    void shouldBeInactiveWhenNotLatest() {
+      Contract contract = contractWithId(1L, LocalDate.of(2024, 1, 1), Period.ofMonths(12));
+
+      contract.resolveStatus(2L);
+
+      assertEquals(ContractStatus.INACTIVE, contract.getStatus());
+    }
+
+    @Test
+    @DisplayName(
+        "When contract is latest and end date is in the future beyond 30 days, should be ACTIVE")
+    void shouldBeActiveWhenLatestAndEndDateBeyond30Days() {
+      LocalDate startDate = LocalDate.now().minusMonths(1);
+      Contract contract = contractWithId(1L, startDate, Period.ofMonths(6));
+
+      contract.resolveStatus(1L);
+
+      assertEquals(ContractStatus.ACTIVE, contract.getStatus());
+    }
+
+    @Test
+    @DisplayName("When contract is latest and end date is within 30 days, should be EXPIRING")
+    void shouldBeExpiringWhenLatestAndEndDateWithin30Days() {
+      LocalDate startDate = LocalDate.now().minusMonths(11).minusDays(15);
+      Contract contract = contractWithId(1L, startDate, Period.ofMonths(12));
+
+      contract.resolveStatus(1L);
+
+      assertEquals(ContractStatus.EXPIRING, contract.getStatus());
+    }
+
+    @Test
+    @DisplayName("When contract is latest and end date is in the past, should be EXPIRED")
+    void shouldBeExpiredWhenLatestAndEndDateInPast() {
+      LocalDate startDate = LocalDate.of(2022, 1, 1);
+      Contract contract = contractWithId(1L, startDate, Period.ofMonths(12));
+
+      contract.resolveStatus(1L);
+
+      assertEquals(ContractStatus.EXPIRED, contract.getStatus());
     }
   }
 }

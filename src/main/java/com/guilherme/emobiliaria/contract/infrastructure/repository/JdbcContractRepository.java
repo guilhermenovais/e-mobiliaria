@@ -2,7 +2,6 @@ package com.guilherme.emobiliaria.contract.infrastructure.repository;
 
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
-import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.contract.domain.repository.ContractRepository;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
@@ -25,7 +24,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +38,14 @@ public class JdbcContractRepository implements ContractRepository {
     this.dataSource = dataSource;
   }
 
+  private static boolean isConstraintViolation(SQLException e) {
+    return e.getSQLState() != null && e.getSQLState().startsWith("23");
+  }
+
   @Override
   public Contract create(Contract contract) {
-    String sql = "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String sql =
+        "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setDate(1, Date.valueOf(contract.getStartDate()));
@@ -70,7 +73,8 @@ public class JdbcContractRepository implements ContractRepository {
 
   @Override
   public Contract update(Contract contract) {
-    String sql = "UPDATE contracts SET start_date=?, duration=?, payment_day=?, rent=?, purpose=?, payment_account_id=?, property_id=?, landlord_id=?, landlord_type=? WHERE id=?";
+    String sql =
+        "UPDATE contracts SET start_date=?, duration=?, payment_day=?, rent=?, purpose=?, payment_account_id=?, property_id=?, landlord_id=?, landlord_type=? WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setDate(1, Date.valueOf(contract.getStartDate()));
@@ -115,16 +119,12 @@ public class JdbcContractRepository implements ContractRepository {
     }
   }
 
-  private static boolean isConstraintViolation(SQLException e) {
-    return e.getSQLState() != null && e.getSQLState().startsWith("23");
-  }
-
   @Override
   public Optional<Contract> findById(Long id) {
     String sql = """
         SELECT id, start_date, duration, payment_day, rent, purpose,
                payment_account_id, property_id, landlord_id, landlord_type,
-               (SELECT MAX(c2.id) FROM contracts c2 WHERE c2.property_id = contracts.property_id) AS latest_id
+               (SELECT c2.id FROM contracts c2 WHERE c2.property_id = contracts.property_id ORDER BY c2.start_date DESC, c2.id DESC LIMIT 1) AS latest_id
         FROM contracts WHERE id=?
         """;
     try (Connection conn = dataSource.getConnection();
@@ -151,7 +151,7 @@ public class JdbcContractRepository implements ContractRepository {
       String countSql = """
           WITH ranked AS (
             SELECT id, start_date, duration,
-                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+                   FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
           )
           SELECT COUNT(*) FROM ranked
@@ -165,7 +165,7 @@ public class JdbcContractRepository implements ContractRepository {
           WITH ranked AS (
             SELECT id, start_date, duration, payment_day, rent, purpose,
                    payment_account_id, property_id, landlord_id, landlord_type,
-                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+                   FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
           )
           SELECT * FROM ranked
@@ -192,7 +192,8 @@ public class JdbcContractRepository implements ContractRepository {
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     try (Connection conn = dataSource.getConnection()) {
       long total;
-      try (PreparedStatement countStmt = conn.prepareStatement("SELECT COUNT(*) FROM contracts WHERE property_id=?")) {
+      try (PreparedStatement countStmt = conn.prepareStatement(
+          "SELECT COUNT(*) FROM contracts WHERE property_id=?")) {
         countStmt.setLong(1, propertyId);
         try (ResultSet countRs = countStmt.executeQuery()) {
           countRs.next();
@@ -203,7 +204,7 @@ public class JdbcContractRepository implements ContractRepository {
           WITH ranked AS (
             SELECT id, start_date, duration, payment_day, rent, purpose,
                    payment_account_id, property_id, landlord_id, landlord_type,
-                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+                   FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
           )
           SELECT * FROM ranked WHERE property_id=? LIMIT ? OFFSET ?
@@ -226,11 +227,12 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   @Override
-  public PagedResult<Contract> search(String query, PaginationInput pagination, ContractFilter filter) {
+  public PagedResult<Contract> search(String query, PaginationInput pagination,
+      ContractFilter filter) {
     int limit = pagination.limit() != null ? pagination.limit() : Integer.MAX_VALUE;
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     String searchTerm = "%" + query + "%";
-    String statusWhere = statusWhereClause(filter);
+    String statusAnd = statusAndClause(filter);
     String matchingSql = """
         SELECT DISTINCT c.id
         FROM contracts c
@@ -248,12 +250,11 @@ public class JdbcContractRepository implements ContractRepository {
           ),
           ranked AS (
             SELECT id, start_date, duration,
-                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+                   FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
-            WHERE id IN (SELECT id FROM matching_ids)
           )
-          SELECT COUNT(*) FROM ranked
-          """ + statusWhere;
+          SELECT COUNT(*) FROM ranked WHERE id IN (SELECT id FROM matching_ids)
+          """ + statusAnd;
       try (PreparedStatement countStmt = conn.prepareStatement(countSql)) {
         countStmt.setString(1, searchTerm);
         countStmt.setString(2, searchTerm);
@@ -276,12 +277,11 @@ public class JdbcContractRepository implements ContractRepository {
           ranked AS (
             SELECT id, start_date, duration, payment_day, rent, purpose,
                    payment_account_id, property_id, landlord_id, landlord_type,
-                   MAX(id) OVER (PARTITION BY property_id) AS latest_id
+                   FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
-            WHERE id IN (SELECT id FROM matching_ids)
           )
-          SELECT * FROM ranked
-          """ + statusWhere + " LIMIT ? OFFSET ?";
+          SELECT * FROM ranked WHERE id IN (SELECT id FROM matching_ids)
+          """ + statusAnd + " LIMIT ? OFFSET ?";
       try (PreparedStatement stmt = conn.prepareStatement(sql)) {
         stmt.setString(1, searchTerm);
         stmt.setString(2, searchTerm);
@@ -307,13 +307,31 @@ public class JdbcContractRepository implements ContractRepository {
     if (filter == null || filter.status() == null) {
       return "";
     }
-    String endDate = "DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date)";
+    String endDate =
+        "DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date)";
     String in30Days = "DATEADD('DAY', 30, CURRENT_DATE)";
     return switch (filter.status()) {
       case INACTIVE -> " WHERE id != latest_id";
       case EXPIRED -> " WHERE id = latest_id AND " + endDate + " < CURRENT_DATE";
-      case EXPIRING -> " WHERE id = latest_id AND " + endDate + " >= CURRENT_DATE AND " + endDate + " < " + in30Days;
+      case EXPIRING ->
+          " WHERE id = latest_id AND " + endDate + " >= CURRENT_DATE AND " + endDate + " < " + in30Days;
       case ACTIVE -> " WHERE id = latest_id AND " + endDate + " >= " + in30Days;
+    };
+  }
+
+  private String statusAndClause(ContractFilter filter) {
+    if (filter == null || filter.status() == null) {
+      return "";
+    }
+    String endDate =
+        "DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date)";
+    String in30Days = "DATEADD('DAY', 30, CURRENT_DATE)";
+    return switch (filter.status()) {
+      case INACTIVE -> " AND id != latest_id";
+      case EXPIRED -> " AND id = latest_id AND " + endDate + " < CURRENT_DATE";
+      case EXPIRING ->
+          " AND id = latest_id AND " + endDate + " >= CURRENT_DATE AND " + endDate + " < " + in30Days;
+      case ACTIVE -> " AND id = latest_id AND " + endDate + " >= " + in30Days;
     };
   }
 
@@ -326,76 +344,41 @@ public class JdbcContractRepository implements ContractRepository {
     List<Person> tenants = loadTenants(conn, id);
     List<Person> guarantors = loadGuarantors(conn, id);
     List<Person> witnesses = loadWitnesses(conn, id);
-    return Contract.restore(
-        id,
-        rs.getDate("start_date").toLocalDate(),
-        duration,
-        rs.getInt("payment_day"),
-        rs.getInt("rent"),
-        rs.getString("purpose"),
-        paymentAccount,
-        property,
-        landlord,
-        tenants,
-        guarantors,
-        witnesses
-    );
+    return Contract.restore(id, rs.getDate("start_date").toLocalDate(), duration,
+        rs.getInt("payment_day"), rs.getInt("rent"), rs.getString("purpose"), paymentAccount,
+        property, landlord, tenants, guarantors, witnesses);
   }
 
   private Contract mapWithStatus(ResultSet rs, Connection conn) throws SQLException {
     Contract contract = map(rs, conn);
     long latestId = rs.getLong("latest_id");
-    LocalDate startDate = contract.getStartDate();
-    Period duration = contract.getDuration();
-    LocalDate endDate = startDate.plus(duration);
-    LocalDate today = LocalDate.now();
-    ContractStatus status;
-    if (contract.getId() != latestId) {
-      status = ContractStatus.INACTIVE;
-    } else if (today.isAfter(endDate)) {
-      status = ContractStatus.EXPIRED;
-    } else if (!today.isBefore(endDate.minusDays(30))) {
-      status = ContractStatus.EXPIRING;
-    } else {
-      status = ContractStatus.ACTIVE;
-    }
-    contract.setStatus(status);
+    contract.resolveStatus(latestId);
     return contract;
   }
 
   private PaymentAccount loadPaymentAccount(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, bank, bank_branch, account_number, pix_key FROM payment_accounts WHERE id=?";
+    String sql =
+        "SELECT id, bank, bank_branch, account_number, pix_key FROM payment_accounts WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
         rs.next();
-        return PaymentAccount.restore(
-            rs.getLong("id"),
-            rs.getString("bank"),
-            rs.getString("bank_branch"),
-            rs.getString("account_number"),
-            rs.getString("pix_key")
-        );
+        return PaymentAccount.restore(rs.getLong("id"), rs.getString("bank"),
+            rs.getString("bank_branch"), rs.getString("account_number"), rs.getString("pix_key"));
       }
     }
   }
 
   private Property loadProperty(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, name, type, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
+    String sql =
+        "SELECT id, name, type, cemig, copasa, iptu, address_id FROM properties WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
         rs.next();
         Address address = loadAddress(conn, rs.getLong("address_id"));
-        return Property.restore(
-            rs.getLong("id"),
-            rs.getString("name"),
-            rs.getString("type"),
-            rs.getString("cemig"),
-            rs.getString("copasa"),
-            rs.getString("iptu"),
-            address
-        );
+        return Property.restore(rs.getLong("id"), rs.getString("name"), rs.getString("type"),
+            rs.getString("cemig"), rs.getString("copasa"), rs.getString("iptu"), address);
       }
     }
   }
@@ -408,22 +391,17 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   private PhysicalPerson loadPhysicalPerson(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, name, nationality, civil_state, occupation, cpf, id_card_number, address_id FROM physical_persons WHERE id=?";
+    String sql =
+        "SELECT id, name, nationality, civil_state, occupation, cpf, id_card_number, address_id FROM physical_persons WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
         rs.next();
         Address address = loadAddress(conn, rs.getLong("address_id"));
-        return PhysicalPerson.restore(
-            rs.getLong("id"),
-            rs.getString("name"),
-            rs.getString("nationality"),
-            CivilState.valueOf(rs.getString("civil_state")),
-            rs.getString("occupation"),
-            rs.getString("cpf"),
-            rs.getString("id_card_number"),
-            address
-        );
+        return PhysicalPerson.restore(rs.getLong("id"), rs.getString("name"),
+            rs.getString("nationality"), CivilState.valueOf(rs.getString("civil_state")),
+            rs.getString("occupation"), rs.getString("cpf"), rs.getString("id_card_number"),
+            address);
       }
     }
   }
@@ -436,19 +414,16 @@ public class JdbcContractRepository implements ContractRepository {
         rs.next();
         List<PhysicalPerson> representatives = loadRepresentatives(conn, rs.getLong("id"));
         Address address = loadAddress(conn, rs.getLong("address_id"));
-        return JuridicalPerson.restore(
-            rs.getLong("id"),
-            rs.getString("corporate_name"),
-            rs.getString("cnpj"),
-            representatives,
-            address
-        );
+        return JuridicalPerson.restore(rs.getLong("id"), rs.getString("corporate_name"),
+            rs.getString("cnpj"), representatives, address);
       }
     }
   }
 
-  private List<PhysicalPerson> loadRepresentatives(Connection conn, long juridicalPersonId) throws SQLException {
-    String sql = "SELECT physical_person_id FROM juridical_person_representatives WHERE juridical_person_id=?";
+  private List<PhysicalPerson> loadRepresentatives(Connection conn, long juridicalPersonId)
+      throws SQLException {
+    String sql =
+        "SELECT physical_person_id FROM juridical_person_representatives WHERE juridical_person_id=?";
     List<PhysicalPerson> representatives = new ArrayList<>();
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, juridicalPersonId);
@@ -462,27 +437,22 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   private Address loadAddress(Connection conn, long id) throws SQLException {
-    String sql = "SELECT id, cep, address, number, complement, neighborhood, city, state FROM addresses WHERE id=?";
+    String sql =
+        "SELECT id, cep, address, number, complement, neighborhood, city, state FROM addresses WHERE id=?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, id);
       try (ResultSet rs = stmt.executeQuery()) {
         rs.next();
-        return Address.restore(
-            rs.getLong("id"),
-            rs.getString("cep"),
-            rs.getString("address"),
-            rs.getString("number"),
-            rs.getString("complement"),
-            rs.getString("neighborhood"),
-            rs.getString("city"),
-            BrazilianState.valueOf(rs.getString("state"))
-        );
+        return Address.restore(rs.getLong("id"), rs.getString("cep"), rs.getString("address"),
+            rs.getString("number"), rs.getString("complement"), rs.getString("neighborhood"),
+            rs.getString("city"), BrazilianState.valueOf(rs.getString("state")));
       }
     }
   }
 
   private List<Person> loadTenants(Connection conn, long contractId) throws SQLException {
-    String sql = "SELECT tenant_id, tenant_type FROM contract_tenants WHERE contract_id=? ORDER BY id";
+    String sql =
+        "SELECT tenant_id, tenant_type FROM contract_tenants WHERE contract_id=? ORDER BY id";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, contractId);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -495,8 +465,10 @@ public class JdbcContractRepository implements ContractRepository {
     }
   }
 
-  private void insertTenants(Connection conn, long contractId, List<Person> tenants) throws SQLException {
-    String sql = "INSERT INTO contract_tenants (contract_id, tenant_id, tenant_type) VALUES (?, ?, ?)";
+  private void insertTenants(Connection conn, long contractId, List<Person> tenants)
+      throws SQLException {
+    String sql =
+        "INSERT INTO contract_tenants (contract_id, tenant_id, tenant_type) VALUES (?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       for (Person tenant : tenants) {
         stmt.setLong(1, contractId);
@@ -516,21 +488,25 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   private List<Person> loadGuarantors(Connection conn, long contractId) throws SQLException {
-    String sql = "SELECT guarantor_id, guarantor_type FROM contract_guarantors WHERE contract_id=? ORDER BY id";
+    String sql =
+        "SELECT guarantor_id, guarantor_type FROM contract_guarantors WHERE contract_id=? ORDER BY id";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, contractId);
       try (ResultSet rs = stmt.executeQuery()) {
         List<Person> guarantors = new ArrayList<>();
         while (rs.next()) {
-          guarantors.add(loadPerson(conn, rs.getLong("guarantor_id"), rs.getString("guarantor_type")));
+          guarantors.add(
+              loadPerson(conn, rs.getLong("guarantor_id"), rs.getString("guarantor_type")));
         }
         return guarantors;
       }
     }
   }
 
-  private void insertGuarantors(Connection conn, long contractId, List<Person> guarantors) throws SQLException {
-    String sql = "INSERT INTO contract_guarantors (contract_id, guarantor_id, guarantor_type) VALUES (?, ?, ?)";
+  private void insertGuarantors(Connection conn, long contractId, List<Person> guarantors)
+      throws SQLException {
+    String sql =
+        "INSERT INTO contract_guarantors (contract_id, guarantor_id, guarantor_type) VALUES (?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       for (Person guarantor : guarantors) {
         stmt.setLong(1, contractId);
@@ -550,7 +526,8 @@ public class JdbcContractRepository implements ContractRepository {
   }
 
   private List<Person> loadWitnesses(Connection conn, long contractId) throws SQLException {
-    String sql = "SELECT witness_id, witness_type FROM contract_witnesses WHERE contract_id=? ORDER BY id";
+    String sql =
+        "SELECT witness_id, witness_type FROM contract_witnesses WHERE contract_id=? ORDER BY id";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, contractId);
       try (ResultSet rs = stmt.executeQuery()) {
@@ -563,8 +540,10 @@ public class JdbcContractRepository implements ContractRepository {
     }
   }
 
-  private void insertWitnesses(Connection conn, long contractId, List<Person> witnesses) throws SQLException {
-    String sql = "INSERT INTO contract_witnesses (contract_id, witness_id, witness_type) VALUES (?, ?, ?)";
+  private void insertWitnesses(Connection conn, long contractId, List<Person> witnesses)
+      throws SQLException {
+    String sql =
+        "INSERT INTO contract_witnesses (contract_id, witness_id, witness_type) VALUES (?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       for (Person witness : witnesses) {
         stmt.setLong(1, contractId);

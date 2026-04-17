@@ -32,7 +32,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
   private static final String ACTIVE_CONTRACTS_CTE = """
       WITH latest AS (
         SELECT id,
-               MAX(id) OVER (PARTITION BY property_id) AS latest_id,
+               FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id,
                DATEADD('MONTH',
                  CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT),
                  start_date) AS end_date
@@ -211,7 +211,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
           FROM contracts c
           JOIN (
             SELECT id,
-                   MAX(id) OVER (PARTITION BY property_id) AS latest_id,
+                   FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id,
                    DATEADD('MONTH',
                      CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT),
                      start_date) AS end_date
@@ -238,7 +238,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
     String sql = """
         WITH latest AS (
           SELECT id,
-                 MAX(id) OVER (PARTITION BY property_id) AS latest_id,
+                 FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id,
                  DATEADD('MONTH',
                    CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT),
                    start_date) AS end_date

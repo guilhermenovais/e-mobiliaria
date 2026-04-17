@@ -30,25 +30,25 @@ public class JdbcJuridicalPersonRepository implements JuridicalPersonRepository 
       jp.id IN (
         SELECT landlord_id FROM contracts
         WHERE landlord_type = 'JURIDICAL'
-          AND id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = contracts.property_id)
+          AND id = (SELECT c2.id FROM contracts c2 WHERE c2.property_id = contracts.property_id ORDER BY c2.start_date DESC, c2.id DESC LIMIT 1)
           AND DATEADD('MONTH', CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT), start_date) >= CURRENT_DATE
         UNION
         SELECT tenant_id FROM contract_tenants ct
         JOIN contracts c ON c.id = ct.contract_id
         WHERE ct.tenant_type = 'JURIDICAL'
-          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND c.id = (SELECT c2.id FROM contracts c2 WHERE c2.property_id = c.property_id ORDER BY c2.start_date DESC, c2.id DESC LIMIT 1)
           AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
         UNION
         SELECT witness_id FROM contract_witnesses cw
         JOIN contracts c ON c.id = cw.contract_id
         WHERE cw.witness_type = 'JURIDICAL'
-          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND c.id = (SELECT c2.id FROM contracts c2 WHERE c2.property_id = c.property_id ORDER BY c2.start_date DESC, c2.id DESC LIMIT 1)
           AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
         UNION
         SELECT guarantor_id FROM contract_guarantors cg
         JOIN contracts c ON c.id = cg.contract_id
         WHERE cg.guarantor_type = 'JURIDICAL'
-          AND c.id = (SELECT MAX(id) FROM contracts c2 WHERE c2.property_id = c.property_id)
+          AND c.id = (SELECT c2.id FROM contracts c2 WHERE c2.property_id = c.property_id ORDER BY c2.start_date DESC, c2.id DESC LIMIT 1)
           AND DATEADD('MONTH', CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT), c.start_date) >= CURRENT_DATE
       )""";
 
