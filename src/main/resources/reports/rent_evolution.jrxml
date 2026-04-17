@@ -1,6 +1,7 @@
 <!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3 -->
 <jasperReport name="rent_evolution" language="java" pageWidth="595" pageHeight="842" columnWidth="555"
               leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              summaryWithPageHeaderAndFooter="true"
               uuid="e5e7a090-dbf0-4393-a37c-9aac232a0256">
     <parameter name="portfolio_inflation_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
     <parameter name="portfolio_gap_chart" forPrompting="false" class="java.awt.image.BufferedImage"/>
@@ -42,10 +43,15 @@
                  width="300" height="14" fontName="Arial" fontSize="9.0" forecolor="#888888">
             <expression><![CDATA["Período: " + $P{period}]]></expression>
         </element>
-        <element kind="textField" uuid="1b000001-0000-0000-0000-000000000003" x="400" y="6"
-                 width="155" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
+        <element kind="textField" uuid="1b000001-0000-0000-0000-000000000003" x="390" y="6"
+                 width="145" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
+                 forecolor="#888888">
+            <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / "]]></expression>
+        </element>
+        <element kind="textField" uuid="1b000001-0000-0000-0000-000000000004" x="535" y="6"
+                 width="20" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Left"
                  forecolor="#888888" evaluationTime="Report">
-            <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / " + $V{PAGE_COUNT}]]></expression>
+            <expression><![CDATA[$V{PAGE_NUMBER}]]></expression>
         </element>
     </pageFooter>
 
@@ -74,84 +80,88 @@
 
         <!-- KPI cards -->
         <element kind="rectangle" uuid="a1000002-0000-0000-0000-000000000003" positionType="Float" x="0" y="90"
-                 width="132" height="66" radius="4" forecolor="#FFF3E0" backcolor="#FFF3E0">
+                 width="132" height="72" radius="4" forecolor="#FFF3E0" backcolor="#FFF3E0">
             <pen lineWidth="1.0" lineColor="#FFE0B2"/>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000004" positionType="Float" x="4" y="94"
-                 width="124" height="13" fontName="Arial" fontSize="7.5" hTextAlign="Center" forecolor="#555555">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000004" positionType="Float" x="4" y="96"
+                 width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#555555">
             <expression><![CDATA["Diferença Atual para IPCA"]]></expression>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000005" positionType="Float" x="4" y="112"
-                 width="124" height="34" fontName="Arial" fontSize="10.0" bold="true" hTextAlign="Center"
-                 forecolor="#E65100">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000005" positionType="Float" x="4" y="114"
+                 width="124" height="42" fontName="Arial" fontSize="10.5" bold="true" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#E65100">
             <expression><![CDATA[$P{kpi_gap_vs_ipca}]]></expression>
         </element>
 
         <element kind="rectangle" uuid="a1000002-0000-0000-0000-000000000006" positionType="Float" x="141" y="90"
-                 width="132" height="66" radius="4" forecolor="#FCE4EC" backcolor="#FCE4EC">
+                 width="132" height="72" radius="4" forecolor="#FCE4EC" backcolor="#FCE4EC">
             <pen lineWidth="1.0" lineColor="#F8BBD0"/>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000007" positionType="Float" x="145" y="94"
-                 width="124" height="13" fontName="Arial" fontSize="7.5" hTextAlign="Center" forecolor="#555555">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000007" positionType="Float" x="145" y="96"
+                 width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#555555">
             <expression><![CDATA["Diferença Atual para IGP-M"]]></expression>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000008" positionType="Float" x="145" y="112"
-                 width="124" height="34" fontName="Arial" fontSize="10.0" bold="true" hTextAlign="Center"
-                 forecolor="#880E4F">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000008" positionType="Float" x="145" y="114"
+                 width="124" height="42" fontName="Arial" fontSize="10.5" bold="true" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#880E4F">
             <expression><![CDATA[$P{kpi_gap_vs_igpm}]]></expression>
         </element>
 
         <element kind="rectangle" uuid="a1000002-0000-0000-0000-000000000009" positionType="Float" x="282" y="90"
-                 width="132" height="66" radius="4" forecolor="#E8F5E9" backcolor="#E8F5E9">
+                 width="132" height="72" radius="4" forecolor="#E8F5E9" backcolor="#E8F5E9">
             <pen lineWidth="1.0" lineColor="#C8E6C9"/>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000010" positionType="Float" x="286" y="94"
-                 width="124" height="13" fontName="Arial" fontSize="7.5" hTextAlign="Center" forecolor="#555555">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000010" positionType="Float" x="286" y="96"
+                 width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#555555">
             <expression><![CDATA["Crescimento Nominal"]]></expression>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000011" positionType="Float" x="286" y="112"
-                 width="124" height="34" fontName="Arial" fontSize="12.0" bold="true" hTextAlign="Center"
-                 forecolor="#1B5E20">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000011" positionType="Float" x="286" y="114"
+                 width="124" height="42" fontName="Arial" fontSize="11.0" bold="true" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#1B5E20">
             <expression><![CDATA[$P{kpi_nominal_growth}]]></expression>
         </element>
 
         <element kind="rectangle" uuid="a1000002-0000-0000-0000-000000000012" positionType="Float" x="423" y="90"
-                 width="132" height="66" radius="4" forecolor="#E3F2FD" backcolor="#E3F2FD">
+                 width="132" height="72" radius="4" forecolor="#E3F2FD" backcolor="#E3F2FD">
             <pen lineWidth="1.0" lineColor="#BBDEFB"/>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000013" positionType="Float" x="427" y="94"
-                 width="124" height="13" fontName="Arial" fontSize="7.5" hTextAlign="Center" forecolor="#555555">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000013" positionType="Float" x="427" y="96"
+                 width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#555555">
             <expression><![CDATA["Crescimento Real"]]></expression>
         </element>
-        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000014" positionType="Float" x="427" y="108"
-                 width="124" height="39" fontName="Arial" fontSize="8.5" bold="true" hTextAlign="Center"
-                 forecolor="#0D47A1">
+        <element kind="textField" uuid="a1000002-0000-0000-0000-000000000014" positionType="Float" x="427" y="114"
+                 width="124" height="42" fontName="Arial" fontSize="8.5" bold="true" hTextAlign="Center"
+                 vTextAlign="Middle" forecolor="#0D47A1">
             <expression><![CDATA[$P{kpi_real_growth}]]></expression>
         </element>
 
-        <element kind="textField" uuid="a1000003-0000-0000-0000-000000000001" positionType="Float" x="0" y="168"
+        <element kind="textField" uuid="a1000003-0000-0000-0000-000000000001" positionType="Float" x="0" y="174"
                  width="555" height="18" fontName="Arial" fontSize="12.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Portfólio: Aluguel Real vs Referências Inflacionárias"]]></expression>
         </element>
-        <element kind="rectangle" uuid="a1000003-0000-0000-0000-000000000002" positionType="Float" x="0" y="188"
-                 width="555" height="244" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+        <element kind="rectangle" uuid="a1000003-0000-0000-0000-000000000002" positionType="Float" x="0" y="196"
+                 width="555" height="232" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
             <pen lineWidth="1.0" lineColor="#E0E0E0"/>
         </element>
-        <element kind="image" uuid="a1000003-0000-0000-0000-000000000003" positionType="Float" x="5" y="192"
-                 width="545" height="236" usingCache="false" hImageAlign="Center">
+        <element kind="image" uuid="a1000003-0000-0000-0000-000000000003" positionType="Float" x="5" y="200"
+                 width="545" height="224" usingCache="false" hImageAlign="Center">
             <expression><![CDATA[$P{portfolio_inflation_chart}]]></expression>
         </element>
 
-        <element kind="textField" uuid="a1000003-0000-0000-0000-000000000004" positionType="Float" x="0" y="444"
+        <element kind="textField" uuid="a1000003-0000-0000-0000-000000000004" positionType="Float" x="0" y="442"
                  width="555" height="18" fontName="Arial" fontSize="12.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Diferença em Termos Reais (R$): acima/abaixo da inflação"]]></expression>
         </element>
         <element kind="rectangle" uuid="a1000003-0000-0000-0000-000000000005" positionType="Float" x="0" y="464"
-                 width="555" height="244" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
+                 width="555" height="232" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
             <pen lineWidth="1.0" lineColor="#E0E0E0"/>
         </element>
         <element kind="image" uuid="a1000003-0000-0000-0000-000000000006" positionType="Float" x="5" y="468"
-                 width="545" height="236" usingCache="false" hImageAlign="Center">
+                 width="545" height="224" usingCache="false" hImageAlign="Center">
             <expression><![CDATA[$P{portfolio_gap_chart}]]></expression>
         </element>
     </title>
@@ -197,11 +207,11 @@
             <expression><![CDATA["reports/property_inflation_lag_row.jasper"]]></expression>
         </element>
 
-        <element kind="textField" uuid="a1000005-0000-0000-0000-000000000001" positionType="Float" x="0" y="280"
+        <element kind="textField" uuid="a1000005-0000-0000-0000-000000000001" positionType="Float" x="0" y="84"
                  width="555" height="20" fontName="Arial" fontSize="13.0" bold="true" forecolor="#333333">
             <expression><![CDATA["Evolução por Imóvel (Real vs IPCA vs IGP-M)"]]></expression>
         </element>
-        <element kind="subreport" uuid="a1000005-0000-0000-0000-000000000002" positionType="Float" x="0" y="304"
+        <element kind="subreport" uuid="a1000005-0000-0000-0000-000000000002" positionType="Float" x="0" y="108"
                  width="555" height="20">
             <dataSourceExpression><![CDATA[$P{property_rent_charts}]]></dataSourceExpression>
             <expression><![CDATA["reports/property_rent_chart.jasper"]]></expression>
