@@ -1,6 +1,7 @@
 package com.guilherme.emobiliaria.shared.chart;
 
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyOccupationHistory;
+import jakarta.inject.Inject;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
@@ -24,6 +25,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.ResourceBundle;
 
 public class ChartGenerator {
 
@@ -31,18 +33,23 @@ public class ChartGenerator {
   private static final int CHART_HEIGHT = 280;
   private static final int RENDER_SCALE = 4;
 
-  private static final String[] PT_MONTHS =
-      {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
+  private final ResourceBundle bundle;
+
+  @Inject
+  public ChartGenerator(ResourceBundle bundle) {
+    this.bundle = bundle;
+  }
 
   private String[] monthLabels(List<YearMonth> months) {
-    return months.stream()
-        .map(m -> PT_MONTHS[m.getMonthValue() - 1] + "/" + String.format("%02d", m.getYear() % 100))
+    String[] abbreviated = bundle.getString("chart.months").split(",");
+    return months.stream().map(
+            m -> abbreviated[m.getMonthValue() - 1] + "/" + String.format("%02d", m.getYear() % 100))
         .toArray(String[]::new);
   }
 
   /** Line chart showing total monthly rent earnings over time. */
   public BufferedImage monthlyEarnings(List<YearMonth> months, List<Long> centsList) {
-    XYSeries series = new XYSeries("Receita Total");
+    XYSeries series = new XYSeries(bundle.getString("chart.monthly_earnings.series"));
     for (int i = 0; i < months.size(); i++) {
       series.add(i, centsList.get(i) / 100.0);
     }
@@ -50,7 +57,7 @@ public class ChartGenerator {
     JFreeChart chart =
         ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, false,
             false, false);
-    styleTimeSeriesChart(chart, months, "Valor (R$)");
+    styleTimeSeriesChart(chart, months, bundle.getString("chart.axis.value_reais"));
     XYPlot plot = chart.getXYPlot();
     XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0x2196F3));
@@ -61,7 +68,7 @@ public class ChartGenerator {
   /** Single-line chart: portfolio actual total rent over time. */
   public BufferedImage portfolioInflationComparison(List<YearMonth> months, List<Long> actualCents,
       List<Long> ipcaCents, List<Long> igpmCents) {
-    XYSeries actual = new XYSeries("Aluguel real (portfólio)");
+    XYSeries actual = new XYSeries(bundle.getString("chart.portfolio.series.actual"));
     for (int i = 0; i < months.size(); i++) {
       actual.add(i, actualCents.get(i) / 100.0);
     }
@@ -71,7 +78,7 @@ public class ChartGenerator {
     JFreeChart chart =
         ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, false,
             false, false);
-    styleTimeSeriesChart(chart, months, "Valor (R$)");
+    styleTimeSeriesChart(chart, months, bundle.getString("chart.axis.value_reais"));
     XYPlot plot = chart.getXYPlot();
     XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0x1E88E5));
@@ -83,9 +90,9 @@ public class ChartGenerator {
   /** Two-line chart: portfolio gap in reais versus IPCA and IGP-M. */
   public BufferedImage portfolioInflationGap(List<YearMonth> months, List<Long> gapVsIpcaCents,
       List<Long> gapVsIgpmCents) {
-    XYSeries gapIpca = new XYSeries("Diferença para IPCA");
-    XYSeries gapIgpm = new XYSeries("Diferença para IGP-M");
-    XYSeries baseline = new XYSeries("Linha zero");
+    XYSeries gapIpca = new XYSeries(bundle.getString("chart.gap.series.ipca"));
+    XYSeries gapIgpm = new XYSeries(bundle.getString("chart.gap.series.igpm"));
+    XYSeries baseline = new XYSeries(bundle.getString("chart.gap.series.zero"));
     for (int i = 0; i < months.size(); i++) {
       gapIpca.add(i, gapVsIpcaCents.get(i) / 100.0);
       gapIgpm.add(i, gapVsIgpmCents.get(i) / 100.0);
@@ -99,7 +106,7 @@ public class ChartGenerator {
     JFreeChart chart =
         ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, true,
             false, false);
-    styleTimeSeriesChart(chart, months, "Diferença (R$)");
+    styleTimeSeriesChart(chart, months, bundle.getString("chart.axis.difference_reais"));
     XYPlot plot = chart.getXYPlot();
     XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0xE53935));
@@ -120,9 +127,9 @@ public class ChartGenerator {
   /** Three-line chart: actual rent vs IPCA-adjusted vs IGP-M-adjusted initial rent. */
   public BufferedImage rentEvolution(String propertyName, List<YearMonth> months,
       List<Long> actualCents, List<Long> ipcaCents, List<Long> igpmCents) {
-    XYSeries actual = new XYSeries("Aluguel real");
-    XYSeries ipca = new XYSeries("Correção IPCA");
-    XYSeries igpm = new XYSeries("Correção IGP-M");
+    XYSeries actual = new XYSeries(bundle.getString("chart.rent_evolution.series.actual"));
+    XYSeries ipca = new XYSeries(bundle.getString("chart.rent_evolution.series.ipca"));
+    XYSeries igpm = new XYSeries(bundle.getString("chart.rent_evolution.series.igpm"));
     for (int i = 0; i < months.size(); i++) {
       actual.add(i, actualCents.get(i) / 100.0);
       ipca.add(i, ipcaCents.get(i) / 100.0);
@@ -135,7 +142,7 @@ public class ChartGenerator {
     JFreeChart chart =
         ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, true,
             false, false);
-    styleTimeSeriesChart(chart, months, "Valor (R$)");
+    styleTimeSeriesChart(chart, months, bundle.getString("chart.axis.value_reais"));
     XYPlot plot = chart.getXYPlot();
     XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer();
     renderer.setSeriesPaint(0, new Color(0x2196F3));
@@ -161,9 +168,10 @@ public class ChartGenerator {
    */
   public BufferedImage occupancyTrend(List<YearMonth> months, List<Integer> occupiedCounts,
       int totalProperties) {
-    XYSeries occupationSeries = new XYSeries("Taxa de Ocupação");
-    XYSeries vacancySeries = new XYSeries("Taxa de Vacância");
-    XYSeries maSeries = new XYSeries("Méd. Móvel Vacância (3M)");
+    XYSeries occupationSeries =
+        new XYSeries(bundle.getString("chart.occupancy_trend.series.occupation"));
+    XYSeries vacancySeries = new XYSeries(bundle.getString("chart.occupancy_trend.series.vacancy"));
+    XYSeries maSeries = new XYSeries(bundle.getString("chart.occupancy_trend.series.ma"));
 
     double[] vacancyPct = new double[months.size()];
     for (int i = 0; i < months.size(); i++) {
@@ -189,7 +197,7 @@ public class ChartGenerator {
     JFreeChart chart =
         ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.VERTICAL, true,
             false, false);
-    styleTimeSeriesChart(chart, months, "Taxa (%)");
+    styleTimeSeriesChart(chart, months, bundle.getString("chart.axis.rate_pct"));
 
     XYPlot plot = chart.getXYPlot();
     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
@@ -216,14 +224,16 @@ public class ChartGenerator {
   /** Column chart showing vacant property count per month. */
   public BufferedImage vacancyVolume(List<YearMonth> months, List<Integer> occupiedCounts,
       int totalProperties) {
+    String[] abbreviated = bundle.getString("chart.months").split(",");
     int skip = months.size() > 24 ? Math.max(2, months.size() / 12) : 1;
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    String seriesName = bundle.getString("chart.vacancy_volume.series");
     for (int i = 0; i < months.size(); i++) {
       YearMonth ym = months.get(i);
       String label = (i % skip == 0) ?
-          PT_MONTHS[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100) :
+          abbreviated[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100) :
           " ".repeat(i);
-      dataset.addValue(totalProperties - occupiedCounts.get(i), "Imóveis Vagos", label);
+      dataset.addValue(totalProperties - occupiedCounts.get(i), seriesName, label);
     }
     JFreeChart chart =
         ChartFactory.createBarChart(null, null, null, dataset, PlotOrientation.VERTICAL, false,
@@ -238,7 +248,7 @@ public class ChartGenerator {
     renderer.setDrawBarOutline(false);
 
     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
-    rangeAxis.setLabel("Imóveis Vagos");
+    rangeAxis.setLabel(bundle.getString("chart.vacancy_volume.axis"));
     rangeAxis.setLabelFont(new Font("Arial", Font.PLAIN, 11 * RENDER_SCALE));
     rangeAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
     rangeAxis.setRange(0, Math.max(1, totalProperties));
@@ -280,12 +290,13 @@ public class ChartGenerator {
     renderer.setBlockWidth(1.0);
     renderer.setBlockHeight(1.0);
 
+    String[] abbreviated = bundle.getString("chart.months").split(",");
     int skipX = numMonths > 24 ? Math.max(2, numMonths / 12) : 1;
     String[] xLabels = new String[numMonths];
     for (int i = 0; i < numMonths; i++) {
       YearMonth ym = months.get(i);
       xLabels[i] = (i % skipX == 0) ?
-          PT_MONTHS[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100) :
+          abbreviated[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100) :
           "";
     }
 
@@ -315,14 +326,16 @@ public class ChartGenerator {
   /** Bar chart showing occupied (100%) or vacant (0%) per month for a single property. */
   public BufferedImage propertyOccupation(String propertyName, List<YearMonth> months,
       List<Boolean> occupied) {
+    String[] abbreviated = bundle.getString("chart.months").split(",");
     int skip = months.size() > 24 ? Math.max(2, months.size() / 12) : 1;
     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    String seriesName = bundle.getString("chart.property_occupation.series");
     for (int i = 0; i < months.size(); i++) {
       YearMonth ym = months.get(i);
       String label = (i % skip == 0) ?
-          PT_MONTHS[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100) :
+          abbreviated[ym.getMonthValue() - 1] + "/" + String.format("%02d", ym.getYear() % 100) :
           " ".repeat(i);
-      dataset.addValue(occupied.get(i) ? 100 : 0, "Ocupação", label);
+      dataset.addValue(occupied.get(i) ? 100 : 0, seriesName, label);
     }
     JFreeChart chart =
         ChartFactory.createBarChart(null, null, null, dataset, PlotOrientation.VERTICAL, false,
@@ -332,13 +345,13 @@ public class ChartGenerator {
     plot.setBackgroundPaint(new Color(0xF5F5F5));
     plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
 
-    BarRenderer renderer = (BarRenderer) plot.getRenderer();
-    renderer.setSeriesPaint(0, new Color(0x2196F3));
-    renderer.setDrawBarOutline(false);
+    BarRenderer barRenderer = (BarRenderer) plot.getRenderer();
+    barRenderer.setSeriesPaint(0, new Color(0x2196F3));
+    barRenderer.setDrawBarOutline(false);
 
     NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
     rangeAxis.setVisible(true);
-    rangeAxis.setLabel("Ocupação (%)");
+    rangeAxis.setLabel(bundle.getString("chart.property_occupation.axis"));
     rangeAxis.setLabelFont(new Font("Arial", Font.PLAIN, 11 * RENDER_SCALE));
     rangeAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
     rangeAxis.setRange(0, 115);
@@ -360,7 +373,7 @@ public class ChartGenerator {
     plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
 
     String[] labels = monthLabels(months);
-    SymbolAxis domainAxis = new SymbolAxis("Mês/Ano", labels);
+    SymbolAxis domainAxis = new SymbolAxis(bundle.getString("chart.axis.month_year"), labels);
     domainAxis.setLabelFont(new Font("Arial", Font.PLAIN, 11 * RENDER_SCALE));
     domainAxis.setTickLabelFont(new Font("Arial", Font.PLAIN, 9 * RENDER_SCALE));
     domainAxis.setGridBandsVisible(false);

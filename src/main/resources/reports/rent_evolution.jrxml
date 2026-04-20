@@ -16,17 +16,36 @@
     <parameter name="kpi_gap_vs_igpm" forPrompting="false" class="java.lang.String"/>
     <parameter name="kpi_nominal_growth" forPrompting="false" class="java.lang.String"/>
     <parameter name="kpi_real_growth" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_title" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_generated_on" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_period_prefix" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_page_prefix" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_gap_ipca" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_gap_igpm" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_nominal_growth" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_real_growth" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_chart_portfolio" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_chart_gap" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_section_ranking" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_section_ranking_subtitle" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_property" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_current_rent" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_gap_ipca" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_gap_igpm" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_worst_gap" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_section_per_property" forPrompting="false" class="java.lang.String"/>
+    <parameter name="app_name" forPrompting="false" class="java.lang.String"/>
     <query language="sql"><![CDATA[]]></query>
     <background splitType="Stretch"/>
 
     <pageHeader height="40">
         <element kind="textField" uuid="1a000001-0000-0000-0000-000000000001" x="0" y="6"
                  width="200" height="18" fontName="Arial" fontSize="11.0" bold="true">
-            <expression><![CDATA["e-Mobiliária"]]></expression>
+            <expression><![CDATA[$P{app_name}]]></expression>
         </element>
         <element kind="textField" uuid="1a000001-0000-0000-0000-000000000002" x="300" y="6"
                  width="255" height="18" fontName="Arial" fontSize="9.0" hTextAlign="Right" forecolor="#888888">
-            <expression><![CDATA["Gerado em " + $P{generation_date}]]></expression>
+            <expression><![CDATA[$P{lbl_generated_on} + " " + $P{generation_date}]]></expression>
         </element>
         <element kind="line" uuid="1a000001-0000-0000-0000-000000000003" x="0" y="36"
                  width="555" height="1">
@@ -41,12 +60,12 @@
         </element>
         <element kind="textField" uuid="1b000001-0000-0000-0000-000000000002" x="0" y="6"
                  width="300" height="14" fontName="Arial" fontSize="9.0" forecolor="#888888">
-            <expression><![CDATA["Período: " + $P{period}]]></expression>
+            <expression><![CDATA[$P{lbl_period_prefix} + $P{period}]]></expression>
         </element>
         <element kind="textField" uuid="1b000001-0000-0000-0000-000000000003" x="390" y="6"
                  width="145" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
                  forecolor="#888888">
-            <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / "]]></expression>
+            <expression><![CDATA[$P{lbl_page_prefix} + $V{PAGE_NUMBER} + " / "]]></expression>
         </element>
         <element kind="textField" uuid="1b000001-0000-0000-0000-000000000004" x="535" y="6"
                  width="20" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Left"
@@ -59,12 +78,12 @@
         <element kind="textField" uuid="a1000001-0000-0000-0000-000000000001" positionType="Float" x="0" y="0"
                  width="555" height="28" fontName="Arial" fontSize="16.0" bold="true" underline="true"
                  hTextAlign="Center">
-            <expression><![CDATA["Evolução de Aluguéis"]]></expression>
+            <expression><![CDATA[$P{lbl_title}]]></expression>
         </element>
         <element kind="textField" uuid="a1000001-0000-0000-0000-000000000002" positionType="Float" x="0" y="30"
                  width="555" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Center"
                  forecolor="#555555">
-            <expression><![CDATA["Período: " + $P{period}]]></expression>
+            <expression><![CDATA[$P{lbl_period_prefix} + $P{period}]]></expression>
         </element>
 
         <!-- Quick verdict banner -->
@@ -86,7 +105,7 @@
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000004" positionType="Float" x="4" y="96"
                  width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
                  vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Diferença Atual para IPCA"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_gap_ipca}]]></expression>
         </element>
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000005" positionType="Float" x="4" y="114"
                  width="124" height="42" fontName="Arial" fontSize="10.5" bold="true" hTextAlign="Center"
@@ -101,7 +120,7 @@
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000007" positionType="Float" x="145" y="96"
                  width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
                  vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Diferença Atual para IGP-M"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_gap_igpm}]]></expression>
         </element>
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000008" positionType="Float" x="145" y="114"
                  width="124" height="42" fontName="Arial" fontSize="10.5" bold="true" hTextAlign="Center"
@@ -116,7 +135,7 @@
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000010" positionType="Float" x="286" y="96"
                  width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
                  vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Crescimento Nominal"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_nominal_growth}]]></expression>
         </element>
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000011" positionType="Float" x="286" y="114"
                  width="124" height="42" fontName="Arial" fontSize="11.0" bold="true" hTextAlign="Center"
@@ -131,7 +150,7 @@
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000013" positionType="Float" x="427" y="96"
                  width="124" height="12" fontName="Arial" fontSize="7.5" hTextAlign="Center"
                  vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Crescimento Real"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_real_growth}]]></expression>
         </element>
         <element kind="textField" uuid="a1000002-0000-0000-0000-000000000014" positionType="Float" x="427" y="114"
                  width="124" height="42" fontName="Arial" fontSize="8.5" bold="true" hTextAlign="Center"
@@ -141,7 +160,7 @@
 
         <element kind="textField" uuid="a1000003-0000-0000-0000-000000000001" positionType="Float" x="0" y="174"
                  width="555" height="18" fontName="Arial" fontSize="12.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Portfólio: Evolução da Soma dos Aluguéis Mensais"]]></expression>
+            <expression><![CDATA[$P{lbl_chart_portfolio}]]></expression>
         </element>
         <element kind="rectangle" uuid="a1000003-0000-0000-0000-000000000002" positionType="Float" x="0" y="196"
                  width="555" height="232" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
@@ -154,7 +173,7 @@
 
         <element kind="textField" uuid="a1000003-0000-0000-0000-000000000004" positionType="Float" x="0" y="442"
                  width="555" height="18" fontName="Arial" fontSize="12.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Diferença em Termos Reais (R$): acima/abaixo da inflação"]]></expression>
+            <expression><![CDATA[$P{lbl_chart_gap}]]></expression>
         </element>
         <element kind="rectangle" uuid="a1000003-0000-0000-0000-000000000005" positionType="Float" x="0" y="464"
                  width="555" height="232" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
@@ -169,36 +188,36 @@
     <summary height="420" splitType="Stretch">
         <element kind="textField" uuid="a1000004-0000-0000-0000-000000000001" positionType="Float" x="0" y="0"
                  width="555" height="18" fontName="Arial" fontSize="12.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Ranking de Defasagem Inflacionária por Imóvel"]]></expression>
+            <expression><![CDATA[$P{lbl_section_ranking}]]></expression>
         </element>
         <element kind="textField" uuid="a1000004-0000-0000-0000-000000000002" positionType="Float" x="0" y="18"
                  width="555" height="14" fontName="Arial" fontSize="8.0" forecolor="#555555">
-            <expression><![CDATA["Ordenado pela pior defasagem entre IPCA e IGP-M (mês atual)."]]></expression>
+            <expression><![CDATA[$P{lbl_section_ranking_subtitle}]]></expression>
         </element>
 
         <element kind="rectangle" uuid="a1000004-0000-0000-0000-000000000003" positionType="Float" x="0" y="34"
                  width="555" height="20" forecolor="#E0E0E0" backcolor="#E0E0E0">
             <pen lineWidth="0.0"/>
         </element>
-        <element kind="staticText" uuid="a1000004-0000-0000-0000-000000000004" positionType="Float" x="4" y="36"
+        <element kind="textField" uuid="a1000004-0000-0000-0000-000000000004" positionType="Float" x="4" y="36"
                  width="130" height="16" fontName="Arial" fontSize="8.0" bold="true">
-            <text><![CDATA[Imóvel]]></text>
+            <expression><![CDATA[$P{lbl_col_property}]]></expression>
         </element>
-        <element kind="staticText" uuid="a1000004-0000-0000-0000-000000000005" positionType="Float" x="138" y="36"
+        <element kind="textField" uuid="a1000004-0000-0000-0000-000000000005" positionType="Float" x="138" y="36"
                  width="95" height="16" fontName="Arial" fontSize="8.0" bold="true" hTextAlign="Center">
-            <text><![CDATA[Aluguel Atual]]></text>
+            <expression><![CDATA[$P{lbl_col_current_rent}]]></expression>
         </element>
-        <element kind="staticText" uuid="a1000004-0000-0000-0000-000000000006" positionType="Float" x="237" y="36"
+        <element kind="textField" uuid="a1000004-0000-0000-0000-000000000006" positionType="Float" x="237" y="36"
                  width="95" height="16" fontName="Arial" fontSize="8.0" bold="true" hTextAlign="Center">
-            <text><![CDATA[Defasagem para IPCA]]></text>
+            <expression><![CDATA[$P{lbl_col_gap_ipca}]]></expression>
         </element>
-        <element kind="staticText" uuid="a1000004-0000-0000-0000-000000000007" positionType="Float" x="336" y="36"
+        <element kind="textField" uuid="a1000004-0000-0000-0000-000000000007" positionType="Float" x="336" y="36"
                  width="95" height="16" fontName="Arial" fontSize="8.0" bold="true" hTextAlign="Center">
-            <text><![CDATA[Defasagem para IGP-M]]></text>
+            <expression><![CDATA[$P{lbl_col_gap_igpm}]]></expression>
         </element>
-        <element kind="staticText" uuid="a1000004-0000-0000-0000-000000000008" positionType="Float" x="435" y="36"
+        <element kind="textField" uuid="a1000004-0000-0000-0000-000000000008" positionType="Float" x="435" y="36"
                  width="116" height="16" fontName="Arial" fontSize="8.0" bold="true" hTextAlign="Center">
-            <text><![CDATA[Pior Defasagem]]></text>
+            <expression><![CDATA[$P{lbl_col_worst_gap}]]></expression>
         </element>
 
         <element kind="subreport" uuid="a1000004-0000-0000-0000-000000000009" positionType="Float" x="0" y="54"
@@ -209,7 +228,7 @@
 
         <element kind="textField" uuid="a1000005-0000-0000-0000-000000000001" positionType="Float" x="0" y="84"
                  width="555" height="20" fontName="Arial" fontSize="13.0" bold="true" forecolor="#333333">
-            <expression><![CDATA["Evolução por Imóvel (Real vs IPCA vs IGP-M)"]]></expression>
+            <expression><![CDATA[$P{lbl_section_per_property}]]></expression>
         </element>
         <element kind="subreport" uuid="a1000005-0000-0000-0000-000000000002" positionType="Float" x="0" y="108"
                  width="555" height="20">

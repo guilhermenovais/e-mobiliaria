@@ -6,6 +6,7 @@
     <field name="longest_streak" class="java.lang.Integer"/>
     <field name="last_tenant_end" class="java.lang.String"/>
     <field name="current_status" class="java.lang.String"/>
+    <field name="is_vacant" class="java.lang.Boolean"/>
     <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count" resetType="Report">
         <expression><![CDATA[1]]></expression>
     </variable>
@@ -42,14 +43,14 @@
                      x="455" y="2" width="96" height="14" fontName="Arial" fontSize="9.0"
                      bold="true" hTextAlign="Center" forecolor="#C62828">
                 <expression><![CDATA[$F{current_status}]]></expression>
-                <printWhenExpression><![CDATA[$F{current_status}.equals("Vago")]]></printWhenExpression>
+                <printWhenExpression><![CDATA[$F{is_vacant}]]></printWhenExpression>
             </element>
             <!-- Status: Ocupado (green) -->
             <element kind="textField" uuid="d3000002-0000-0000-0000-000000000010"
                      x="455" y="2" width="96" height="14" fontName="Arial" fontSize="9.0"
                      bold="true" hTextAlign="Center" forecolor="#2E7D32">
                 <expression><![CDATA[$F{current_status}]]></expression>
-                <printWhenExpression><![CDATA[!$F{current_status}.equals("Vago")]]></printWhenExpression>
+                <printWhenExpression><![CDATA[!$F{is_vacant}]]></printWhenExpression>
             </element>
             <!-- Bottom divider line -->
             <element kind="line" uuid="d3000002-0000-0000-0000-000000000007"

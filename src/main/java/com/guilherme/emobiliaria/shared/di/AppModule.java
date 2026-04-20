@@ -17,6 +17,8 @@ import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import jakarta.inject.Singleton;
 
 import javax.sql.DataSource;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class AppModule extends AbstractModule {
 
@@ -40,5 +42,11 @@ public class AppModule extends AbstractModule {
   @Singleton
   GuiceFxmlLoader provideGuiceFxmlLoader(Injector injector) {
     return new GuiceFxmlLoader(injector);
+  }
+
+  @Provides
+  @Singleton
+  ResourceBundle provideResourceBundle() {
+    return ResourceBundle.getBundle("messages", Locale.getDefault(), AppModule.class.getModule());
   }
 }

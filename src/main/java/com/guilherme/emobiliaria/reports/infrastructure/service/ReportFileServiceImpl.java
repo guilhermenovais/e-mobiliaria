@@ -22,22 +22,23 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class ReportFileServiceImpl implements ReportFileService {
 
-  private static final String[] PT_MONTHS =
-      {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
   private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
   private static final Locale PT_BR = Locale.forLanguageTag("pt-BR");
 
   private final PdfGenerationService pdfGenerationService;
   private final ChartGenerator chartGenerator;
+  private final ResourceBundle bundle;
 
   @Inject
   public ReportFileServiceImpl(PdfGenerationService pdfGenerationService,
-      ChartGenerator chartGenerator) {
+      ChartGenerator chartGenerator, ResourceBundle bundle) {
     this.pdfGenerationService = pdfGenerationService;
     this.chartGenerator = chartGenerator;
+    this.bundle = bundle;
   }
 
   @Override
@@ -61,9 +62,10 @@ public class ReportFileServiceImpl implements ReportFileService {
     List<PropertyInflationLagRowBean> lagRows = buildPropertyLagRows(data);
 
     return pdfGenerationService.generatePdf(
-        new RentEvolutionTemplate(portfolioInflationChart, portfolioGapChart, propertyCharts,
-            lagRows, generationDate(), periodLabel(data.months()), kpis.statusHeadline(),
-            kpis.gapVsIpca(), kpis.gapVsIgpm(), kpis.nominalGrowth(), kpis.realGrowth()));
+        new RentEvolutionTemplate(bundle, portfolioInflationChart, portfolioGapChart,
+            propertyCharts, lagRows, generationDate(), periodLabel(data.months()),
+            kpis.statusHeadline(), kpis.gapVsIpca(), kpis.gapVsIgpm(), kpis.nominalGrowth(),
+            kpis.realGrowth()));
   }
 
   @Override
@@ -75,19 +77,22 @@ public class ReportFileServiceImpl implements ReportFileService {
     BufferedImage heatmapChart =
         chartGenerator.vacancyHeatmap(data.months(), data.propertyHistories());
 
-    List<VacancyTableRowBean> tableRows =
-        data.vacancyTableRows().stream().map(VacancyTableRowBean::new).toList();
+    String vacantLabel = bundle.getString("pdf.status.vacant");
+    String occupiedLabel = bundle.getString("pdf.status.occupied");
+    List<VacancyTableRowBean> tableRows = data.vacancyTableRows().stream()
+        .map(row -> new VacancyTableRowBean(row, vacantLabel, occupiedLabel)).toList();
 
     int totalProperties = data.totalProperties();
     int lastOccupied =
         data.months().isEmpty() ? 0 : data.occupiedCounts().get(data.occupiedCounts().size() - 1);
     double currentOccPct = totalProperties > 0 ? lastOccupied * 100.0 / totalProperties : 0.0;
 
-    String longestStreakLabel =
-        data.longestVacancyStreakMonths() > 0 ? data.longestVacancyStreakMonths() + " meses" : "—";
+    String longestStreakLabel = data.longestVacancyStreakMonths() > 0 ?
+        data.longestVacancyStreakMonths() + bundle.getString("pdf.months_suffix") :
+        "—";
 
     return pdfGenerationService.generatePdf(
-        new OccupationRateTemplate(trendChart, volumeChart, heatmapChart, generationDate(),
+        new OccupationRateTemplate(bundle, trendChart, volumeChart, heatmapChart, generationDate(),
             periodLabel(data.months()), String.format("%.0f%%", currentOccPct),
             String.valueOf(data.currentVacancyCount()),
             String.format("%.1f%%", data.avgVacancyRate()), longestStreakLabel,
@@ -103,11 +108,13 @@ public class ReportFileServiceImpl implements ReportFileService {
       return "";
     YearMonth first = months.get(0);
     YearMonth last = months.get(months.size() - 1);
-    return monthLabel(first) + " a " + monthLabel(last);
+    return monthLabel(first) + bundle.getString("pdf.period_separator") + monthLabel(last);
   }
 
   private String monthLabel(YearMonth ym) {
-    return PT_MONTHS[ym.getMonthValue() - 1] + "/" + ym.getYear();
+    Locale locale = Locale.getDefault();
+    String month = DateTimeFormatter.ofPattern("MMM", locale).format(ym);
+    return month + "/" + ym.getYear();
   }
 
   private PortfolioBenchmarks buildPortfolioBenchmarks(RentEvolutionData data) {
@@ -147,7 +154,7 @@ public class ReportFileServiceImpl implements ReportFileService {
 
   private PortfolioKpis buildPortfolioKpis(RentEvolutionData data, PortfolioBenchmarks benchmarks) {
     if (data.monthlyTotalCents().isEmpty()) {
-      return new PortfolioKpis("Sem dados no período", "—", "—", "—", "—");
+      return new PortfolioKpis(bundle.getString("pdf.no_data"), "—", "—", "—", "—");
     }
 
     int lastIdx = data.monthlyTotalCents().size() - 1;
@@ -209,12 +216,14 @@ public class ReportFileServiceImpl implements ReportFileService {
       long worstGap = ipcaIsWorst ? gapIpca : gapIgpm;
       double worstGapPct = ipcaIsWorst ? gapIpcaPct : gapIgpmPct;
       String worstRef = ipcaIsWorst ? "IPCA" : "IGP-M";
-      String status = worstGap < 0 ? "Defasado" : "Acima";
+      boolean isLagging = worstGap < 0;
+      String status =
+          isLagging ? bundle.getString("pdf.status.lagging") : bundle.getString("pdf.status.above");
 
       PropertyInflationLagRowBean row =
           new PropertyInflationLagRowBean(history.propertyName(), formatCurrency(currentRent),
               formatGap(gapIpca, gapIpcaPct), formatGap(gapIgpm, gapIgpmPct),
-              worstRef + " " + formatGap(worstGap, worstGapPct), status);
+              worstRef + " " + formatGap(worstGap, worstGapPct), status, isLagging);
       metrics.add(new PropertyLagMetric(worstGap, history.propertyName(), row));
     }
 
@@ -225,15 +234,15 @@ public class ReportFileServiceImpl implements ReportFileService {
 
   private String statusHeadline(long gapIpca, long gapIgpm) {
     if (gapIpca >= 0 && gapIgpm >= 0) {
-      return "Portfólio acima da inflação (IPCA e IGP-M)";
+      return bundle.getString("pdf.status.portfolio_above_both");
     }
     if (gapIpca < 0 && gapIgpm < 0) {
-      return "Portfólio abaixo da inflação (IPCA e IGP-M)";
+      return bundle.getString("pdf.status.portfolio_below_both");
     }
     if (gapIpca >= 0) {
-      return "Portfólio acima do IPCA e abaixo do IGP-M";
+      return bundle.getString("pdf.status.portfolio_above_ipca_below_igpm");
     }
-    return "Portfólio abaixo do IPCA e acima do IGP-M";
+    return bundle.getString("pdf.status.portfolio_below_ipca_above_igpm");
   }
 
   private String formatGap(long gapCents, double gapPct) {

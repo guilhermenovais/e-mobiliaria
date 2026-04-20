@@ -14,16 +14,36 @@
     <parameter name="longest_streak_property" forPrompting="false" class="java.lang.String"/>
     <parameter name="vacancy_table_rows" forPrompting="false"
                class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+    <parameter name="lbl_title" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_generated_on" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_period_prefix" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_page_prefix" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_occupation" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_vacant_units" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_avg_vacancy" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_kpi_longest_streak" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_chart_trend" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_chart_volume" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_heatmap_title" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_legend_occupied" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_legend_vacant" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_section_highest_vacancy" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_property" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_vacant_months" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_longest_seq" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_last_contract" forPrompting="false" class="java.lang.String"/>
+    <parameter name="lbl_col_status" forPrompting="false" class="java.lang.String"/>
+    <parameter name="app_name" forPrompting="false" class="java.lang.String"/>
     <query language="sql"><![CDATA[]]></query>
     <background splitType="Stretch"/>
     <pageHeader height="40">
         <element kind="textField" uuid="2a000001-0000-0000-0000-000000000001" x="0" y="6"
                  width="200" height="18" fontName="Arial" fontSize="11.0" bold="true">
-            <expression><![CDATA["e-Mobiliária"]]></expression>
+            <expression><![CDATA[$P{app_name}]]></expression>
         </element>
         <element kind="textField" uuid="2a000001-0000-0000-0000-000000000002" x="300" y="6"
                  width="255" height="18" fontName="Arial" fontSize="9.0" hTextAlign="Right" forecolor="#888888">
-            <expression><![CDATA["Gerado em " + $P{generation_date}]]></expression>
+            <expression><![CDATA[$P{lbl_generated_on} + " " + $P{generation_date}]]></expression>
         </element>
         <element kind="line" uuid="2a000001-0000-0000-0000-000000000003" x="0" y="36"
                  width="555" height="1">
@@ -37,12 +57,12 @@
         </element>
         <element kind="textField" uuid="2b000001-0000-0000-0000-000000000002" x="0" y="6"
                  width="300" height="14" fontName="Arial" fontSize="9.0" forecolor="#888888">
-            <expression><![CDATA["Período: " + $P{period}]]></expression>
+            <expression><![CDATA[$P{lbl_period_prefix} + $P{period}]]></expression>
         </element>
         <element kind="textField" uuid="2b000001-0000-0000-0000-000000000003" x="390" y="6"
                  width="145" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
                  forecolor="#888888">
-            <expression><![CDATA["Pág. " + $V{PAGE_NUMBER} + " / "]]></expression>
+            <expression><![CDATA[$P{lbl_page_prefix} + $V{PAGE_NUMBER} + " / "]]></expression>
         </element>
         <element kind="textField" uuid="2b000001-0000-0000-0000-000000000004" x="535" y="6"
                  width="20" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Left"
@@ -58,16 +78,16 @@
         <element kind="textField" uuid="c1000001-0000-0000-0000-000000000001" positionType="Float"
                  x="0" y="0" width="555" height="28" fontName="Arial" fontSize="16.0" bold="true"
                  underline="true" hTextAlign="Center">
-            <expression><![CDATA["Taxas de Ocupação"]]></expression>
+            <expression><![CDATA[$P{lbl_title}]]></expression>
         </element>
         <element kind="textField" uuid="c1000001-0000-0000-0000-000000000002" positionType="Float"
                  x="0" y="30" width="555" height="14" fontName="Arial" fontSize="9.0"
                  hTextAlign="Center" forecolor="#555555">
-            <expression><![CDATA["Período: " + $P{period}]]></expression>
+            <expression><![CDATA[$P{lbl_period_prefix} + $P{period}]]></expression>
         </element>
 
         <!-- KPI cards row (y=52) height=72 each -->
-        <!-- Card 1: Ocupação Atual -->
+        <!-- Card 1: Current Occupation -->
         <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000001" positionType="Float"
                  x="0" y="52" width="129" height="72" radius="4" forecolor="#E3F2FD" backcolor="#E3F2FD">
             <pen lineWidth="1.0" lineColor="#BBDEFB"/>
@@ -75,7 +95,7 @@
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000002" positionType="Float"
                  x="2" y="56" width="125" height="12" fontName="Arial" fontSize="7.5"
                  hTextAlign="Center" vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Ocupação Atual"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_occupation}]]></expression>
         </element>
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000003" positionType="Float"
                  x="2" y="72" width="125" height="36" fontName="Arial" fontSize="18.0" bold="true"
@@ -83,7 +103,7 @@
             <expression><![CDATA[$P{current_occupation_pct}]]></expression>
         </element>
 
-        <!-- Card 2: Imóveis Vagos -->
+        <!-- Card 2: Vacant Properties -->
         <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000004" positionType="Float"
                  x="139" y="52" width="129" height="72" radius="4" forecolor="#FFF3E0" backcolor="#FFF3E0">
             <pen lineWidth="1.0" lineColor="#FFE0B2"/>
@@ -91,7 +111,7 @@
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000005" positionType="Float"
                  x="141" y="56" width="125" height="12" fontName="Arial" fontSize="7.5"
                  hTextAlign="Center" vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Imóveis Vagos"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_vacant_units}]]></expression>
         </element>
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000006" positionType="Float"
                  x="141" y="72" width="125" height="36" fontName="Arial" fontSize="18.0" bold="true"
@@ -99,7 +119,7 @@
             <expression><![CDATA[$P{current_vacant_units}]]></expression>
         </element>
 
-        <!-- Card 3: Vacância Média -->
+        <!-- Card 3: Average Vacancy Rate -->
         <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000007" positionType="Float"
                  x="278" y="52" width="129" height="72" radius="4" forecolor="#FFF3E0" backcolor="#FFF3E0">
             <pen lineWidth="1.0" lineColor="#FFE0B2"/>
@@ -107,7 +127,7 @@
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000008" positionType="Float"
                  x="280" y="56" width="125" height="12" fontName="Arial" fontSize="7.5"
                  hTextAlign="Center" vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Vacância Média"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_avg_vacancy}]]></expression>
         </element>
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000009" positionType="Float"
                  x="280" y="72" width="125" height="36" fontName="Arial" fontSize="18.0" bold="true"
@@ -115,7 +135,7 @@
             <expression><![CDATA[$P{avg_vacancy_rate}]]></expression>
         </element>
 
-        <!-- Card 4: Maior Sequência Vaga -->
+        <!-- Card 4: Longest Vacant Streak -->
         <element kind="rectangle" uuid="c1000002-0000-0000-0000-000000000010" positionType="Float"
                  x="417" y="52" width="138" height="72" radius="4" forecolor="#FCE4EC" backcolor="#FCE4EC">
             <pen lineWidth="1.0" lineColor="#F8BBD0"/>
@@ -123,7 +143,7 @@
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000011" positionType="Float"
                  x="419" y="56" width="134" height="12" fontName="Arial" fontSize="7.5"
                  hTextAlign="Center" vTextAlign="Middle" forecolor="#555555">
-            <expression><![CDATA["Maior Seq. Vaga"]]></expression>
+            <expression><![CDATA[$P{lbl_kpi_longest_streak}]]></expression>
         </element>
         <element kind="textField" uuid="c1000002-0000-0000-0000-000000000012" positionType="Float"
                  x="419" y="71" width="134" height="20" fontName="Arial" fontSize="13.0" bold="true"
@@ -140,7 +160,7 @@
         <element kind="textField" uuid="c1000003-0000-0000-0000-000000000001" positionType="Float"
                  x="0" y="134" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
                  forecolor="#333333">
-            <expression><![CDATA["Tendência de Ocupação e Vacância"]]></expression>
+            <expression><![CDATA[$P{lbl_chart_trend}]]></expression>
         </element>
         <element kind="rectangle" uuid="c1000003-0000-0000-0000-000000000002" positionType="Float"
                  x="0" y="154" width="555" height="276" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
@@ -155,7 +175,7 @@
         <element kind="textField" uuid="c1000004-0000-0000-0000-000000000001" positionType="Float"
                  x="0" y="438" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
                  forecolor="#333333">
-            <expression><![CDATA["Volume de Imóveis Vagos por Mês"]]></expression>
+            <expression><![CDATA[$P{lbl_chart_volume}]]></expression>
         </element>
         <element kind="rectangle" uuid="c1000004-0000-0000-0000-000000000002" positionType="Float"
                  x="0" y="458" width="555" height="246" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
@@ -173,24 +193,24 @@
         <element kind="textField" uuid="c2000001-0000-0000-0000-000000000001" positionType="Float"
                  x="0" y="0" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
                  forecolor="#333333">
-            <expression><![CDATA["Mapa de Vacância por Imóvel"]]></expression>
+            <expression><![CDATA[$P{lbl_heatmap_title}]]></expression>
         </element>
         <!-- Legend -->
         <element kind="rectangle" uuid="c2000001-0000-0000-0000-000000000006" positionType="Float"
                  x="0" y="22" width="12" height="12" forecolor="#42A5F5" backcolor="#42A5F5">
             <pen lineWidth="0.0"/>
         </element>
-        <element kind="staticText" uuid="c2000001-0000-0000-0000-000000000007" positionType="Float"
+        <element kind="textField" uuid="c2000001-0000-0000-0000-000000000007" positionType="Float"
                  x="16" y="22" width="60" height="12" fontName="Arial" fontSize="8.0" forecolor="#555555">
-            <text><![CDATA[Ocupado]]></text>
+            <expression><![CDATA[$P{lbl_legend_occupied}]]></expression>
         </element>
         <element kind="rectangle" uuid="c2000001-0000-0000-0000-000000000008" positionType="Float"
                  x="80" y="22" width="12" height="12" forecolor="#EF5350" backcolor="#EF5350">
             <pen lineWidth="0.0"/>
         </element>
-        <element kind="staticText" uuid="c2000001-0000-0000-0000-000000000009" positionType="Float"
+        <element kind="textField" uuid="c2000001-0000-0000-0000-000000000009" positionType="Float"
                  x="96" y="22" width="60" height="12" fontName="Arial" fontSize="8.0" forecolor="#555555">
-            <text><![CDATA[Vago]]></text>
+            <expression><![CDATA[$P{lbl_legend_vacant}]]></expression>
         </element>
         <element kind="rectangle" uuid="c2000001-0000-0000-0000-000000000002" positionType="Float"
                  x="0" y="38" width="555" height="248" radius="4" forecolor="#E0E0E0" backcolor="#FFFFFF">
@@ -205,36 +225,36 @@
         <element kind="textField" uuid="c2000002-0000-0000-0000-000000000001" positionType="Float"
                  x="0" y="300" width="555" height="18" fontName="Arial" fontSize="12.0" bold="true"
                  forecolor="#333333">
-            <expression><![CDATA["Imóveis com Maior Vacância"]]></expression>
+            <expression><![CDATA[$P{lbl_section_highest_vacancy}]]></expression>
         </element>
         <!-- Table header row -->
         <element kind="rectangle" uuid="c2000002-0000-0000-0000-000000000002" positionType="Float"
                  x="0" y="320" width="555" height="20" forecolor="#E0E0E0" backcolor="#E0E0E0">
             <pen lineWidth="0.0"/>
         </element>
-        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000003" positionType="Float"
+        <element kind="textField" uuid="c2000002-0000-0000-0000-000000000003" positionType="Float"
                  x="4" y="322" width="170" height="16" fontName="Arial" fontSize="9.0" bold="true">
-            <text><![CDATA[Imóvel]]></text>
+            <expression><![CDATA[$P{lbl_col_property}]]></expression>
         </element>
-        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000004" positionType="Float"
+        <element kind="textField" uuid="c2000002-0000-0000-0000-000000000004" positionType="Float"
                  x="178" y="322" width="75" height="16" fontName="Arial" fontSize="9.0" bold="true"
                  hTextAlign="Center">
-            <text><![CDATA[Meses Vagos]]></text>
+            <expression><![CDATA[$P{lbl_col_vacant_months}]]></expression>
         </element>
-        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000005" positionType="Float"
+        <element kind="textField" uuid="c2000002-0000-0000-0000-000000000005" positionType="Float"
                  x="257" y="322" width="80" height="16" fontName="Arial" fontSize="9.0" bold="true"
                  hTextAlign="Center">
-            <text><![CDATA[Maior Seq.]]></text>
+            <expression><![CDATA[$P{lbl_col_longest_seq}]]></expression>
         </element>
-        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000006" positionType="Float"
+        <element kind="textField" uuid="c2000002-0000-0000-0000-000000000006" positionType="Float"
                  x="341" y="322" width="110" height="16" fontName="Arial" fontSize="9.0" bold="true"
                  hTextAlign="Center">
-            <text><![CDATA[Fim Últ. Contrato]]></text>
+            <expression><![CDATA[$P{lbl_col_last_contract}]]></expression>
         </element>
-        <element kind="staticText" uuid="c2000002-0000-0000-0000-000000000007" positionType="Float"
+        <element kind="textField" uuid="c2000002-0000-0000-0000-000000000007" positionType="Float"
                  x="455" y="322" width="96" height="16" fontName="Arial" fontSize="9.0" bold="true"
                  hTextAlign="Center">
-            <text><![CDATA[Status Atual]]></text>
+            <expression><![CDATA[$P{lbl_col_status}]]></expression>
         </element>
         <!-- Table rows via subreport -->
         <element kind="subreport" uuid="c2000002-0000-0000-0000-000000000008" positionType="Float"

@@ -8,6 +8,7 @@
     <field name="gap_vs_igpm" class="java.lang.String"/>
     <field name="worst_gap" class="java.lang.String"/>
     <field name="status" class="java.lang.String"/>
+    <field name="is_lagging" class="java.lang.Boolean"/>
     <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count" resetType="Report">
         <expression><![CDATA[1]]></expression>
     </variable>
@@ -39,13 +40,13 @@
                      x="435" y="3" width="116" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center"
                      bold="true" forecolor="#C62828">
                 <expression><![CDATA[$F{worst_gap}]]></expression>
-                <printWhenExpression><![CDATA[$F{status}.equals("Defasado")]]></printWhenExpression>
+                <printWhenExpression><![CDATA[$F{is_lagging}]]></printWhenExpression>
             </element>
             <element kind="textField" uuid="e8000002-0000-0000-0000-000000000007"
                      x="435" y="3" width="116" height="14" fontName="Arial" fontSize="8.5" hTextAlign="Center"
                      bold="true" forecolor="#2E7D32">
                 <expression><![CDATA[$F{worst_gap}]]></expression>
-                <printWhenExpression><![CDATA[!$F{status}.equals("Defasado")]]></printWhenExpression>
+                <printWhenExpression><![CDATA[!$F{is_lagging}]]></printWhenExpression>
             </element>
             <element kind="line" uuid="e8000002-0000-0000-0000-000000000008"
                      x="0" y="19" width="555" height="1">
