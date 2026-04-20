@@ -5,8 +5,8 @@ import com.guilherme.emobiliaria.person.domain.entity.CivilState;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -47,10 +47,7 @@ class TemplateFormatter {
   // ── Static technical formatters (locale-independent) ──────────────────────
 
   static String formatCurrency(int centavos) {
-    NumberFormat nf = NumberFormat.getInstance(Locale.forLanguageTag("pt-BR"));
-    nf.setMinimumFractionDigits(2);
-    nf.setMaximumFractionDigits(2);
-    return "R$ " + nf.format(centavos / 100.0);
+    return MoneyFormatter.formatWithSymbol(centavos);
   }
 
   static String formatDate(LocalDate date) {

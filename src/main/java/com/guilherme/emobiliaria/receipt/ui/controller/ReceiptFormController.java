@@ -17,6 +17,7 @@ import com.guilherme.emobiliaria.shared.exception.UserFacingException;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -109,6 +110,7 @@ public class ReceiptFormController {
   // ── Mode state ─────────────────────────────────────────────────────────────
   private Long preSelectedContractId = null;
   private ResourceBundle bundle;
+
   @Inject
   public ReceiptFormController(FindAllContractsInteractor findAllContracts,
       FindReceiptByIdInteractor findReceiptById, CreateReceiptInteractor createReceipt,
@@ -189,9 +191,11 @@ public class ReceiptFormController {
     if (text == null || text.isBlank())
       return 0;
     try {
-      double value = Double.parseDouble(text.trim().replace(',', '.'));
+      java.text.NumberFormat nf =
+          java.text.NumberFormat.getNumberInstance(Locale.forLanguageTag("pt-BR"));
+      double value = nf.parse(text.trim()).doubleValue();
       return (int) Math.round(value * 100);
-    } catch (NumberFormatException e) {
+    } catch (java.text.ParseException e) {
       throw new UserFacingException(ERROR_AMOUNT_INVALID, "Invalid receipt amount format: " + text);
     }
   }
@@ -290,8 +294,8 @@ public class ReceiptFormController {
         datePicker.setValue(r.getDate());
         intervalStartPicker.setValue(r.getIntervalStart());
         intervalEndPicker.setValue(r.getIntervalEnd());
-        discountField.setText(String.format("%.2f", r.getDiscount() / 100.0).replace('.', ','));
-        fineField.setText(String.format("%.2f", r.getFine() / 100.0).replace('.', ','));
+        discountField.setText(MoneyFormatter.format(r.getDiscount()));
+        fineField.setText(MoneyFormatter.format(r.getFine()));
         observationTextArea.setText(r.getObservation());
       } else if (preSelectedContractId != null) {
         data.contracts().stream().filter(c -> c.getId().equals(preSelectedContractId)).findFirst()

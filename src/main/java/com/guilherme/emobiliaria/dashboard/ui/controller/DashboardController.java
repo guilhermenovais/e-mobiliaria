@@ -10,6 +10,7 @@ import com.guilherme.emobiliaria.dashboard.domain.entity.UnpaidRentEntry;
 import com.guilherme.emobiliaria.dashboard.domain.entity.UrgencyLevel;
 import com.guilherme.emobiliaria.dashboard.domain.entity.VacantPropertyEntry;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -363,6 +364,6 @@ public class DashboardController {
   }
 
   private String formatCurrency(int cents) {
-    return "R$ " + String.format("%.2f", cents / 100.0).replace('.', ',');
+    return MoneyFormatter.formatWithSymbol(cents);
   }
 }

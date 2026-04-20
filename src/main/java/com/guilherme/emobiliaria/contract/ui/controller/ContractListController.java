@@ -7,12 +7,12 @@ import com.guilherme.emobiliaria.contract.application.input.GenerateContractPdfI
 import com.guilherme.emobiliaria.contract.application.input.SearchContractsInput;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsOutput;
 import com.guilherme.emobiliaria.contract.application.output.SearchContractsOutput;
-import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.application.usecase.DeleteContractInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractPdfInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.SearchContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractStatus;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
@@ -22,6 +22,7 @@ import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -43,7 +44,6 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 
 import java.awt.*;
 import java.io.File;
@@ -96,11 +96,11 @@ public class ContractListController {
   private long totalResults = 0;
   private ResourceBundle bundle;
   private ContractStatus selectedStatus = null;
+
   @Inject
   public ContractListController(FindAllContractsInteractor findAll,
-      SearchContractsInteractor search,
-      DeleteContractInteractor deleteContract, GenerateContractPdfInteractor generatePdf,
-      NavigationService navigationService,
+      SearchContractsInteractor search, DeleteContractInteractor deleteContract,
+      GenerateContractPdfInteractor generatePdf, NavigationService navigationService,
       Provider<ContractWizardController> wizardControllerProvider,
       Provider<ReceiptListController> receiptListControllerProvider) {
     this.findAll = findAll;
@@ -182,14 +182,15 @@ public class ContractListController {
     filterChipsRow.setSpacing(8);
     filterChipsRow.getStyleClass().add("list-filter-row");
 
-    record ChipDef(String label, ContractStatus status) {}
-    java.util.List<ChipDef> chips = java.util.List.of(
-        new ChipDef(bundle.getString("contract.list.filter.all"), null),
-        new ChipDef(bundle.getString("contract.list.filter.active"), ContractStatus.ACTIVE),
-        new ChipDef(bundle.getString("contract.list.filter.expiring"), ContractStatus.EXPIRING),
-        new ChipDef(bundle.getString("contract.list.filter.expired"), ContractStatus.EXPIRED),
-        new ChipDef(bundle.getString("contract.list.filter.inactive"), ContractStatus.INACTIVE)
-    );
+    record ChipDef(String label, ContractStatus status) {
+    }
+    java.util.List<ChipDef> chips =
+        java.util.List.of(new ChipDef(bundle.getString("contract.list.filter.all"), null),
+            new ChipDef(bundle.getString("contract.list.filter.active"), ContractStatus.ACTIVE),
+            new ChipDef(bundle.getString("contract.list.filter.expiring"), ContractStatus.EXPIRING),
+            new ChipDef(bundle.getString("contract.list.filter.expired"), ContractStatus.EXPIRED),
+            new ChipDef(bundle.getString("contract.list.filter.inactive"),
+                ContractStatus.INACTIVE));
 
     java.util.List<Button> chipButtons = new java.util.ArrayList<>();
     for (ChipDef chip : chips) {
@@ -246,7 +247,7 @@ public class ContractListController {
         new TableColumn<>(bundle.getString("contract.list.column.rent"));
     rentCol.setCellValueFactory(c -> {
       int cents = c.getValue().getRent();
-      String formatted = "R$ " + String.format("%.2f", cents / 100.0).replace('.', ',');
+      String formatted = MoneyFormatter.formatWithSymbol(cents);
       return new SimpleStringProperty(formatted);
     });
 
@@ -330,10 +331,12 @@ public class ContractListController {
       protected PagedResult<Contract> call() {
         PaginationInput pagination = new PaginationInput(PAGE_SIZE, (page - 1) * PAGE_SIZE);
         if (query.isBlank()) {
-          FindAllContractsOutput output = findAll.execute(new FindAllContractsInput(pagination, filter));
+          FindAllContractsOutput output =
+              findAll.execute(new FindAllContractsInput(pagination, filter));
           return output.result();
         } else {
-          SearchContractsOutput output = search.execute(new SearchContractsInput(query.trim(), pagination, filter));
+          SearchContractsOutput output =
+              search.execute(new SearchContractsInput(query.trim(), pagination, filter));
           return output.result();
         }
       }
@@ -478,8 +481,7 @@ public class ContractListController {
         new MenuItem(bundle.getString("contract.list.button.generate_pdf"));
     private final MenuItem receiptsItem =
         new MenuItem(bundle.getString("contract.list.button.receipts"));
-    private final MenuItem renewItem =
-        new MenuItem(bundle.getString("contract.list.button.renew"));
+    private final MenuItem renewItem = new MenuItem(bundle.getString("contract.list.button.renew"));
 
     ActionsCell() {
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);

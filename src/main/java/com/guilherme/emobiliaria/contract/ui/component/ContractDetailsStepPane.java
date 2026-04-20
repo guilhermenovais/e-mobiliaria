@@ -1,19 +1,18 @@
 package com.guilherme.emobiliaria.contract.ui.component;
 
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import javafx.geometry.Insets;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ContractDetailsStepPane extends VBox {
@@ -186,10 +185,7 @@ public class ContractDetailsStepPane extends VBox {
   }
 
   private String formatCents(long cents) {
-    NumberFormat formatter = NumberFormat.getNumberInstance(Locale.forLanguageTag("pt-BR"));
-    formatter.setMinimumFractionDigits(2);
-    formatter.setMaximumFractionDigits(2);
-    return formatter.format(cents / 100.0);
+    return MoneyFormatter.format(cents);
   }
 
   public int getPaymentDay() {
@@ -202,17 +198,20 @@ public class ContractDetailsStepPane extends VBox {
     boolean purposeOk = !getPurpose().isBlank();
     purposeError.setVisible(!purposeOk);
     purposeError.setManaged(!purposeOk);
-    if (!purposeOk) valid = false;
+    if (!purposeOk)
+      valid = false;
 
     boolean startOk = startDatePicker.getValue() != null;
     startDateError.setVisible(!startOk);
     startDateError.setManaged(!startOk);
-    if (!startOk) valid = false;
+    if (!startOk)
+      valid = false;
 
     boolean rentOk = getRentCents() >= 0;
     rentError.setVisible(!rentOk);
     rentError.setManaged(!rentOk);
-    if (!rentOk) valid = false;
+    if (!rentOk)
+      valid = false;
 
     return valid;
   }

@@ -3,6 +3,7 @@ package com.guilherme.emobiliaria.contract.ui.component;
 import com.guilherme.emobiliaria.contract.domain.entity.PaymentAccount;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.property.domain.entity.Property;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
@@ -44,14 +45,9 @@ public class ContractReviewStepPane extends VBox {
     detailsSection.getStyleClass().add("wizard-review-section");
     accountSection.getStyleClass().add("wizard-review-section");
 
-    container.getChildren().addAll(
-        propertySection,
-        landlordSection,
-        tenantsSection,
-        guarantorsSection,
-        witnessesSection,
-        detailsSection,
-        accountSection);
+    container.getChildren()
+        .addAll(propertySection, landlordSection, tenantsSection, guarantorsSection,
+            witnessesSection, detailsSection, accountSection);
 
     ScrollPane scroll = new ScrollPane(container);
     scroll.setFitToWidth(true);
@@ -62,41 +58,42 @@ public class ContractReviewStepPane extends VBox {
   }
 
   public void populate(Property property, Person landlord, List<Person> tenants,
-      List<Person> guarantors, List<Person> witnesses,
-      LocalDate startDate, int durationMonths, int rentCents, int paymentDay,
-      String purpose, PaymentAccount account) {
+      List<Person> guarantors, List<Person> witnesses, LocalDate startDate, int durationMonths,
+      int rentCents, int paymentDay, String purpose, PaymentAccount account) {
 
     // Property
     propertySection.getChildren().clear();
-    propertySection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.property")));
+    propertySection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.property")));
     if (property.getAddress() != null) {
       var addr = property.getAddress();
-      String address = addr.getAddress() + ", " + addr.getNumber()
-          + " - " + addr.getNeighborhood() + ", " + addr.getCity()
-          + "/" + (addr.getState() != null ? addr.getState().name() : "");
+      String address =
+          addr.getAddress() + ", " + addr.getNumber() + " - " + addr.getNeighborhood() + ", " + addr.getCity() + "/" + (
+              addr.getState() != null ?
+                  addr.getState().name() :
+                  "");
       propertySection.getChildren().add(sectionValue(address));
     }
     propertySection.getChildren().add(sectionValue("Tipo: " + property.getType()));
 
     // Landlord
     landlordSection.getChildren().clear();
-    landlordSection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.landlord")));
+    landlordSection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.landlord")));
     landlordSection.getChildren().add(sectionValue(ContractLandlordStepPane.displayName(landlord)));
 
     // Tenants
     tenantsSection.getChildren().clear();
-    tenantsSection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.tenants")));
+    tenantsSection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.tenants")));
     for (Person tenant : tenants) {
       tenantsSection.getChildren().add(sectionValue(ContractLandlordStepPane.displayName(tenant)));
     }
 
     // Guarantors
     guarantorsSection.getChildren().clear();
-    guarantorsSection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.guarantors")));
+    guarantorsSection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.guarantors")));
     if (guarantors.isEmpty()) {
       guarantorsSection.getChildren()
           .add(sectionValue(bundle.getString("contract.wizard.step8.section.none")));
@@ -109,8 +106,8 @@ public class ContractReviewStepPane extends VBox {
 
     // Witnesses
     witnessesSection.getChildren().clear();
-    witnessesSection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.witnesses")));
+    witnessesSection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.witnesses")));
     if (witnesses.isEmpty()) {
       witnessesSection.getChildren()
           .add(sectionValue(bundle.getString("contract.wizard.step8.section.none")));
@@ -123,24 +120,23 @@ public class ContractReviewStepPane extends VBox {
 
     // Details
     detailsSection.getChildren().clear();
+    detailsSection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.details")));
     detailsSection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.details")));
+        sectionValue(bundle.getString("contract.wizard.step4.field.purpose") + ": " + purpose));
+    detailsSection.getChildren().add(sectionValue("Data de Início: " + startDate.format(
+        DATE_FMT) + " | Duração: " + durationMonths + " meses"));
     detailsSection.getChildren().add(sectionValue(
-        bundle.getString("contract.wizard.step4.field.purpose") + ": " + purpose));
-    detailsSection.getChildren().add(sectionValue(
-        "Data de Início: " + startDate.format(DATE_FMT) + " | Duração: " + durationMonths + " meses"));
-    detailsSection.getChildren().add(sectionValue(
-        "Valor do Aluguel: R$ " + String.format("%.2f", rentCents / 100.0).replace('.', ',')
-            + " | Dia do Pagamento: " + paymentDay));
+        "Valor do Aluguel: " + MoneyFormatter.formatWithSymbol(
+            rentCents) + " | Dia do Pagamento: " + paymentDay));
 
     // Account
     accountSection.getChildren().clear();
-    accountSection.getChildren().add(
-        sectionHeader(bundle.getString("contract.wizard.step8.section.account")));
+    accountSection.getChildren()
+        .add(sectionHeader(bundle.getString("contract.wizard.step8.section.account")));
     if (account != null) {
       accountSection.getChildren().add(sectionValue(
-          account.getBank() + " - Agência " + account.getBankBranch()
-              + " - Conta " + account.getAccountNumber()));
+          account.getBank() + " - Agência " + account.getBankBranch() + " - Conta " + account.getAccountNumber()));
       if (account.getPixKey() != null && !account.getPixKey().isBlank()) {
         accountSection.getChildren().add(sectionValue("PIX: " + account.getPixKey()));
       }

@@ -11,6 +11,7 @@ import com.guilherme.emobiliaria.shared.pdf.templates.PropertyChartBean;
 import com.guilherme.emobiliaria.shared.pdf.templates.PropertyInflationLagRowBean;
 import com.guilherme.emobiliaria.shared.pdf.templates.RentEvolutionTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.VacancyTableRowBean;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
 
 import java.awt.image.BufferedImage;
@@ -250,18 +251,12 @@ public class ReportFileServiceImpl implements ReportFileService {
   }
 
   private String formatCurrency(long cents) {
-    NumberFormat nf = NumberFormat.getNumberInstance(PT_BR);
-    nf.setMinimumFractionDigits(2);
-    nf.setMaximumFractionDigits(2);
-    return "R$ " + nf.format(cents / 100.0);
+    return MoneyFormatter.formatWithSymbol(cents);
   }
 
   private String formatSignedCurrency(long cents) {
     String sign = cents >= 0 ? "+" : "-";
-    NumberFormat nf = NumberFormat.getNumberInstance(PT_BR);
-    nf.setMinimumFractionDigits(2);
-    nf.setMaximumFractionDigits(2);
-    return "R$ " + sign + nf.format(Math.abs(cents) / 100.0);
+    return "R$ " + sign + MoneyFormatter.format(Math.abs(cents));
   }
 
   private String formatSignedPercent(double value) {

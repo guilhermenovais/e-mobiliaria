@@ -2,15 +2,14 @@ package com.guilherme.emobiliaria.receipt.ui.controller;
 
 import com.google.inject.Provider;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
-import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindAllReceiptsByContractIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInput;
 import com.guilherme.emobiliaria.receipt.application.input.SearchReceiptsInput;
 import com.guilherme.emobiliaria.receipt.application.output.FindAllReceiptsByContractIdOutput;
-import com.guilherme.emobiliaria.receipt.application.output.GenerateReceiptPdfOutput;
 import com.guilherme.emobiliaria.receipt.application.output.SearchReceiptsOutput;
 import com.guilherme.emobiliaria.receipt.application.usecase.DeleteReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindAllReceiptsByContractIdInteractor;
@@ -22,6 +21,7 @@ import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
+import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
@@ -35,17 +35,17 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -76,16 +76,44 @@ public class ReceiptListController {
   private final NavigationService navigationService;
   private final Provider<ReceiptFormController> formControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
+  @FXML
+  private Label titleLabel;
 
+  // ── FXML fields ────────────────────────────────────────────────────────────
+  @FXML
+  private Label subtitleLabel;
+  @FXML
+  private Button newButton;
+  @FXML
+  private TextField searchField;
+  @FXML
+  private Label contractFilterLabel;
+  @FXML
+  private ComboBox<Contract> contractComboBox;
+  @FXML
+  private Button clearFilterButton;
+  @FXML
+  private TableView<Receipt> tableView;
+  @FXML
+  private Label emptyLabel;
+  @FXML
+  private Button prevButton;
+  @FXML
+  private Label pageLabel;
+  @FXML
+  private Button nextButton;
+  private int currentPage = 1;
+
+  // ── State ──────────────────────────────────────────────────────────────────
+  private int totalPages = 1;
+  private long totalResults = 0;
+  private Long preSelectedContractId = null;
+  private ResourceBundle bundle;
   @Inject
-  public ReceiptListController(
-      FindAllReceiptsByContractIdInteractor findAllByContract,
-      SearchReceiptsInteractor searchReceipts,
-      FindAllContractsInteractor findAllContracts,
-      DeleteReceiptInteractor deleteReceipt,
-      GenerateReceiptPdfInteractor generatePdf,
-      NavigationService navigationService,
-      Provider<ReceiptFormController> formControllerProvider,
+  public ReceiptListController(FindAllReceiptsByContractIdInteractor findAllByContract,
+      SearchReceiptsInteractor searchReceipts, FindAllContractsInteractor findAllContracts,
+      DeleteReceiptInteractor deleteReceipt, GenerateReceiptPdfInteractor generatePdf,
+      NavigationService navigationService, Provider<ReceiptFormController> formControllerProvider,
       GuiceFxmlLoader fxmlLoader) {
     this.findAllByContract = findAllByContract;
     this.searchReceipts = searchReceipts;
@@ -97,36 +125,45 @@ public class ReceiptListController {
     this.fxmlLoader = fxmlLoader;
   }
 
-  // ── FXML fields ────────────────────────────────────────────────────────────
-
-  @FXML private Label titleLabel;
-  @FXML private Label subtitleLabel;
-  @FXML private Button newButton;
-  @FXML private TextField searchField;
-  @FXML private Label contractFilterLabel;
-  @FXML private ComboBox<Contract> contractComboBox;
-  @FXML private Button clearFilterButton;
-  @FXML private TableView<Receipt> tableView;
-  @FXML private Label emptyLabel;
-  @FXML private Button prevButton;
-  @FXML private Label pageLabel;
-  @FXML private Button nextButton;
-
-  // ── State ──────────────────────────────────────────────────────────────────
-
-  private int currentPage = 1;
-  private int totalPages = 1;
-  private long totalResults = 0;
-  private Long preSelectedContractId = null;
-  private ResourceBundle bundle;
-
   // ── Pre-selection (called before buildView) ────────────────────────────────
+
+  private static ListCell<Contract> contractCell() {
+    return new ListCell<>() {
+      @Override
+      protected void updateItem(Contract contract, boolean empty) {
+        super.updateItem(contract, empty);
+        if (empty || contract == null) {
+          setText(null);
+        } else {
+          String propertyName =
+              contract.getProperty() != null ? contract.getProperty().getName() : "";
+          String tenantName = (contract.getTenants() != null && !contract.getTenants().isEmpty()) ?
+              contractTenantName(contract) :
+              "";
+          setText(propertyName + (tenantName.isBlank() ? "" : " - " + tenantName));
+        }
+      }
+    };
+  }
+
+  // ── Initialization ─────────────────────────────────────────────────────────
+
+  private static String contractTenantName(Contract contract) {
+    var first = contract.getTenants().get(0);
+    if (first instanceof com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson pp) {
+      return pp.getName();
+    }
+    if (first instanceof com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson jp) {
+      return jp.getCorporateName();
+    }
+    return "";
+  }
+
+  // ── Contract cell factory ──────────────────────────────────────────────────
 
   public void setContractId(Long contractId) {
     this.preSelectedContractId = contractId;
   }
-
-  // ── Initialization ─────────────────────────────────────────────────────────
 
   @FXML
   public void initialize() {
@@ -153,46 +190,22 @@ public class ReceiptListController {
       contractComboBox.getSelectionModel().clearSelection();
       loadPage(1);
     });
-    contractComboBox.getSelectionModel().selectedItemProperty().addListener(
-        (obs, old, selected) -> loadPage(1));
+    contractComboBox.getSelectionModel().selectedItemProperty()
+        .addListener((obs, old, selected) -> loadPage(1));
     searchField.textProperty().addListener((obs, oldVal, newVal) -> {
       currentPage = 1;
       loadPage(1);
     });
-    prevButton.setOnAction(e -> { if (currentPage > 1) loadPage(currentPage - 1); });
-    nextButton.setOnAction(e -> { if (currentPage < totalPages) loadPage(currentPage + 1); });
+    prevButton.setOnAction(e -> {
+      if (currentPage > 1)
+        loadPage(currentPage - 1);
+    });
+    nextButton.setOnAction(e -> {
+      if (currentPage < totalPages)
+        loadPage(currentPage + 1);
+    });
 
     loadContracts();
-  }
-
-  // ── Contract cell factory ──────────────────────────────────────────────────
-
-  private static ListCell<Contract> contractCell() {
-    return new ListCell<>() {
-      @Override
-      protected void updateItem(Contract contract, boolean empty) {
-        super.updateItem(contract, empty);
-        if (empty || contract == null) {
-          setText(null);
-        } else {
-          String propertyName = contract.getProperty() != null ? contract.getProperty().getName() : "";
-          String tenantName = (contract.getTenants() != null && !contract.getTenants().isEmpty())
-              ? contractTenantName(contract) : "";
-          setText(propertyName + (tenantName.isBlank() ? "" : " - " + tenantName));
-        }
-      }
-    };
-  }
-
-  private static String contractTenantName(Contract contract) {
-    var first = contract.getTenants().get(0);
-    if (first instanceof com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson pp) {
-      return pp.getName();
-    }
-    if (first instanceof com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson jp) {
-      return jp.getCorporateName();
-    }
-    return "";
   }
 
   // ── Load contracts into combo box ──────────────────────────────────────────
@@ -202,7 +215,8 @@ public class ReceiptListController {
       @Override
       protected List<Contract> call() {
         return findAllContracts.execute(
-            new FindAllContractsInput(new PaginationInput(LOAD_ALL_LIMIT, 0), ContractFilter.NONE)).result().items();
+                new FindAllContractsInput(new PaginationInput(LOAD_ALL_LIMIT, 0), ContractFilter.NONE))
+            .result().items();
       }
     };
 
@@ -210,9 +224,7 @@ public class ReceiptListController {
       List<Contract> contracts = task.getValue();
       contractComboBox.getItems().setAll(contracts);
       if (preSelectedContractId != null) {
-        contracts.stream()
-            .filter(c -> c.getId().equals(preSelectedContractId))
-            .findFirst()
+        contracts.stream().filter(c -> c.getId().equals(preSelectedContractId)).findFirst()
             .ifPresent(c -> contractComboBox.getSelectionModel().select(c));
       } else {
         loadPage(1);
@@ -227,49 +239,51 @@ public class ReceiptListController {
 
   @SuppressWarnings("unchecked")
   private void buildTableColumns() {
-    TableColumn<Receipt, String> dateCol = new TableColumn<>(
-        bundle.getString("receipt.list.column.date"));
+    TableColumn<Receipt, String> dateCol =
+        new TableColumn<>(bundle.getString("receipt.list.column.date"));
     dateCol.setCellValueFactory(c -> {
       var date = c.getValue().getDate();
       return new SimpleStringProperty(date != null ? date.format(DATE_FMT) : "");
     });
 
-    TableColumn<Receipt, String> periodCol = new TableColumn<>(
-        bundle.getString("receipt.list.column.period"));
+    TableColumn<Receipt, String> periodCol =
+        new TableColumn<>(bundle.getString("receipt.list.column.period"));
     periodCol.setCellValueFactory(c -> {
       var r = c.getValue();
       if (r.getIntervalStart() == null || r.getIntervalEnd() == null) {
         return new SimpleStringProperty("");
       }
-      String period = r.getIntervalStart().format(DATE_FMT) + " a " + r.getIntervalEnd().format(DATE_FMT);
+      String period =
+          r.getIntervalStart().format(DATE_FMT) + " a " + r.getIntervalEnd().format(DATE_FMT);
       return new SimpleStringProperty(period);
     });
 
-    TableColumn<Receipt, String> contractCol = new TableColumn<>(
-        bundle.getString("receipt.list.column.contract"));
+    TableColumn<Receipt, String> contractCol =
+        new TableColumn<>(bundle.getString("receipt.list.column.contract"));
     contractCol.setCellValueFactory(c -> {
       var contract = c.getValue().getContract();
-      String name = (contract != null && contract.getProperty() != null)
-          ? contract.getProperty().getName() : "";
+      String name = (contract != null && contract.getProperty() != null) ?
+          contract.getProperty().getName() :
+          "";
       return new SimpleStringProperty(name);
     });
 
-    TableColumn<Receipt, String> valueCol = new TableColumn<>(
-        bundle.getString("receipt.list.column.value"));
+    TableColumn<Receipt, String> valueCol =
+        new TableColumn<>(bundle.getString("receipt.list.column.value"));
     valueCol.setCellValueFactory(c -> {
       var r = c.getValue();
       int rent = r.getContract() != null ? r.getContract().getRent() : 0;
       int value = rent - r.getDiscount() + r.getFine();
-      String formatted = "R$ " + String.format("%.2f", value / 100.0).replace('.', ',');
+      String formatted = MoneyFormatter.formatWithSymbol(value);
       return new SimpleStringProperty(formatted);
     });
 
-    TableColumn<Receipt, Void> actionsCol = new TableColumn<>(
-        bundle.getString("receipt.list.column.actions"));
+    TableColumn<Receipt, Void> actionsCol =
+        new TableColumn<>(bundle.getString("receipt.list.column.actions"));
     actionsCol.setCellFactory(col -> new ActionsCell());
     actionsCol.setStyle("-fx-alignment: CENTER-RIGHT;");
 
-    for (var col : new TableColumn[]{dateCol, periodCol, contractCol, valueCol, actionsCol}) {
+    for (var col : new TableColumn[] {dateCol, periodCol, contractCol, valueCol, actionsCol}) {
       col.setReorderable(false);
       col.setResizable(true);
     }
@@ -314,8 +328,8 @@ public class ReceiptListController {
               new FindAllReceiptsByContractIdInput(contractId, pagination));
           return output.result();
         } else {
-          SearchReceiptsOutput output = searchReceipts.execute(
-              new SearchReceiptsInput(query.trim(), contractId, pagination));
+          SearchReceiptsOutput output =
+              searchReceipts.execute(new SearchReceiptsInput(query.trim(), contractId, pagination));
           return output.result();
         }
       }
@@ -326,7 +340,8 @@ public class ReceiptListController {
       currentPage = page;
       totalResults = result.total();
       totalPages = (int) Math.ceil((double) result.total() / PAGE_SIZE);
-      if (totalPages < 1) totalPages = 1;
+      if (totalPages < 1)
+        totalPages = 1;
 
       tableView.getItems().setAll(result.items());
       boolean empty = result.items().isEmpty();
@@ -334,7 +349,8 @@ public class ReceiptListController {
       tableView.setManaged(!empty);
       emptyLabel.setVisible(empty);
       emptyLabel.setManaged(empty);
-      if (empty) emptyLabel.setText(bundle.getString("receipt.list.empty"));
+      if (empty)
+        emptyLabel.setText(bundle.getString("receipt.list.empty"));
       updatePagination();
     });
 
@@ -347,7 +363,8 @@ public class ReceiptListController {
   private void updatePagination() {
     long from = totalResults == 0 ? 0 : ((long) (currentPage - 1) * PAGE_SIZE) + 1;
     long to = totalResults == 0 ? 0 : Math.min((long) currentPage * PAGE_SIZE, totalResults);
-    pageLabel.setText(bundle.getString("receipt.list.results_label").formatted(from, to, totalResults));
+    pageLabel.setText(
+        bundle.getString("receipt.list.results_label").formatted(from, to, totalResults));
     prevButton.setDisable(currentPage == 1);
     nextButton.setDisable(currentPage >= totalPages);
   }
@@ -355,11 +372,14 @@ public class ReceiptListController {
   // ── Delete ─────────────────────────────────────────────────────────────────
 
   private void handleDelete(Receipt receipt) {
-    String contractName = (receipt.getContract() != null && receipt.getContract().getProperty() != null)
-        ? receipt.getContract().getProperty().getName() : "";
+    String contractName =
+        (receipt.getContract() != null && receipt.getContract().getProperty() != null) ?
+            receipt.getContract().getProperty().getName() :
+            "";
     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
     alert.setHeaderText(null);
-    alert.setContentText(bundle.getString("receipt.list.delete_confirm.message").formatted(contractName));
+    alert.setContentText(
+        bundle.getString("receipt.list.delete_confirm.message").formatted(contractName));
     alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
     Optional<ButtonType> result = alert.showAndWait();
     boolean confirmed = result.filter(b -> b == ButtonType.OK).isPresent();
@@ -367,7 +387,8 @@ public class ReceiptListController {
   }
 
   void handleDelete(Receipt receipt, boolean confirmed) {
-    if (!confirmed) return;
+    if (!confirmed)
+      return;
 
     Task<Void> task = new Task<>() {
       @Override
@@ -394,7 +415,8 @@ public class ReceiptListController {
     Task<Void> task = new Task<>() {
       @Override
       protected Void call() throws Exception {
-        byte[] pdfBytes = generatePdf.execute(new GenerateReceiptPdfInput(receipt.getId())).pdfBytes();
+        byte[] pdfBytes =
+            generatePdf.execute(new GenerateReceiptPdfInput(receipt.getId())).pdfBytes();
         File tmp = File.createTempFile("recibo_" + receipt.getId() + "_", ".pdf");
         tmp.deleteOnExit();
         try (FileOutputStream fos = new FileOutputStream(tmp)) {
@@ -453,6 +475,7 @@ public class ReceiptListController {
   }
 
   // ── Inner cell class ───────────────────────────────────────────────────────
+
 
   private class ActionsCell extends TableCell<Receipt, Void> {
 
