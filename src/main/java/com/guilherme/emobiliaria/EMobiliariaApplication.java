@@ -22,6 +22,7 @@ import java.util.ResourceBundle;
 public class EMobiliariaApplication extends Application {
 
   static {
+    Locale.setDefault(Locale.forLanguageTag("pt-BR"));
     AppDataPaths.initializeSystemProperties();
   }
 
