@@ -46,13 +46,21 @@ public class ContractPropertyStepPane extends VBox {
     propertyCombo.getStyleClass().add("form-combo");
 
     StringConverter<Property> converter = new StringConverter<>() {
-      @Override public String toString(Property p) { return p == null ? "" : p.getName(); }
-      @Override public Property fromString(String s) { return null; }
+      @Override
+      public String toString(Property p) {
+        return p == null ? "" : p.getName();
+      }
+
+      @Override
+      public Property fromString(String s) {
+        return null;
+      }
     };
     propertyCombo.setConverter(converter);
 
     propertyCombo.setCellFactory(lv -> new ListCell<>() {
-      @Override protected void updateItem(Property p, boolean empty) {
+      @Override
+      protected void updateItem(Property p, boolean empty) {
         super.updateItem(p, empty);
         setText(empty || p == null ? null : p.getName());
       }
@@ -60,13 +68,24 @@ public class ContractPropertyStepPane extends VBox {
 
     // Filter on typing
     propertyCombo.getEditor().textProperty().addListener((obs, old, text) -> {
-      if (propertyCombo.getValue() != null &&
-          converter.toString(propertyCombo.getValue()).equals(text)) return;
+      if (propertyCombo.getValue() != null && converter.toString(propertyCombo.getValue())
+          .equals(text))
+        return;
       String lower = text == null ? "" : text.toLowerCase();
-      FilteredList<Property> filtered = allProperties.filtered(
-          p -> p.getName().toLowerCase().contains(lower));
+      FilteredList<Property> filtered =
+          allProperties.filtered(p -> p.getName().toLowerCase().contains(lower));
       propertyCombo.setItems(filtered);
-      if (!filtered.isEmpty()) propertyCombo.show();
+      if (!filtered.isEmpty())
+        propertyCombo.show();
+    });
+
+    propertyCombo.getEditor().setOnMouseClicked(e -> {
+      if (propertyCombo.getValue() != null) {
+        propertyCombo.getEditor().clear();
+      }
+      propertyCombo.setItems(allProperties);
+      if (!allProperties.isEmpty())
+        propertyCombo.show();
     });
 
     propertyCombo.getSelectionModel().selectedItemProperty().addListener((obs, old, selected) -> {
@@ -105,17 +124,19 @@ public class ContractPropertyStepPane extends VBox {
     selectedHeader.setText(bundle.getString("contract.wizard.step1.selected.header"));
     Address addr = property.getAddress();
     if (addr != null) {
-      String address = addr.getAddress() + ", " + addr.getNumber()
-          + (addr.getComplement() != null && !addr.getComplement().isBlank()
-          ? " " + addr.getComplement() : "")
-          + " - " + addr.getNeighborhood() + ", " + addr.getCity()
-          + "/" + (addr.getState() != null ? addr.getState().name() : "");
+      String address =
+          addr.getAddress() + ", " + addr.getNumber() + (addr.getComplement() != null && !addr.getComplement()
+              .isBlank() ?
+              " " + addr.getComplement() :
+              "") + " - " + addr.getNeighborhood() + ", " + addr.getCity() + "/" + (addr.getState() != null ?
+              addr.getState().name() :
+              "");
       addressRow.setText(bundle.getString("contract.wizard.step1.field.address") + " " + address);
     }
-    typeRow.setText(bundle.getString("contract.wizard.step1.field.type") + " " + property.getType());
-    utilitiesRow.setText("CEMIG: " + property.getCemig()
-        + " | COPASA: " + property.getCopasa()
-        + " | IPTU: " + property.getIptu());
+    typeRow.setText(
+        bundle.getString("contract.wizard.step1.field.type") + " " + property.getType());
+    utilitiesRow.setText(
+        "CEMIG: " + property.getCemig() + " | COPASA: " + property.getCopasa() + " | IPTU: " + property.getIptu());
     detailPanel.setVisible(true);
     detailPanel.setManaged(true);
   }
