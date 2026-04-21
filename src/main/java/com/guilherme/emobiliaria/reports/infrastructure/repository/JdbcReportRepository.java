@@ -68,17 +68,17 @@ public class JdbcReportRepository implements ReportRepository {
 
   private static boolean isOccupied(ContractInterval ci, YearMonth month) {
     YearMonth contractStart = YearMonth.from(ci.start());
-    YearMonth contractEnd = YearMonth.from(ci.end());
-    return !month.isBefore(contractStart) && !month.isAfter(contractEnd);
+    LocalDate endThreshold = month.equals(YearMonth.now()) ? LocalDate.now() : month.atDay(1);
+    return !month.isBefore(contractStart) && ci.end().isAfter(endThreshold);
   }
 
   private static ContractSegment findMostRecentActiveSegment(List<ContractSegment> segments,
       YearMonth month) {
     ContractSegment mostRecent = null;
+    LocalDate endThreshold = month.equals(YearMonth.now()) ? LocalDate.now() : month.atDay(1);
     for (ContractSegment seg : segments) {
       YearMonth segStart = YearMonth.from(seg.start());
-      YearMonth segEnd = YearMonth.from(seg.end());
-      if (!month.isBefore(segStart) && !month.isAfter(segEnd)) {
+      if (!month.isBefore(segStart) && !seg.end().isBefore(endThreshold)) {
         if (mostRecent == null || seg.start().isAfter(mostRecent.start())) {
           mostRecent = seg;
         }
@@ -194,9 +194,12 @@ public class JdbcReportRepository implements ReportRepository {
       throws SQLException {
     String sql = """
         SELECT p.id AS property_id, c.start_date, c.rent,
-               DATEADD('MONTH',
-                 CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
-                 c.start_date) AS end_date
+               CASE WHEN c.rescinded_at IS NOT NULL
+                    THEN c.rescinded_at
+                    ELSE DATEADD('MONTH',
+                           CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
+                           c.start_date)
+               END AS end_date
         FROM contracts c
         JOIN properties p ON p.id = c.property_id
         ORDER BY p.id, c.start_date
@@ -229,9 +232,12 @@ public class JdbcReportRepository implements ReportRepository {
   private List<PropertyRentHistory> loadPropertyRentHistories(Connection conn) throws SQLException {
     String sql = """
         SELECT p.name AS property_name, c.start_date, c.rent AS initial_rent,
-               DATEADD('MONTH',
-                 CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
-                 c.start_date) AS end_date
+               CASE WHEN c.rescinded_at IS NOT NULL
+                    THEN c.rescinded_at
+                    ELSE DATEADD('MONTH',
+                           CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
+                           c.start_date)
+               END AS end_date
         FROM contracts c
         JOIN properties p ON p.id = c.property_id
         ORDER BY p.name, c.start_date
@@ -296,9 +302,12 @@ public class JdbcReportRepository implements ReportRepository {
     String sql = """
         SELECT p.id,
                c.start_date,
-               DATEADD('MONTH',
-                 CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
-                 c.start_date) AS end_date
+               CASE WHEN c.rescinded_at IS NOT NULL
+                    THEN c.rescinded_at
+                    ELSE DATEADD('MONTH',
+                           CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
+                           c.start_date)
+               END AS end_date
         FROM contracts c
         JOIN properties p ON p.id = c.property_id
         """;
@@ -323,9 +332,12 @@ public class JdbcReportRepository implements ReportRepository {
     String sql = """
         SELECT p.id AS property_id, p.name AS property_name,
                c.start_date,
-               DATEADD('MONTH',
-                 CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
-                 c.start_date) AS end_date
+               CASE WHEN c.rescinded_at IS NOT NULL
+                    THEN c.rescinded_at
+                    ELSE DATEADD('MONTH',
+                           CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
+                           c.start_date)
+               END AS end_date
         FROM properties p
         LEFT JOIN contracts c ON c.property_id = p.id
         ORDER BY p.name

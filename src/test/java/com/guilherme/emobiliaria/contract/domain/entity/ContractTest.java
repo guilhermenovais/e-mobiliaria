@@ -18,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -301,6 +302,58 @@ class ContractTest {
 
 
   @Nested
+  class Rescind {
+
+    @Test
+    @DisplayName("When rescission date is null, should throw BusinessException")
+    void shouldThrowWhenRescissionDateIsNull() {
+      Contract contract = validContract();
+      BusinessException ex = assertThrows(BusinessException.class, () -> contract.rescind(null));
+      assertEquals(ErrorMessage.Contract.RESCISSION_DATE_NULL, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("When rescission date is before start date, should throw BusinessException")
+    void shouldThrowWhenRescissionDateIsBeforeStartDate() {
+      Contract contract = validContract();
+      BusinessException ex = assertThrows(BusinessException.class,
+          () -> contract.rescind(VALID_START_DATE.minusDays(1)));
+      assertEquals(ErrorMessage.Contract.RESCISSION_DATE_BEFORE_START, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("When rescission date is after planned end date, should throw BusinessException")
+    void shouldThrowWhenRescissionDateIsAfterPlannedEndDate() {
+      Contract contract = validContract();
+      BusinessException ex = assertThrows(BusinessException.class,
+          () -> contract.rescind(contract.getPlannedEndDate().plusDays(1)));
+      assertEquals(ErrorMessage.Contract.RESCISSION_DATE_AFTER_END, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("When contract is already rescinded, should throw BusinessException")
+    void shouldThrowWhenContractIsAlreadyRescinded() {
+      Contract contract = validContract();
+      contract.rescind(contract.getPlannedEndDate().minusDays(5));
+      BusinessException ex = assertThrows(BusinessException.class,
+          () -> contract.rescind(contract.getPlannedEndDate().minusDays(1)));
+      assertEquals(ErrorMessage.Contract.ALREADY_RESCINDED, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("When rescission date is valid, should set rescindedAt")
+    void shouldSetRescindedAtWhenRescissionDateIsValid() {
+      Contract contract = validContract();
+      LocalDate rescissionDate = contract.getPlannedEndDate().minusDays(10);
+
+      assertDoesNotThrow(() -> contract.rescind(rescissionDate));
+
+      assertNotNull(contract.getRescindedAt());
+      assertEquals(rescissionDate, contract.getRescindedAt());
+    }
+  }
+
+  @Nested
   class ResolveStatus {
 
     private Contract contractWithId(long id, LocalDate startDate, Period duration) {
@@ -351,6 +404,17 @@ class ContractTest {
       contract.resolveStatus(1L);
 
       assertEquals(ContractStatus.EXPIRED, contract.getStatus());
+    }
+
+    @Test
+    @DisplayName("When contract has rescindedAt, should be RESCINDED regardless of latest id")
+    void shouldBeRescindedWhenRescindedAtIsPresent() {
+      Contract contract = contractWithId(1L, LocalDate.of(2025, 1, 1), Period.ofMonths(12));
+      contract.setRescindedAt(LocalDate.of(2025, 6, 1));
+
+      contract.resolveStatus(2L);
+
+      assertEquals(ContractStatus.RESCINDED, contract.getStatus());
     }
   }
 }

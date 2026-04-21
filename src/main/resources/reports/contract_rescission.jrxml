@@ -1,0 +1,29 @@
+<!-- Created with Jaspersoft Studio version 7.0.3.final using JasperReports Library version 7.0.3-41034ca841d452f3305ba55b9042260aaa1ab5dd  -->
+<jasperReport name="contract_rescission" language="java" pageWidth="595" pageHeight="842" columnWidth="555"
+              leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              uuid="2ae7d4b1-c9bf-4e92-8b3b-1ff42a269bd9">
+    <parameter name="notice_title" class="java.lang.String"/>
+    <parameter name="notice_text" class="java.lang.String"/>
+    <parameter name="city_and_date_text" class="java.lang.String"/>
+    <parameter name="signing_texts" class="net.sf.jasperreports.engine.data.JRBeanCollectionDataSource"/>
+    <title height="190" splitType="Stretch">
+        <element kind="textField" uuid="bf6a5e80-468d-4f18-9f22-fdf66d3f7fb0" positionType="Float" x="30" y="0"
+                 width="499" height="30" fontName="Arial" fontSize="20.0" textAdjust="StretchHeight" bold="true"
+                 underline="true" hTextAlign="Center">
+            <expression><![CDATA[$P{notice_title}]]></expression>
+        </element>
+        <element kind="textField" uuid="26d9ad33-730d-4b4a-8af8-b2b7b147696c" positionType="Float" x="30" y="48"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" hTextAlign="Justified">
+            <expression><![CDATA[$P{notice_text}]]></expression>
+        </element>
+        <element kind="textField" uuid="1124cc63-e9ef-4fb2-80e4-ef1ffc03c24d" positionType="Float" x="30" y="80"
+                 width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true" hTextAlign="Center">
+            <expression><![CDATA[$P{city_and_date_text}]]></expression>
+        </element>
+        <element kind="subreport" uuid="2eb59644-e5fb-40ce-a0f8-df47c47f7388" positionType="Float" x="30" y="114"
+                 width="499" height="60">
+            <dataSourceExpression><![CDATA[$P{signing_texts}]]></dataSourceExpression>
+            <expression><![CDATA["reports/tenants_list.jasper"]]></expression>
+        </element>
+    </title>
+</jasperReport>

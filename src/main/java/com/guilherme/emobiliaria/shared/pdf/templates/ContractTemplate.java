@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -24,6 +25,10 @@ public class ContractTemplate
   private final Contract contract;
   private final ResourceBundle bundle;
   private final TemplateFormatter formatter;
+
+  public ContractTemplate(Contract contract) {
+    this(contract, ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR")));
+  }
 
   public ContractTemplate(Contract contract, ResourceBundle bundle) {
     super("contract");

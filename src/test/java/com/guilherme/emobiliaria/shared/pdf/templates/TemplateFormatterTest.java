@@ -14,10 +14,20 @@ import org.junit.jupiter.params.provider.CsvSource;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TemplateFormatterTest {
+
+  private ResourceBundle bundle() {
+    return ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR"));
+  }
+
+  private TemplateFormatter formatter() {
+    return new TemplateFormatter(bundle());
+  }
 
   private Address validAddress() {
     return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo", BrazilianState.SP);
@@ -66,7 +76,7 @@ class TemplateFormatterTest {
     })
     @DisplayName("When given centavos, should return value in full Portuguese words")
     void shouldReturnValueInFullWords(int centavos, String expected) {
-      assertEquals(expected, TemplateFormatter.formatCurrencyInFull(centavos));
+      assertEquals(expected, formatter().formatCurrencyInFull(centavos));
     }
   }
 
@@ -100,7 +110,7 @@ class TemplateFormatterTest {
     })
     @DisplayName("When given a date, should format in full Portuguese")
     void shouldFormatInFullPortuguese(int month, String expected) {
-      assertEquals(expected, TemplateFormatter.formatDateInFull(LocalDate.of(2026, month, 1)));
+      assertEquals(expected, formatter().formatDateInFull(LocalDate.of(2026, month, 1)));
     }
   }
 
@@ -110,31 +120,31 @@ class TemplateFormatterTest {
     @Test
     @DisplayName("When period has only months, should format as X meses")
     void shouldFormatMonthsOnly() {
-      assertEquals("12 meses", TemplateFormatter.formatPeriod(Period.ofMonths(12)));
+      assertEquals("12 meses", formatter().formatPeriod(Period.ofMonths(12)));
     }
 
     @Test
     @DisplayName("When period has only one month, should use singular form")
     void shouldUseSingularForOneMonth() {
-      assertEquals("1 mês", TemplateFormatter.formatPeriod(Period.ofMonths(1)));
+      assertEquals("1 mês", formatter().formatPeriod(Period.ofMonths(1)));
     }
 
     @Test
     @DisplayName("When period has only years, should format as X anos")
     void shouldFormatYearsOnly() {
-      assertEquals("2 anos", TemplateFormatter.formatPeriod(Period.ofYears(2)));
+      assertEquals("2 anos", formatter().formatPeriod(Period.ofYears(2)));
     }
 
     @Test
     @DisplayName("When period has only one year, should use singular form")
     void shouldUseSingularForOneYear() {
-      assertEquals("1 ano", TemplateFormatter.formatPeriod(Period.ofYears(1)));
+      assertEquals("1 ano", formatter().formatPeriod(Period.ofYears(1)));
     }
 
     @Test
     @DisplayName("When period has years and months, should format both")
     void shouldFormatYearsAndMonths() {
-      assertEquals("1 ano e 6 meses", TemplateFormatter.formatPeriod(Period.of(1, 6, 0)));
+      assertEquals("1 ano e 6 meses", formatter().formatPeriod(Period.of(1, 6, 0)));
     }
   }
 

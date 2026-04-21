@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -20,11 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ReportFileServiceImplTest {
 
+  private ResourceBundle bundle() {
+    return ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR"));
+  }
+
   @Test
   @DisplayName("Rent evolution report should compute inflation KPIs and rank biggest lag first")
   void shouldComputeInflationKpisAndRanking() {
     CapturingPdfGenerationService pdfService = new CapturingPdfGenerationService();
-    ReportFileServiceImpl service = new ReportFileServiceImpl(pdfService, new ChartGenerator());
+    ReportFileServiceImpl service =
+        new ReportFileServiceImpl(pdfService, new ChartGenerator(bundle()), bundle());
 
     List<YearMonth> months = List.of(YearMonth.of(2026, 1), YearMonth.of(2026, 2));
     PropertyRentHistory propertyA =

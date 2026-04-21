@@ -4,12 +4,18 @@ import com.google.inject.Provider;
 import com.guilherme.emobiliaria.contract.application.input.DeleteContractInput;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
 import com.guilherme.emobiliaria.contract.application.input.GenerateContractPdfInput;
+import com.guilherme.emobiliaria.contract.application.input.GenerateContractRescissionPdfInput;
+import com.guilherme.emobiliaria.contract.application.input.GenerateContractTerminationNoticePdfInput;
+import com.guilherme.emobiliaria.contract.application.input.RescindContractInput;
 import com.guilherme.emobiliaria.contract.application.input.SearchContractsInput;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsOutput;
 import com.guilherme.emobiliaria.contract.application.output.SearchContractsOutput;
 import com.guilherme.emobiliaria.contract.application.usecase.DeleteContractInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractPdfInteractor;
+import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractRescissionPdfInteractor;
+import com.guilherme.emobiliaria.contract.application.usecase.GenerateContractTerminationNoticePdfInteractor;
+import com.guilherme.emobiliaria.contract.application.usecase.RescindContractInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.SearchContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
@@ -48,6 +54,7 @@ import javafx.scene.layout.HBox;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
@@ -64,6 +71,9 @@ public class ContractListController {
   private final SearchContractsInteractor search;
   private final DeleteContractInteractor deleteContract;
   private final GenerateContractPdfInteractor generatePdf;
+  private final RescindContractInteractor rescindContract;
+  private final GenerateContractRescissionPdfInteractor generateRescissionPdf;
+  private final GenerateContractTerminationNoticePdfInteractor generateTerminationNoticePdf;
   private final NavigationService navigationService;
   private final Provider<ContractWizardController> wizardControllerProvider;
   private final Provider<ReceiptListController> receiptListControllerProvider;
@@ -100,13 +110,19 @@ public class ContractListController {
   @Inject
   public ContractListController(FindAllContractsInteractor findAll,
       SearchContractsInteractor search, DeleteContractInteractor deleteContract,
-      GenerateContractPdfInteractor generatePdf, NavigationService navigationService,
+      GenerateContractPdfInteractor generatePdf, RescindContractInteractor rescindContract,
+      GenerateContractRescissionPdfInteractor generateRescissionPdf,
+      GenerateContractTerminationNoticePdfInteractor generateTerminationNoticePdf,
+      NavigationService navigationService,
       Provider<ContractWizardController> wizardControllerProvider,
       Provider<ReceiptListController> receiptListControllerProvider) {
     this.findAll = findAll;
     this.search = search;
     this.deleteContract = deleteContract;
     this.generatePdf = generatePdf;
+    this.rescindContract = rescindContract;
+    this.generateRescissionPdf = generateRescissionPdf;
+    this.generateTerminationNoticePdf = generateTerminationNoticePdf;
     this.navigationService = navigationService;
     this.wizardControllerProvider = wizardControllerProvider;
     this.receiptListControllerProvider = receiptListControllerProvider;
@@ -189,8 +205,9 @@ public class ContractListController {
             new ChipDef(bundle.getString("contract.list.filter.active"), ContractStatus.ACTIVE),
             new ChipDef(bundle.getString("contract.list.filter.expiring"), ContractStatus.EXPIRING),
             new ChipDef(bundle.getString("contract.list.filter.expired"), ContractStatus.EXPIRED),
-            new ChipDef(bundle.getString("contract.list.filter.inactive"),
-                ContractStatus.INACTIVE));
+            new ChipDef(bundle.getString("contract.list.filter.inactive"), ContractStatus.INACTIVE),
+            new ChipDef(bundle.getString("contract.list.filter.rescinded"),
+                ContractStatus.RESCINDED));
 
     java.util.List<Button> chipButtons = new java.util.ArrayList<>();
     for (ChipDef chip : chips) {
@@ -259,7 +276,7 @@ public class ContractListController {
       protected void updateItem(ContractStatus status, boolean empty) {
         super.updateItem(status, empty);
         getStyleClass().removeAll("status-active", "status-expiring", "status-expired",
-            "status-inactive");
+            "status-inactive", "status-rescinded");
         if (empty || status == null) {
           setText(null);
         } else {
@@ -279,6 +296,10 @@ public class ContractListController {
             case INACTIVE -> {
               setText(bundle.getString("contract.list.status.inactive"));
               getStyleClass().add("status-inactive");
+            }
+            case RESCINDED -> {
+              setText(bundle.getString("contract.list.status.rescinded"));
+              getStyleClass().add("status-rescinded");
             }
           }
         }
@@ -418,12 +439,7 @@ public class ContractListController {
       protected Void call() throws Exception {
         byte[] pdfBytes =
             generatePdf.execute(new GenerateContractPdfInput(contract.getId())).pdfBytes();
-        File tmp = File.createTempFile("contrato_" + contract.getId() + "_", ".pdf");
-        tmp.deleteOnExit();
-        try (FileOutputStream fos = new FileOutputStream(tmp)) {
-          fos.write(pdfBytes);
-        }
-        Desktop.getDesktop().open(tmp);
+        openPdf(pdfBytes, "contrato_" + contract.getId() + "_");
         return null;
       }
     };
@@ -440,6 +456,126 @@ public class ContractListController {
       ErrorHandler.handle(task.getException(), bundle);
     });
     new Thread(task).start();
+  }
+
+  private void handleGenerateTerminationNoticePdf(Contract contract, Button btn) {
+    String originalText = btn.getText();
+    ProgressIndicator spinner = new ProgressIndicator();
+    spinner.setMaxSize(16, 16);
+    btn.setGraphic(spinner);
+    btn.setText("");
+    btn.setDisable(true);
+
+    Task<Void> task = new Task<>() {
+      @Override
+      protected Void call() throws Exception {
+        byte[] pdfBytes = generateTerminationNoticePdf.execute(
+            new GenerateContractTerminationNoticePdfInput(contract.getId())).pdfBytes();
+        openPdf(pdfBytes, "encerramento_contrato_" + contract.getId() + "_");
+        return null;
+      }
+    };
+
+    task.setOnSucceeded(e -> {
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
+    });
+    task.setOnFailed(e -> {
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
+    new Thread(task).start();
+  }
+
+  private void handleGenerateRescissionPdf(Contract contract, Button btn) {
+    String originalText = btn.getText();
+    ProgressIndicator spinner = new ProgressIndicator();
+    spinner.setMaxSize(16, 16);
+    btn.setGraphic(spinner);
+    btn.setText("");
+    btn.setDisable(true);
+
+    Task<Void> task = new Task<>() {
+      @Override
+      protected Void call() throws Exception {
+        byte[] pdfBytes =
+            generateRescissionPdf.execute(new GenerateContractRescissionPdfInput(contract.getId()))
+                .pdfBytes();
+        openPdf(pdfBytes, "distrato_" + contract.getId() + "_");
+        return null;
+      }
+    };
+
+    task.setOnSucceeded(e -> {
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
+    });
+    task.setOnFailed(e -> {
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
+    new Thread(task).start();
+  }
+
+  private void handleRescind(Contract contract, Button btn) {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.setHeaderText(null);
+    alert.setContentText(bundle.getString("contract.list.rescind_confirm.message")
+        .formatted(contract.getProperty() != null ? contract.getProperty().getName() : "",
+            LocalDate.now().format(DATE_FMT)));
+    alert.getButtonTypes().setAll(ButtonType.OK, ButtonType.CANCEL);
+    Optional<ButtonType> result = alert.showAndWait();
+    boolean confirmed = result.filter(b -> b == ButtonType.OK).isPresent();
+    if (!confirmed) {
+      return;
+    }
+
+    String originalText = btn.getText();
+    ProgressIndicator spinner = new ProgressIndicator();
+    spinner.setMaxSize(16, 16);
+    btn.setGraphic(spinner);
+    btn.setText("");
+    btn.setDisable(true);
+
+    Task<Void> task = new Task<>() {
+      @Override
+      protected Void call() throws Exception {
+        byte[] pdfBytes =
+            rescindContract.execute(new RescindContractInput(contract.getId(), LocalDate.now()))
+                .pdfBytes();
+        openPdf(pdfBytes, "distrato_" + contract.getId() + "_");
+        return null;
+      }
+    };
+
+    task.setOnSucceeded(e -> {
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
+      loadPage(currentPage);
+    });
+    task.setOnFailed(e -> {
+      btn.setGraphic(null);
+      btn.setText(originalText);
+      btn.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
+    new Thread(task).start();
+  }
+
+  private void openPdf(byte[] pdfBytes, String prefix) throws Exception {
+    File tmp = File.createTempFile(prefix, ".pdf");
+    tmp.deleteOnExit();
+    try (FileOutputStream fos = new FileOutputStream(tmp)) {
+      fos.write(pdfBytes);
+    }
+    Desktop.getDesktop().open(tmp);
   }
 
   private void navigateToCreate() {
@@ -479,6 +615,12 @@ public class ContractListController {
     private final ContextMenu contextMenu = new ContextMenu();
     private final MenuItem pdfItem =
         new MenuItem(bundle.getString("contract.list.button.generate_pdf"));
+    private final MenuItem terminationNoticePdfItem =
+        new MenuItem(bundle.getString("contract.list.button.generate_termination_notice_pdf"));
+    private final String rescindLabel = bundle.getString("contract.list.button.rescind");
+    private final String generateRescissionPdfLabel =
+        bundle.getString("contract.list.button.generate_rescission_pdf");
+    private final MenuItem rescindItem = new MenuItem(rescindLabel);
     private final MenuItem receiptsItem =
         new MenuItem(bundle.getString("contract.list.button.receipts"));
     private final MenuItem renewItem = new MenuItem(bundle.getString("contract.list.button.renew"));
@@ -495,7 +637,8 @@ public class ContractListController {
       deleteBtn.getStyleClass().add("list-row-delete-button");
       moreBtn.getStyleClass().add("list-row-more-button");
 
-      contextMenu.getItems().setAll(pdfItem, receiptsItem, renewItem);
+      contextMenu.getItems()
+          .setAll(pdfItem, terminationNoticePdfItem, rescindItem, receiptsItem, renewItem);
 
       editBtn.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
@@ -509,6 +652,10 @@ public class ContractListController {
       pdfItem.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
         handleGeneratePdf(contract, moreBtn);
+      });
+      terminationNoticePdfItem.setOnAction(e -> {
+        Contract contract = getTableView().getItems().get(getIndex());
+        handleGenerateTerminationNoticePdf(contract, moreBtn);
       });
       receiptsItem.setOnAction(e -> {
         Contract contract = getTableView().getItems().get(getIndex());
@@ -525,7 +672,30 @@ public class ContractListController {
     @Override
     protected void updateItem(Void item, boolean empty) {
       super.updateItem(item, empty);
-      setGraphic(empty ? null : actionsBox);
+      if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+        setGraphic(null);
+        return;
+      }
+      Contract contract = getTableRow().getItem();
+      ContractStatus status = contract.getStatus();
+      if (status == ContractStatus.RESCINDED) {
+        rescindItem.setText(generateRescissionPdfLabel);
+        rescindItem.setDisable(false);
+        rescindItem.setOnAction(e -> {
+          Contract currentContract = getTableView().getItems().get(getIndex());
+          handleGenerateRescissionPdf(currentContract, moreBtn);
+        });
+      } else {
+        rescindItem.setText(rescindLabel);
+        boolean canRescind = status == ContractStatus.ACTIVE || status == ContractStatus.EXPIRING;
+        rescindItem.setDisable(!canRescind);
+        rescindItem.setOnAction(e -> {
+          Contract currentContract = getTableView().getItems().get(getIndex());
+          handleRescind(currentContract, moreBtn);
+        });
+      }
+      renewItem.setDisable(status == ContractStatus.RESCINDED);
+      setGraphic(actionsBox);
     }
   }
 }

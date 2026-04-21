@@ -11,6 +11,12 @@ public class PropertyInflationLagRowBean {
   private final boolean isLagging;
 
   public PropertyInflationLagRowBean(String propertyName, String currentRent, String gapVsIpca,
+      String gapVsIgpm, String worstGap, String status) {
+    this(propertyName, currentRent, gapVsIpca, gapVsIgpm, worstGap, status,
+        "Defasado".equalsIgnoreCase(status) || "Lagging".equalsIgnoreCase(status));
+  }
+
+  public PropertyInflationLagRowBean(String propertyName, String currentRent, String gapVsIpca,
       String gapVsIgpm, String worstGap, String status, boolean isLagging) {
     this.propertyName = propertyName;
     this.currentRent = currentRent;

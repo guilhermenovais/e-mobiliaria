@@ -64,6 +64,7 @@ public class FakeContractRepository extends FakeImplementation implements Contra
     maybeFail();
     List<Contract> all = new ArrayList<>(store.values());
     resolveStatuses(all);
+    all = applyStatusFilter(all, filter);
     long total = all.size();
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     int limit = pagination.limit() != null ? pagination.limit() : all.size();
@@ -91,6 +92,7 @@ public class FakeContractRepository extends FakeImplementation implements Contra
       return matchesProperty || matchesTenant;
     }).toList();
     resolveStatuses(filtered);
+    filtered = applyStatusFilter(filtered, filter);
     long total = filtered.size();
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     int limit = pagination.limit() != null ? pagination.limit() : filtered.size();
@@ -125,5 +127,12 @@ public class FakeContractRepository extends FakeImplementation implements Contra
         c.resolveStatus(latestIdPerProperty.getOrDefault(c.getProperty().getId(), 0L));
       }
     });
+  }
+
+  private List<Contract> applyStatusFilter(List<Contract> contracts, ContractFilter filter) {
+    if (filter == null || filter.status() == null) {
+      return contracts;
+    }
+    return contracts.stream().filter(c -> c.getStatus() == filter.status()).toList();
   }
 }

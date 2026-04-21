@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ReceiptTemplate
@@ -24,6 +25,10 @@ public class ReceiptTemplate
   private final Receipt receipt;
   private final ResourceBundle bundle;
   private final TemplateFormatter formatter;
+
+  public ReceiptTemplate(Receipt receipt) {
+    this(receipt, ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR")));
+  }
 
   public ReceiptTemplate(Receipt receipt, ResourceBundle bundle) {
     super("receipt");

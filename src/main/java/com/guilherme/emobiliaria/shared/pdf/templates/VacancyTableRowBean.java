@@ -8,6 +8,10 @@ public class VacancyTableRowBean {
   private final String vacantLabel;
   private final String occupiedLabel;
 
+  public VacancyTableRowBean(VacancyTableRow row) {
+    this(row, "Vago", "Ocupado");
+  }
+
   public VacancyTableRowBean(VacancyTableRow row, String vacantLabel, String occupiedLabel) {
     this.row = row;
     this.vacantLabel = vacantLabel;

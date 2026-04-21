@@ -37,6 +37,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
                  CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT),
                  start_date) AS end_date
         FROM contracts
+        WHERE rescinded_at IS NULL
       ),
       active_contracts AS (
         SELECT l.id
@@ -216,6 +217,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
                      CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT),
                      start_date) AS end_date
             FROM contracts
+            WHERE rescinded_at IS NULL
           ) ranked ON ranked.id = c.id
           WHERE c.property_id = p.id
             AND ranked.id = ranked.latest_id
@@ -243,6 +245,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
                    CAST(SUBSTRING(duration, 2, LENGTH(duration) - 2) AS INT),
                    start_date) AS end_date
           FROM contracts
+          WHERE rescinded_at IS NULL
         )
         SELECT p.name AS property_name,
                COALESCE(pp.name, jp.corporate_name) AS tenant_name,

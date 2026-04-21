@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class RentEvolutionTemplate extends
@@ -24,6 +25,17 @@ public class RentEvolutionTemplate extends
   private final String kpiGapVsIgpm;
   private final String kpiNominalGrowth;
   private final String kpiRealGrowth;
+
+  public RentEvolutionTemplate(BufferedImage portfolioInflationChart,
+      BufferedImage portfolioGapChart, List<PropertyChartBean> propertyCharts,
+      List<PropertyInflationLagRowBean> propertyInflationLagRows, String generationDate,
+      String period, String kpiStatusHeadline, String kpiGapVsIpca, String kpiGapVsIgpm,
+      String kpiNominalGrowth, String kpiRealGrowth) {
+    this(ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR")),
+        portfolioInflationChart, portfolioGapChart, propertyCharts, propertyInflationLagRows,
+        generationDate, period, kpiStatusHeadline, kpiGapVsIpca, kpiGapVsIgpm, kpiNominalGrowth,
+        kpiRealGrowth);
+  }
 
   public RentEvolutionTemplate(ResourceBundle bundle, BufferedImage portfolioInflationChart,
       BufferedImage portfolioGapChart, List<PropertyChartBean> propertyCharts,

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class OccupationRateTemplate extends
@@ -24,6 +25,17 @@ public class OccupationRateTemplate extends
   private final String longestStreakMonths;
   private final String longestStreakProperty;
   private final List<VacancyTableRowBean> vacancyTableRows;
+
+  public OccupationRateTemplate(BufferedImage trendChart, BufferedImage vacancyVolumeChart,
+      BufferedImage vacancyHeatmapChart, String generationDate, String period,
+      String currentOccupationPct, String currentVacantUnits, String avgVacancyRate,
+      String longestStreakMonths, String longestStreakProperty,
+      List<VacancyTableRowBean> vacancyTableRows) {
+    this(ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR")), trendChart,
+        vacancyVolumeChart, vacancyHeatmapChart, generationDate, period, currentOccupationPct,
+        currentVacantUnits, avgVacancyRate, longestStreakMonths, longestStreakProperty,
+        vacancyTableRows);
+  }
 
   public OccupationRateTemplate(ResourceBundle bundle, BufferedImage trendChart,
       BufferedImage vacancyVolumeChart, BufferedImage vacancyHeatmapChart, String generationDate,

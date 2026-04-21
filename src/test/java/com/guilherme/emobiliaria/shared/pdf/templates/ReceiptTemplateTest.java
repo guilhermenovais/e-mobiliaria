@@ -24,17 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ReceiptTemplateTest {
 
   private Address validAddress() {
-    return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo", BrazilianState.SP);
+    return Address.create("01001000", "Praça da Sé", "1", null, "Sé", "São Paulo",
+        BrazilianState.SP);
   }
 
   private PhysicalPerson validLandlord() {
-    return PhysicalPerson.create("Maria Souza", "Brasileira", CivilState.MARRIED,
-        "Empresária", "529.982.247-25", "RG-9876543", validAddress());
+    return PhysicalPerson.create("Maria Souza", "Brasileira", CivilState.MARRIED, "Empresária",
+        "529.982.247-25", "RG-9876543", validAddress());
   }
 
   private PhysicalPerson validTenant() {
-    return PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
-        "Engenheiro", "529.982.247-25", "MG-1234567", validAddress());
+    return PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
+        "529.982.247-25", "MG-1234567", validAddress());
   }
 
   private Property validProperty() {
@@ -44,14 +45,13 @@ class ReceiptTemplateTest {
 
   private Contract validContract() {
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, "Residencial",
-        PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null),
-        validProperty(), validLandlord(), List.of(validTenant()), List.of(), List.of());
+        PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null), validProperty(),
+        validLandlord(), List.of(validTenant()), List.of(), List.of());
   }
 
   private Receipt validReceipt() {
-    return Receipt.create(
-        LocalDate.of(2026, 3, 10),
-        LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, "Observation", validContract());
+    return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
+        LocalDate.of(2026, 3, 31), 0, 0, "Observation", validContract());
   }
 
   private Receipt receiptWithDiscountAndFine() {
@@ -79,7 +79,7 @@ class ReceiptTemplateTest {
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
       assertEquals(
-          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25 a quantia de R$ 1.500,00 (mil e quinhentos reais)" + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
+          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25, a quantia de R$ 1.500,00 (mil e quinhentos reais)," + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
           params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TEXT));
     }
 
@@ -113,7 +113,7 @@ class ReceiptTemplateTest {
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
       assertEquals(
-          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25 a quantia de R$ 1.450,00 (mil e quatrocentos e cinquenta reais)" + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
+          "<html><body style='font-family: Arial;'>" + "Recebemos de João Silva, CPF sob o n° 529.982.247-25, a quantia de R$ 1.450,00 (mil e quatrocentos e cinquenta reais)," + " referente a aluguel de imóvel sito à Praça da Sé nº 1, Sé, São Paulo-SP, no período de 01/03/26 a 31/03/26." + "</body></html>",
           params.get(ReceiptTemplate.ReceiptParameters.RECEIPT_TEXT));
     }
 
@@ -136,8 +136,7 @@ class ReceiptTemplateTest {
 
       EnumMap<ReceiptTemplate.ReceiptParameters, Object> params = template.getParameters();
 
-      assertEquals("Observation",
-          params.get(ReceiptTemplate.ReceiptParameters.OBSERVATIONS));
+      assertEquals("Observation", params.get(ReceiptTemplate.ReceiptParameters.OBSERVATIONS));
     }
 
     @Test
@@ -152,6 +151,7 @@ class ReceiptTemplateTest {
     }
   }
 
+
   @Nested
   class GetCollections {
 
@@ -160,7 +160,8 @@ class ReceiptTemplateTest {
     void shouldReturnValuesTableRows() {
       ReceiptTemplate template = new ReceiptTemplate(validReceipt());
 
-      EnumMap<ReceiptTemplate.ReceiptCollections, Collection<Object>> collections = template.getCollections();
+      EnumMap<ReceiptTemplate.ReceiptCollections, Collection<Object>> collections =
+          template.getCollections();
 
       assertEquals(1, collections.size());
       List<ReceiptTemplate.ValueRowBean> rows = valuesRows(template);

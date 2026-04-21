@@ -11,4 +11,16 @@ public class FakeContractFileService extends FakeImplementation implements Contr
     maybeFail();
     return DUMMY_PDF_BYTES;
   }
+
+  @Override
+  public byte[] generateRescissionPdf(Contract contract) {
+    maybeFail();
+    return DUMMY_PDF_BYTES;
+  }
+
+  @Override
+  public byte[] generateTerminationNoticePdf(Contract contract) {
+    maybeFail();
+    return DUMMY_PDF_BYTES;
+  }
 }

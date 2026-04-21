@@ -44,6 +44,11 @@ class TemplateFormatter {
     this.bundle = bundle;
   }
 
+  private static TemplateFormatter defaultPtBrFormatter() {
+    return new TemplateFormatter(
+        ResourceBundle.getBundle("messages", Locale.forLanguageTag("pt-BR")));
+  }
+
   // ── Static technical formatters (locale-independent) ──────────────────────
 
   static String formatCurrency(int centavos) {
@@ -91,7 +96,8 @@ class TemplateFormatter {
 
   static String personDescription(Person person) {
     if (person instanceof PhysicalPerson pp) {
-      return pp.getNationality() + ", " + pp.getCivilState() + ", " + pp.getOccupation() + ", CPF " + formatCpf(
+      return pp.getNationality() + ", " + civilStateInPortuguese(
+          pp.getCivilState()) + ", " + pp.getOccupation() + ", CPF " + formatCpf(
           pp.getCpf()) + ", RG " + pp.getIdCardNumber();
     }
     if (person instanceof JuridicalPerson jp) {
@@ -107,6 +113,10 @@ class TemplateFormatter {
     if (person instanceof JuridicalPerson jp)
       return jp.getAddress().getCity();
     throw new IllegalArgumentException("Unknown person type: " + person.getClass());
+  }
+
+  static String civilStateInPortuguese(CivilState civilState) {
+    return defaultPtBrFormatter().civilStateLabel(civilState);
   }
 
   // ── Instance locale-aware formatters ──────────────────────────────────────
@@ -141,7 +151,8 @@ class TemplateFormatter {
     }
     return years + " " + (years == 1 ?
         bundle.getString("formatter.period.year") :
-        bundle.getString("formatter.period.years")) + and + months + " " + (months == 1 ?
+        bundle.getString(
+            "formatter.period.years")) + " " + and + " " + months + " " + (months == 1 ?
         bundle.getString("formatter.period.month") :
         bundle.getString("formatter.period.months"));
   }
@@ -162,7 +173,8 @@ class TemplateFormatter {
     }
     return years + " (" + numberInWords(years) + ") " + (years == 1 ?
         bundle.getString("formatter.period.year") :
-        bundle.getString("formatter.period.years")) + and + months + " (" + numberInWords(
+        bundle.getString(
+            "formatter.period.years")) + " " + and + " " + months + " (" + numberInWords(
         months) + ") " + (months == 1 ?
         bundle.getString("formatter.period.month") :
         bundle.getString("formatter.period.months"));

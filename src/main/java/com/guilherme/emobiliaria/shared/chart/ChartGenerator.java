@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ChartGenerator {
@@ -32,8 +33,13 @@ public class ChartGenerator {
   private static final int CHART_WIDTH = 555;
   private static final int CHART_HEIGHT = 280;
   private static final int RENDER_SCALE = 4;
+  private static final Locale DEFAULT_LOCALE = Locale.forLanguageTag("pt-BR");
 
   private final ResourceBundle bundle;
+
+  public ChartGenerator() {
+    this(ResourceBundle.getBundle("messages", DEFAULT_LOCALE));
+  }
 
   @Inject
   public ChartGenerator(ResourceBundle bundle) {

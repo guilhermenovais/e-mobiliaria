@@ -215,6 +215,10 @@
     -fx-text-fill: #9CA3AF;
 }
 
+.list-table-view .table-cell.status-rescinded {
+    -fx-text-fill: #7C3AED;
+}
+
 .list-table-view .table-row-cell.row-expiring {
     -fx-border-color: #FFBC51;
     -fx-border-width: 1;

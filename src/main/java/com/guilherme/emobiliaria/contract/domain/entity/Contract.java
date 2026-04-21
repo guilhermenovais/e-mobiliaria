@@ -23,6 +23,7 @@ public class Contract {
   private List<Person> guarantors;
   private List<Person> witnesses;
   private ContractStatus status;
+  private LocalDate rescindedAt;
 
   private Contract() {
   }
@@ -42,16 +43,26 @@ public class Contract {
     contract.setTenants(tenants);
     contract.setGuarantors(guarantors);
     contract.setWitnesses(witnesses);
+    contract.setRescindedAt(null);
     return contract;
   }
 
   public static Contract restore(Long id, LocalDate startDate, Period duration, int paymentDay,
       int rent, String purpose, PaymentAccount paymentAccount, Property property, Person landlord,
       List<Person> tenants, List<Person> guarantors, List<Person> witnesses) {
+    return restore(id, startDate, duration, paymentDay, rent, purpose, paymentAccount, property,
+        landlord, tenants, guarantors, witnesses, null);
+  }
+
+  public static Contract restore(Long id, LocalDate startDate, Period duration, int paymentDay,
+      int rent, String purpose, PaymentAccount paymentAccount, Property property, Person landlord,
+      List<Person> tenants, List<Person> guarantors, List<Person> witnesses,
+      LocalDate rescindedAt) {
     Contract contract =
         create(startDate, duration, paymentDay, rent, purpose, paymentAccount, property, landlord,
             tenants, guarantors, witnesses);
     contract.setId(id);
+    contract.setRescindedAt(rescindedAt);
     return contract;
   }
 
@@ -189,7 +200,39 @@ public class Contract {
     this.status = status;
   }
 
+  public LocalDate getRescindedAt() {
+    return rescindedAt;
+  }
+
+  public void setRescindedAt(LocalDate rescindedAt) {
+    this.rescindedAt = rescindedAt;
+  }
+
+  public LocalDate getPlannedEndDate() {
+    return startDate.plus(duration).minusDays(1);
+  }
+
+  public void rescind(LocalDate rescissionDate) {
+    if (rescissionDate == null) {
+      throw new BusinessException(ErrorMessage.Contract.RESCISSION_DATE_NULL);
+    }
+    if (rescindedAt != null) {
+      throw new BusinessException(ErrorMessage.Contract.ALREADY_RESCINDED);
+    }
+    if (rescissionDate.isBefore(startDate)) {
+      throw new BusinessException(ErrorMessage.Contract.RESCISSION_DATE_BEFORE_START);
+    }
+    if (rescissionDate.isAfter(getPlannedEndDate())) {
+      throw new BusinessException(ErrorMessage.Contract.RESCISSION_DATE_AFTER_END);
+    }
+    rescindedAt = rescissionDate;
+  }
+
   public void resolveStatus(long latestContractIdForProperty) {
+    if (rescindedAt != null) {
+      this.status = ContractStatus.RESCINDED;
+      return;
+    }
     LocalDate endDate = startDate.plus(duration);
     LocalDate today = LocalDate.now();
     if (!this.id.equals(latestContractIdForProperty)) {
