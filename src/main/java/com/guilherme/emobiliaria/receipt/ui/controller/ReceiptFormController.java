@@ -192,11 +192,8 @@ public class ReceiptFormController {
       return 0;
     try {
       String normalized = text.trim();
-      if (normalized.matches("^-?\\d+[.]\\d{1,2}$")) {
-        normalized = normalized.replace('.', ',');
-      }
       java.text.NumberFormat nf =
-          java.text.NumberFormat.getNumberInstance(Locale.forLanguageTag("pt-BR"));
+          java.text.NumberFormat.getNumberInstance(Locale.getDefault());
       double value = nf.parse(normalized).doubleValue();
       return (int) Math.round(value * 100);
     } catch (java.text.ParseException e) {

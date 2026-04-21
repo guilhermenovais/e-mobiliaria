@@ -140,6 +140,9 @@
                             <noManPages>true</noManPages>
                             <stripDebug>true</stripDebug>
                             <noHeaderFiles>true</noHeaderFiles>
+                            <options>
+                                <option>-Djava.locale.providers=CLDR,COMPAT</option>
+                            </options>
                         </configuration>
                     </execution>
                 </executions>

@@ -22,7 +22,6 @@ import java.util.ResourceBundle;
 public class EMobiliariaApplication extends Application {
 
   static {
-    System.setProperty("java.locale.providers", "CLDR,COMPAT");
     AppDataPaths.initializeSystemProperties();
   }
 
