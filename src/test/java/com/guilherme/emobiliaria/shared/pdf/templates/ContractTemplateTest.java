@@ -46,9 +46,9 @@ class ContractTemplateTest {
   private Contract buildContract() {
     PaymentAccount account =
         PaymentAccount.create("Banco Inter", "0001", "0518639487", "64514507000146");
-    Property property = Property.create("Escritório Centro", "Sala comercial",
-        "CX 1 INSTALAÇÃO Nº3007687953", "MATRÍCULA Nº103765573", "000920280359002",
-        propertyAddress());
+    Property property =
+        Property.create("Escritório Centro", "Sala comercial", "CX 1 INSTALAÇÃO Nº3007687953",
+            "MATRÍCULA Nº103765573", "000920280359002", propertyAddress());
     return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, "Comercial",
         account, property, landlord(), List.of(tenant()), List.of(), List.of());
   }
@@ -57,9 +57,9 @@ class ContractTemplateTest {
       List<Person> witnesses) {
     PaymentAccount account =
         PaymentAccount.create("Banco Inter", "0001", "0518639487", "64514507000146");
-    Property property = Property.create("Escritório Centro", "Sala comercial",
-        "CX 1 INSTALAÇÃO Nº3007687953", "MATRÍCULA Nº103765573", "000920280359002",
-        propertyAddress());
+    Property property =
+        Property.create("Escritório Centro", "Sala comercial", "CX 1 INSTALAÇÃO Nº3007687953",
+            "MATRÍCULA Nº103765573", "000920280359002", propertyAddress());
     return Contract.create(LocalDate.of(2025, 7, 10), Period.ofMonths(12), 10, 98000, "Comercial",
         account, property, landlord(), tenants, guarantors, witnesses);
   }
@@ -124,14 +124,18 @@ class ContractTemplateTest {
     @DisplayName(
         "When contract has multiple parties of same role, should add ordinals only for repeated role")
     void shouldAddOrdinalsOnlyWhenRoleHasMultipleParties() {
-      PhysicalPerson secondTenant = PhysicalPerson.create("Carlos Nunes", "Brasileiro",
-          CivilState.SINGLE, "Professor", "987.654.321-00", "MG-55555", landlordAddress());
-      PhysicalPerson guarantor = PhysicalPerson.create("Ana Souza", "Brasileira",
-          CivilState.MARRIED, "Médica", "123.456.789-09", "MG-99999", landlordAddress());
-      PhysicalPerson witnessOne = PhysicalPerson.create("Paulo Costa", "Brasileiro",
-          CivilState.SINGLE, "Contador", "111.444.777-35", "MG-11111", landlordAddress());
-      PhysicalPerson witnessTwo = PhysicalPerson.create("Fernanda Alves", "Brasileira",
-          CivilState.DIVORCED, "Arquiteta", "222.333.444-05", "MG-22222", landlordAddress());
+      PhysicalPerson secondTenant =
+          PhysicalPerson.create("Carlos Nunes", "Brasileiro", CivilState.SINGLE, "Professor",
+              "987.654.321-00", "MG-55555", landlordAddress());
+      PhysicalPerson guarantor =
+          PhysicalPerson.create("Ana Souza", "Brasileira", CivilState.MARRIED, "Médica",
+              "123.456.789-09", "MG-99999", landlordAddress());
+      PhysicalPerson witnessOne =
+          PhysicalPerson.create("Paulo Costa", "Brasileiro", CivilState.SINGLE, "Contador",
+              "111.444.777-35", "MG-11111", landlordAddress());
+      PhysicalPerson witnessTwo =
+          PhysicalPerson.create("Fernanda Alves", "Brasileira", CivilState.DIVORCED, "Arquiteta",
+              "222.333.444-05", "MG-22222", landlordAddress());
 
       Contract contract = buildContract(List.of(tenant(), secondTenant), List.of(guarantor),
           List.of(witnessOne, witnessTwo));
@@ -232,7 +236,8 @@ class ContractTemplateTest {
       String cemigText = (String) template.getParameters()
           .get(ContractTemplate.ContractParameters.PROPERTY_CEMIG_TEXT);
 
-      assertEquals("CEMIG: CX 1 INSTALAÇÃO Nº3007687953 - COPASA: MATRÍCULA Nº103765573",
+      assertEquals(
+          "<u><b>CEMIG: CX 1 INSTALAÇÃO Nº3007687953 - COPASA: MATRÍCULA Nº103765573</b></u>",
           cemigText);
     }
 
@@ -244,9 +249,10 @@ class ContractTemplateTest {
       String iptuText = (String) template.getParameters()
           .get(ContractTemplate.ContractParameters.PROPERTY_IPTU_TEXT);
 
-      assertEquals("ÍNDICE CADASTRAL (IPTU): 000920280359002", iptuText);
+      assertEquals("<u><b>ÍNDICE CADASTRAL (IPTU): 000920280359002</b></u>", iptuText);
     }
   }
+
 
   @Nested
   class GetCollections {
@@ -256,7 +262,8 @@ class ContractTemplateTest {
     void shouldReturnTwoSigningEntriesWhenOneLocalordAndOneTenant() {
       ContractTemplate template = new ContractTemplate(buildContract());
 
-      EnumMap<ContractTemplate.ContractCollections, Collection<Object>> collections = template.getCollections();
+      EnumMap<ContractTemplate.ContractCollections, Collection<Object>> collections =
+          template.getCollections();
 
       assertEquals(1, collections.size());
       assertEquals(2, collections.get(ContractTemplate.ContractCollections.SIGNING_TEXTS).size());
@@ -283,24 +290,26 @@ class ContractTemplateTest {
     @DisplayName(
         "When role has multiple signers, should prefix signing text with role label and ordinal")
     void shouldPrefixSigningTextWithRoleAndOrdinalWhenRoleHasMultipleSigners() {
-      PhysicalPerson secondTenant = PhysicalPerson.create("Carlos Nunes", "Brasileiro",
-          CivilState.SINGLE, "Professor", "987.654.321-00", "MG-55555", landlordAddress());
-      PhysicalPerson guarantor = PhysicalPerson.create("Ana Souza", "Brasileira",
-          CivilState.MARRIED, "Médica", "123.456.789-09", "MG-99999", landlordAddress());
-      PhysicalPerson witnessOne = PhysicalPerson.create("Paulo Costa", "Brasileiro",
-          CivilState.SINGLE, "Contador", "111.444.777-35", "MG-11111", landlordAddress());
-      PhysicalPerson witnessTwo = PhysicalPerson.create("Fernanda Alves", "Brasileira",
-          CivilState.DIVORCED, "Arquiteta", "222.333.444-05", "MG-22222", landlordAddress());
+      PhysicalPerson secondTenant =
+          PhysicalPerson.create("Carlos Nunes", "Brasileiro", CivilState.SINGLE, "Professor",
+              "987.654.321-00", "MG-55555", landlordAddress());
+      PhysicalPerson guarantor =
+          PhysicalPerson.create("Ana Souza", "Brasileira", CivilState.MARRIED, "Médica",
+              "123.456.789-09", "MG-99999", landlordAddress());
+      PhysicalPerson witnessOne =
+          PhysicalPerson.create("Paulo Costa", "Brasileiro", CivilState.SINGLE, "Contador",
+              "111.444.777-35", "MG-11111", landlordAddress());
+      PhysicalPerson witnessTwo =
+          PhysicalPerson.create("Fernanda Alves", "Brasileira", CivilState.DIVORCED, "Arquiteta",
+              "222.333.444-05", "MG-22222", landlordAddress());
 
       Contract contract = buildContract(List.of(tenant(), secondTenant), List.of(guarantor),
           List.of(witnessOne, witnessTwo));
       ContractTemplate template = new ContractTemplate(contract);
 
-      List<String> signingTexts = template.getCollections()
-          .get(ContractTemplate.ContractCollections.SIGNING_TEXTS)
-          .stream()
-          .map(text -> ((ContractTemplate.TextBean) text).getText())
-          .toList();
+      List<String> signingTexts =
+          template.getCollections().get(ContractTemplate.ContractCollections.SIGNING_TEXTS).stream()
+              .map(text -> ((ContractTemplate.TextBean) text).getText()).toList();
 
       assertEquals(6, signingTexts.size());
       assertTrue(signingTexts.get(0).startsWith("<b>LOCADOR: "));

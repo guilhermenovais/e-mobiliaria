@@ -37,7 +37,7 @@
         <element kind="textField" uuid="b13dc894-6c05-4590-bacd-6e439998e00c" positionType="Float" x="30" y="104"
                  width="499" height="19" markup="html" textAdjust="StretchHeight" hTextAlign="Justified">
             <expression>
-                <![CDATA[$P{property_type_text} + "<br"  + $P{property_address_text} + "<br"  + $P{property_purpose_text} + "<br"  + $P{contract_rent_text} + "<br"  + $P{property_cemig_text} + "<br"  + $P{property_iptu_text}]]></expression>
+                <![CDATA[$P{property_type_text} + "<br>"  + $P{property_address_text} + "<br>"  + $P{property_purpose_text} + "<br>"  + $P{contract_rent_text} + "<br>"  + $P{property_cemig_text} + "<br>"  + $P{property_iptu_text}]]></expression>
         </element>
         <element kind="textField" uuid="cf0ac724-0afa-411b-8614-1af0d1af6f66" positionType="Float" x="30" y="138"
                  width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true" hTextAlign="Justified">
@@ -46,7 +46,7 @@
         <element kind="textField" uuid="6320183b-3ba1-4526-8bd5-547f623afc97" positionType="Float" x="30" y="162"
                  width="499" height="19" markup="html" textAdjust="StretchHeight" hTextAlign="Justified">
             <expression>
-                <![CDATA[$P{contract_period_text} + "<br"  + $P{contract_start_date_text} + "<br"  + $P{contract_end_date_text} + "<br"  + $P{contract_payment_method_text}]]></expression>
+                <![CDATA[$P{contract_period_text} + "<br>"  + $P{contract_start_date_text} + "<br>"  + $P{contract_end_date_text} + "<br>"  + $P{contract_payment_method_text}]]></expression>
         </element>
         <element kind="textField" uuid="8b5a0f81-be55-4406-bf8d-9f0c64f191ca" positionType="Float" x="30" y="196"
                  width="499" height="19" markup="html" textAdjust="StretchHeight" bold="true" hTextAlign="Justified">

@@ -191,12 +191,22 @@ public class ReceiptFormController {
     if (text == null || text.isBlank())
       return 0;
     try {
-      String normalized = text.trim();
-      java.text.NumberFormat nf =
-          java.text.NumberFormat.getNumberInstance(Locale.getDefault());
-      double value = nf.parse(normalized).doubleValue();
+      String normalized = text.trim().replace(" ", "");
+      int lastComma = normalized.lastIndexOf(',');
+      int lastDot = normalized.lastIndexOf('.');
+
+      if (lastComma >= 0 || lastDot >= 0) {
+        int decimalSeparatorIndex = Math.max(lastComma, lastDot);
+        char decimalSeparator = normalized.charAt(decimalSeparatorIndex);
+        char thousandsSeparator = decimalSeparator == ',' ? '.' : ',';
+
+        normalized = normalized.replace(String.valueOf(thousandsSeparator), "");
+        normalized = normalized.replace(decimalSeparator, '.');
+      }
+
+      double value = Double.parseDouble(normalized);
       return (int) Math.round(value * 100);
-    } catch (java.text.ParseException e) {
+    } catch (NumberFormatException e) {
       throw new UserFacingException(ERROR_AMOUNT_INVALID, "Invalid receipt amount format: " + text);
     }
   }

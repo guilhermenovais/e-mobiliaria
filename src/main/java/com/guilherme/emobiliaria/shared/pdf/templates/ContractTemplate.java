@@ -79,10 +79,10 @@ public class ContractTemplate
     params.put(ContractParameters.CONTRACT_RENT_TEXT,
         bold(bundle.getString("pdf.contract.rent_label") + " ") + TemplateFormatter.formatCurrency(
             contract.getRent()) + " (" + formatter.formatCurrencyInFull(contract.getRent()) + ")");
-    params.put(ContractParameters.PROPERTY_CEMIG_TEXT,
-        "CEMIG: " + property.getCemig() + " - COPASA: " + property.getCopasa());
-    params.put(ContractParameters.PROPERTY_IPTU_TEXT,
-        bundle.getString("pdf.contract.iptu_label") + " " + property.getIptu());
+    params.put(ContractParameters.PROPERTY_CEMIG_TEXT, "<u>" + bold(
+        "CEMIG: " + property.getCemig() + " - COPASA: " + property.getCopasa()) + "</u>");
+    params.put(ContractParameters.PROPERTY_IPTU_TEXT, "<u>" + bold(
+        bundle.getString("pdf.contract.iptu_label") + " " + property.getIptu()) + "</u>");
     params.put(ContractParameters.PERIOD_SECTION_TITLE,
         bundle.getString("pdf.contract.period_section"));
     params.put(ContractParameters.CONTRACT_PERIOD_TEXT, bold(
