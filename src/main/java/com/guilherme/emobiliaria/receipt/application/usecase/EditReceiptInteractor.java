@@ -27,8 +27,13 @@ public class EditReceiptInteractor {
         .orElseThrow(() -> new BusinessException(ErrorMessage.Receipt.NOT_FOUND));
     Contract contract = contractRepository.findById(input.contractId())
         .orElseThrow(() -> new BusinessException(ErrorMessage.Contract.NOT_FOUND));
+    if (receiptRepository.existsByContractAndPaymentDueDate(input.contractId(),
+        input.paymentDueDate(), input.id())) {
+      throw new BusinessException(ErrorMessage.Receipt.DUPLICATE_PAYMENT_DUE_DATE);
+    }
     Receipt updated = receiptRepository.update(
-        Receipt.restore(receipt.getId(), input.date(), input.intervalStart(), input.intervalEnd(),
+        Receipt.restore(receipt.getId(), input.date(), input.paymentDueDate(),
+            input.intervalStart(), input.intervalEnd(),
             input.discount(), input.fine(), input.observation(), contract));
     return new EditReceiptOutput(updated);
   }

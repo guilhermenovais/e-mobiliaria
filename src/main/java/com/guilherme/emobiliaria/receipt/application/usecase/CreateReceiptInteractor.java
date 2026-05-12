@@ -25,8 +25,12 @@ public class CreateReceiptInteractor {
   public CreateReceiptOutput execute(CreateReceiptInput input) {
     Contract contract = contractRepository.findById(input.contractId())
         .orElseThrow(() -> new BusinessException(ErrorMessage.Contract.NOT_FOUND));
-    Receipt receipt = Receipt.create(input.date(), input.intervalStart(), input.intervalEnd(),
-        input.discount(), input.fine(), input.observation(), contract);
+    if (receiptRepository.existsByContractAndPaymentDueDate(input.contractId(),
+        input.paymentDueDate(), null)) {
+      throw new BusinessException(ErrorMessage.Receipt.DUPLICATE_PAYMENT_DUE_DATE);
+    }
+    Receipt receipt = Receipt.create(input.date(), input.paymentDueDate(), input.intervalStart(),
+        input.intervalEnd(), input.discount(), input.fine(), input.observation(), contract);
     Receipt created = receiptRepository.create(receipt);
     return new CreateReceiptOutput(created);
   }

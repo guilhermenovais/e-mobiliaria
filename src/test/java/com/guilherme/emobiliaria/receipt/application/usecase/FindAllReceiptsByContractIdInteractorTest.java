@@ -81,7 +81,7 @@ class FindAllReceiptsByContractIdInteractorTest {
 
   private void createReceipt(Long contractId, LocalDate date) {
     createReceiptInteractor.execute(
-        new CreateReceiptInput(date, date, date.plusDays(29), 0, 0, null, contractId));
+        new CreateReceiptInput(date, date, date, date.plusDays(29), 0, 0, null, contractId));
   }
 
   @Nested

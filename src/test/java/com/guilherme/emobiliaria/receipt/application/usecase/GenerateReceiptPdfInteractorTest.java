@@ -58,9 +58,9 @@ class GenerateReceiptPdfInteractorTest {
     FakeReceiptFileService receiptFileService = new FakeReceiptFileService();
     interactor = new GenerateReceiptPdfInteractor(receiptRepository, receiptFileService);
     createReceiptInteractor = new CreateReceiptInteractor(receiptRepository, contractRepository);
-    createContractInteractor = new CreateContractInteractor(contractRepository,
-        paymentAccountRepository, propertyRepository, physicalPersonRepository,
-        juridicalPersonRepository);
+    createContractInteractor =
+        new CreateContractInteractor(contractRepository, paymentAccountRepository,
+            propertyRepository, physicalPersonRepository, juridicalPersonRepository);
   }
 
   private Address validAddress() {
@@ -69,24 +69,28 @@ class GenerateReceiptPdfInteractorTest {
   }
 
   private Long createContract() {
-    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository)
-        .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
+    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository).execute(
+            new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
-    Property property = Property.create("Apto Centro", "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    Property property =
+        Property.create("Apto Centro", "Apartamento", "1234567890", "0987654321", "IPTU-001",
+            validAddress());
     Long propertyId = propertyRepository.create(property).getId();
-    PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
-        "Engenheiro", "529.982.247-25", "MG-1234567", validAddress());
+    PhysicalPerson person =
+        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
+            "529.982.247-25", "MG-1234567", validAddress());
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
-    return createContractInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
-        List.of(personRef), List.of(), List.of())).contract().getId();
+    return createContractInteractor.execute(
+        new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
+            "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
+            List.of())).contract().getId();
   }
 
   private Long createReceipt(Long contractId) {
-    return createReceiptInteractor.execute(new CreateReceiptInput(LocalDate.of(2026, 3, 1),
-            LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId)).receipt()
+    return createReceiptInteractor.execute(
+            new CreateReceiptInput(LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 15),
+                LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId)).receipt()
         .getId();
   }
 

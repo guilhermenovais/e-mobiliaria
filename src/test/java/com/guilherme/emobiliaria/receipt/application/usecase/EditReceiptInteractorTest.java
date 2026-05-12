@@ -36,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class EditReceiptInteractorTest {
 
+  private static final LocalDate PAYMENT_DUE_DATE_MARCH = LocalDate.of(2026, 3, 15);
+  private static final LocalDate PAYMENT_DUE_DATE_APRIL = LocalDate.of(2026, 4, 15);
   private FakeReceiptRepository receiptRepository;
   private FakeContractRepository contractRepository;
   private FakePaymentAccountRepository paymentAccountRepository;
@@ -55,9 +57,9 @@ class EditReceiptInteractorTest {
     FakeJuridicalPersonRepository juridicalPersonRepository = new FakeJuridicalPersonRepository();
     interactor = new EditReceiptInteractor(receiptRepository, contractRepository);
     createReceiptInteractor = new CreateReceiptInteractor(receiptRepository, contractRepository);
-    createContractInteractor = new CreateContractInteractor(contractRepository,
-        paymentAccountRepository, propertyRepository, physicalPersonRepository,
-        juridicalPersonRepository);
+    createContractInteractor =
+        new CreateContractInteractor(contractRepository, paymentAccountRepository,
+            propertyRepository, physicalPersonRepository, juridicalPersonRepository);
   }
 
   private Address validAddress() {
@@ -66,24 +68,28 @@ class EditReceiptInteractorTest {
   }
 
   private Long createContract() {
-    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository)
-        .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
+    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository).execute(
+            new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
-    Property property = Property.create("Apto Centro", "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    Property property =
+        Property.create("Apto Centro", "Apartamento", "1234567890", "0987654321", "IPTU-001",
+            validAddress());
     Long propertyId = propertyRepository.create(property).getId();
-    PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
-        "Engenheiro", "529.982.247-25", "MG-1234567", validAddress());
+    PhysicalPerson person =
+        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
+            "529.982.247-25", "MG-1234567", validAddress());
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
-    return createContractInteractor.execute(new CreateContractInput(LocalDate.of(2026, 1, 1),
-        Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
-        List.of(personRef), List.of(), List.of())).contract().getId();
+    return createContractInteractor.execute(
+        new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
+            "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
+            List.of())).contract().getId();
   }
 
   private Long createReceipt(Long contractId) {
-    return createReceiptInteractor.execute(new CreateReceiptInput(LocalDate.of(2026, 3, 1),
-            LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId)).receipt()
+    return createReceiptInteractor.execute(
+            new CreateReceiptInput(LocalDate.of(2026, 3, 1), PAYMENT_DUE_DATE_MARCH,
+                LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId)).receipt()
         .getId();
   }
 
@@ -96,9 +102,9 @@ class EditReceiptInteractorTest {
       Long contractId = createContract();
       Long receiptId = createReceipt(contractId);
 
-      EditReceiptOutput output = interactor.execute(new EditReceiptInput(receiptId,
-          LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 500, 100,
-          null, contractId));
+      EditReceiptOutput output = interactor.execute(
+          new EditReceiptInput(receiptId, LocalDate.of(2026, 4, 1), PAYMENT_DUE_DATE_APRIL,
+              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 500, 100, null, contractId));
 
       assertEquals(receiptId, output.receipt().getId());
       assertEquals(LocalDate.of(2026, 4, 1), output.receipt().getDate());
@@ -111,8 +117,8 @@ class EditReceiptInteractorTest {
     void shouldThrowWhenReceiptNotFound() {
       Long contractId = createContract();
 
-      BusinessException ex = assertThrows(BusinessException.class,
-          () -> interactor.execute(new EditReceiptInput(999L, LocalDate.of(2026, 4, 1),
+      BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
+          new EditReceiptInput(999L, LocalDate.of(2026, 4, 1), PAYMENT_DUE_DATE_APRIL,
               LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, contractId)));
 
       assertEquals(ErrorMessage.Receipt.NOT_FOUND, ex.getErrorMessage());
@@ -124,11 +130,54 @@ class EditReceiptInteractorTest {
       Long contractId = createContract();
       Long receiptId = createReceipt(contractId);
 
-      BusinessException ex = assertThrows(BusinessException.class,
-          () -> interactor.execute(new EditReceiptInput(receiptId, LocalDate.of(2026, 4, 1),
+      BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
+          new EditReceiptInput(receiptId, LocalDate.of(2026, 4, 1), PAYMENT_DUE_DATE_APRIL,
               LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, 999L)));
 
       assertEquals(ErrorMessage.Contract.NOT_FOUND, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName(
+        "Changing paymentDueDate to one used by a different receipt throws DUPLICATE_PAYMENT_DUE_DATE")
+    void shouldThrowWhenChangingToDuplicatePaymentDueDate() {
+      Long contractId = createContract();
+      Long receiptId = createReceipt(contractId);
+      createReceiptInteractor.execute(
+          new CreateReceiptInput(LocalDate.of(2026, 4, 1), PAYMENT_DUE_DATE_APRIL,
+              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, contractId));
+
+      BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
+          new EditReceiptInput(receiptId, LocalDate.of(2026, 4, 1), PAYMENT_DUE_DATE_APRIL,
+              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, contractId)));
+
+      assertEquals(ErrorMessage.Receipt.DUPLICATE_PAYMENT_DUE_DATE, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("Editing a receipt to keep its own paymentDueDate does not throw (self-exclusion)")
+    void shouldNotThrowWhenKeepingOwnPaymentDueDate() {
+      Long contractId = createContract();
+      Long receiptId = createReceipt(contractId);
+
+      EditReceiptOutput output = interactor.execute(
+          new EditReceiptInput(receiptId, LocalDate.of(2026, 3, 5), PAYMENT_DUE_DATE_MARCH,
+              LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, null, contractId));
+
+      assertEquals(PAYMENT_DUE_DATE_MARCH, output.receipt().getPaymentDueDate());
+    }
+
+    @Test
+    @DisplayName("Valid paymentDueDate change is persisted correctly")
+    void shouldPersistChangedPaymentDueDate() {
+      Long contractId = createContract();
+      Long receiptId = createReceipt(contractId);
+
+      EditReceiptOutput output = interactor.execute(
+          new EditReceiptInput(receiptId, LocalDate.of(2026, 4, 1), PAYMENT_DUE_DATE_APRIL,
+              LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30), 0, 0, null, contractId));
+
+      assertEquals(PAYMENT_DUE_DATE_APRIL, output.receipt().getPaymentDueDate());
     }
   }
 }

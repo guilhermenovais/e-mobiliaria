@@ -55,31 +55,38 @@
                 <DatePicker fx:id="datePicker" styleClass="form-input" maxWidth="Infinity"/>
             </VBox>
 
-            <!-- Row 1: Período (Início) — full width -->
+            <!-- Row 1: Data de Vencimento — full width -->
             <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2" spacing="4">
+                <Label fx:id="paymentDueDateFieldLabel" styleClass="form-label"/>
+                <ComboBox fx:id="paymentDueDateComboBox" styleClass="form-combo" maxWidth="Infinity"/>
+                <Label fx:id="paymentDueDateInfoLabel" styleClass="form-info-label"/>
+            </VBox>
+
+            <!-- Row 2: Período (Início) — full width -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2" spacing="4">
                 <Label fx:id="intervalStartFieldLabel" styleClass="form-label"/>
                 <DatePicker fx:id="intervalStartPicker" styleClass="form-input" maxWidth="Infinity"/>
             </VBox>
 
-            <!-- Row 2: Período (Fim) — full width -->
-            <VBox GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2" spacing="4">
+            <!-- Row 3: Período (Fim) — full width -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="2" spacing="4">
                 <Label fx:id="intervalEndFieldLabel" styleClass="form-label"/>
                 <DatePicker fx:id="intervalEndPicker" styleClass="form-input" maxWidth="Infinity"/>
             </VBox>
 
-            <!-- Row 3: Desconto (col 0) + Multa (col 1) -->
-            <VBox GridPane.columnIndex="0" GridPane.rowIndex="3" spacing="4">
+            <!-- Row 4: Desconto (col 0) + Multa (col 1) -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="4" spacing="4">
                 <Label fx:id="discountFieldLabel" styleClass="form-label"/>
                 <TextField fx:id="discountField" styleClass="form-input" promptText="0,00"/>
             </VBox>
 
-            <VBox GridPane.columnIndex="1" GridPane.rowIndex="3" spacing="4">
+            <VBox GridPane.columnIndex="1" GridPane.rowIndex="4" spacing="4">
                 <Label fx:id="fineFieldLabel" styleClass="form-label"/>
                 <TextField fx:id="fineField" styleClass="form-input" promptText="0,00"/>
             </VBox>
 
-            <!-- Row 4: Observação — full width -->
-            <VBox GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.columnSpan="2" spacing="4">
+            <!-- Row 5: Observação — full width -->
+            <VBox GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.columnSpan="2" spacing="4">
                 <Label fx:id="observationFieldLabel" styleClass="form-label"/>
                 <TextArea fx:id="observationTextArea" styleClass="form-input" wrapText="true" prefRowCount="3"/>
             </VBox>

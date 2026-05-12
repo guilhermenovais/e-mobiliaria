@@ -180,7 +180,11 @@ public interface ErrorMessage {
 
 
   enum Receipt implements ErrorMessage {
-    DATE_NULL("receipt.date_null", "Date must not be null"), INTERVAL_START_NULL(
+    DATE_NULL("receipt.date_null", "Date must not be null"), PAYMENT_DUE_DATE_NULL(
+        "receipt.payment_due_date_null",
+        "Payment due date must not be null"), DUPLICATE_PAYMENT_DUE_DATE(
+        "receipt.duplicate_payment_due_date",
+        "A receipt for this payment due date already exists for the contract"), INTERVAL_START_NULL(
         "receipt.interval_start_null",
         "Interval start must not be null"), INTERVAL_START_AFTER_INTERVAL_END(
         "receipt.interval_start_after_interval_end",

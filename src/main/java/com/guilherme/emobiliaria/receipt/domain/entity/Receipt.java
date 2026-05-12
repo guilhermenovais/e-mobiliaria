@@ -9,6 +9,7 @@ import java.time.LocalDate;
 public class Receipt {
   private Long id;
   private LocalDate date;
+  private LocalDate paymentDueDate;
   private LocalDate intervalStart;
   private LocalDate intervalEnd;
   private int discount;
@@ -19,10 +20,11 @@ public class Receipt {
   private Receipt() {
   }
 
-  public static Receipt create(LocalDate date, LocalDate intervalStart, LocalDate intervalEnd,
-      int discount, int fine, String observation, Contract contract) {
+  public static Receipt create(LocalDate date, LocalDate paymentDueDate, LocalDate intervalStart,
+      LocalDate intervalEnd, int discount, int fine, String observation, Contract contract) {
     Receipt receipt = new Receipt();
     receipt.setDate(date);
+    receipt.setPaymentDueDate(paymentDueDate);
     receipt.setIntervalStart(intervalStart);
     receipt.setIntervalEnd(intervalEnd);
     receipt.setDiscount(discount);
@@ -32,10 +34,12 @@ public class Receipt {
     return receipt;
   }
 
-  public static Receipt restore(Long id, LocalDate date, LocalDate intervalStart,
-      LocalDate intervalEnd, int discount, int fine, String observation, Contract contract) {
+  public static Receipt restore(Long id, LocalDate date, LocalDate paymentDueDate,
+      LocalDate intervalStart, LocalDate intervalEnd, int discount, int fine, String observation,
+      Contract contract) {
     Receipt receipt =
-        create(date, intervalStart, intervalEnd, discount, fine, observation, contract);
+        create(date, paymentDueDate, intervalStart, intervalEnd, discount, fine, observation,
+            contract);
     receipt.setId(id);
     return receipt;
   }
@@ -57,6 +61,17 @@ public class Receipt {
       throw new BusinessException(ErrorMessage.Receipt.DATE_NULL);
     }
     this.date = date;
+  }
+
+  public LocalDate getPaymentDueDate() {
+    return paymentDueDate;
+  }
+
+  public void setPaymentDueDate(LocalDate paymentDueDate) {
+    if (paymentDueDate == null) {
+      throw new BusinessException(ErrorMessage.Receipt.PAYMENT_DUE_DATE_NULL);
+    }
+    this.paymentDueDate = paymentDueDate;
   }
 
   public LocalDate getIntervalStart() {

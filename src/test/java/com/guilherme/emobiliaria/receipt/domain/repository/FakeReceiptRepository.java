@@ -7,11 +7,13 @@ import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -58,16 +60,15 @@ public class FakeReceiptRepository extends FakeImplementation implements Receipt
   public PagedResult<Receipt> search(String query, Long contractId, PaginationInput pagination) {
     maybeFail();
     String lower = query.toLowerCase();
-    List<Receipt> filtered = store.values().stream()
-        .filter(r -> {
-          if (contractId != null && (r.getContract() == null || !contractId.equals(r.getContract().getId()))) {
-            return false;
-          }
-          String start = r.getIntervalStart() != null ? r.getIntervalStart().format(DATE_FMT) : "";
-          String end = r.getIntervalEnd() != null ? r.getIntervalEnd().format(DATE_FMT) : "";
-          return start.toLowerCase().contains(lower) || end.toLowerCase().contains(lower);
-        })
-        .toList();
+    List<Receipt> filtered = store.values().stream().filter(r -> {
+      if (contractId != null && (r.getContract() == null || !contractId.equals(
+          r.getContract().getId()))) {
+        return false;
+      }
+      String start = r.getIntervalStart() != null ? r.getIntervalStart().format(DATE_FMT) : "";
+      String end = r.getIntervalEnd() != null ? r.getIntervalEnd().format(DATE_FMT) : "";
+      return start.toLowerCase().contains(lower) || end.toLowerCase().contains(lower);
+    }).toList();
     long total = filtered.size();
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     int limit = pagination.limit() != null ? pagination.limit() : filtered.size();
@@ -78,13 +79,33 @@ public class FakeReceiptRepository extends FakeImplementation implements Receipt
   @Override
   public PagedResult<Receipt> findAllByContractId(Long contractId, PaginationInput pagination) {
     maybeFail();
-    List<Receipt> filtered = store.values().stream().filter(
-            r -> r.getContract().getId() != null && r.getContract().getId().equals(contractId))
+    List<Receipt> filtered = store.values().stream()
+        .filter(r -> r.getContract().getId() != null && r.getContract().getId().equals(contractId))
         .toList();
     long total = filtered.size();
     int offset = pagination.offset() != null ? pagination.offset() : 0;
     int limit = pagination.limit() != null ? pagination.limit() : filtered.size();
     List<Receipt> page = new ArrayList<>(filtered).stream().skip(offset).limit(limit).toList();
     return new PagedResult<>(page, total);
+  }
+
+  @Override
+  public boolean existsByContractAndPaymentDueDate(Long contractId, LocalDate paymentDueDate,
+      Long excludeReceiptId) {
+    maybeFail();
+    return store.values().stream().anyMatch(r -> {
+      if (excludeReceiptId != null && Objects.equals(r.getId(), excludeReceiptId)) {
+        return false;
+      }
+      return Objects.equals(r.getContract().getId(), contractId) && Objects.equals(
+          r.getPaymentDueDate(), paymentDueDate);
+    });
+  }
+
+  @Override
+  public List<LocalDate> findAllPaymentDueDatesByContractId(Long contractId) {
+    maybeFail();
+    return store.values().stream().filter(r -> Objects.equals(r.getContract().getId(), contractId))
+        .map(Receipt::getPaymentDueDate).filter(Objects::nonNull).toList();
   }
 }

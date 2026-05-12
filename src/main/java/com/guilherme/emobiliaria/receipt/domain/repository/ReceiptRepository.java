@@ -4,6 +4,8 @@ import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ReceiptRepository {
@@ -18,4 +20,9 @@ public interface ReceiptRepository {
   PagedResult<Receipt> findAllByContractId(Long contractId, PaginationInput pagination);
 
   PagedResult<Receipt> search(String query, Long contractId, PaginationInput pagination);
+
+  boolean existsByContractAndPaymentDueDate(Long contractId, LocalDate paymentDueDate,
+      Long excludeReceiptId);
+
+  List<LocalDate> findAllPaymentDueDatesByContractId(Long contractId);
 }

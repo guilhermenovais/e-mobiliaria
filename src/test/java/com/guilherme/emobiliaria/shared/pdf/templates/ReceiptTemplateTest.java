@@ -50,13 +50,13 @@ class ReceiptTemplateTest {
   }
 
   private Receipt validReceipt() {
-    return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 31), 0, 0, "Observation", validContract());
+    return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 15),
+        LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 0, 0, "Observation", validContract());
   }
 
   private Receipt receiptWithDiscountAndFine() {
-    return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1),
-        LocalDate.of(2026, 3, 31), 10000, 5000, null, validContract());
+    return Receipt.create(LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 15),
+        LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31), 10000, 5000, null, validContract());
   }
 
   private List<ReceiptTemplate.ValueRowBean> valuesRows(ReceiptTemplate template) {

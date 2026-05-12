@@ -53,6 +53,7 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.shared.di to com.google.guice;
   opens com.guilherme.emobiliaria.person.di to com.google.guice;
   opens com.guilherme.emobiliaria.contract.di to com.google.guice;
+  opens com.guilherme.emobiliaria.contract.domain.service to com.google.guice;
   opens com.guilherme.emobiliaria.property.di to com.google.guice;
   opens com.guilherme.emobiliaria.property.ui.controller to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.property.ui.component to javafx.fxml, com.google.guice;

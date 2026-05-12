@@ -8,9 +8,11 @@ import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.receipt.application.input.CreateReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.EditReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindReceiptByIdInput;
+import com.guilherme.emobiliaria.receipt.application.input.GetUnreceiptedDueDatesInput;
 import com.guilherme.emobiliaria.receipt.application.usecase.CreateReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.EditReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindReceiptByIdInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.GetUnreceiptedDueDatesInteractor;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.exception.UserFacingException;
@@ -37,6 +39,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -47,9 +50,12 @@ public class ReceiptFormController {
 
   private static final String FORM_FXML =
       "/com/guilherme/emobiliaria/receipt/ui/view/receipt-form-view.fxml";
-  private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+  private static final DateTimeFormatter DATE_FMT =
+      DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
   private static final int LOAD_ALL_LIMIT = 10_000;
   private static final String ERROR_DATE_REQUIRED = "receipt.form.error.date_required";
+  private static final String ERROR_PAYMENT_DUE_DATE_REQUIRED =
+      "receipt.form.error.payment_due_date_required";
   private static final String ERROR_INTERVAL_REQUIRED = "receipt.form.error.interval_required";
   private static final String ERROR_INTERVAL_INVALID = "receipt.form.error.interval_invalid";
   private static final String ERROR_AMOUNT_INVALID = "receipt.form.error.amount_invalid";
@@ -60,6 +66,7 @@ public class ReceiptFormController {
   private final FindReceiptByIdInteractor findReceiptById;
   private final CreateReceiptInteractor createReceipt;
   private final EditReceiptInteractor editReceipt;
+  private final GetUnreceiptedDueDatesInteractor getUnreceiptedDueDates;
   private final NavigationService navigationService;
   private final Provider<ReceiptListController> receiptListControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
@@ -81,6 +88,12 @@ public class ReceiptFormController {
   private Label dateFieldLabel;
   @FXML
   private DatePicker datePicker;
+  @FXML
+  private Label paymentDueDateFieldLabel;
+  @FXML
+  private ComboBox<LocalDate> paymentDueDateComboBox;
+  @FXML
+  private Label paymentDueDateInfoLabel;
   @FXML
   private Label intervalStartFieldLabel;
   @FXML
@@ -114,12 +127,14 @@ public class ReceiptFormController {
   @Inject
   public ReceiptFormController(FindAllContractsInteractor findAllContracts,
       FindReceiptByIdInteractor findReceiptById, CreateReceiptInteractor createReceipt,
-      EditReceiptInteractor editReceipt, NavigationService navigationService,
+      EditReceiptInteractor editReceipt, GetUnreceiptedDueDatesInteractor getUnreceiptedDueDates,
+      NavigationService navigationService,
       Provider<ReceiptListController> receiptListControllerProvider, GuiceFxmlLoader fxmlLoader) {
     this.findAllContracts = findAllContracts;
     this.findReceiptById = findReceiptById;
     this.createReceipt = createReceipt;
     this.editReceipt = editReceipt;
+    this.getUnreceiptedDueDates = getUnreceiptedDueDates;
     this.navigationService = navigationService;
     this.receiptListControllerProvider = receiptListControllerProvider;
     this.fxmlLoader = fxmlLoader;
@@ -243,10 +258,34 @@ public class ReceiptFormController {
     submitButton.setText(
         bundle.getString(editMode ? "receipt.form.button.save" : "receipt.form.button.submit"));
 
+    paymentDueDateFieldLabel.setText(bundle.getString("receipt.form.field.payment_due_date"));
+    paymentDueDateInfoLabel.setVisible(false);
+    paymentDueDateInfoLabel.setManaged(false);
+
     contractComboBox.setCellFactory(lv -> contractCell());
     contractComboBox.setButtonCell(contractCell());
     contractErrorLabel.setVisible(false);
     contractErrorLabel.setManaged(false);
+
+    paymentDueDateComboBox.setConverter(new javafx.util.StringConverter<>() {
+      @Override
+      public String toString(LocalDate date) {
+        return date == null ? "" : date.format(DATE_FMT);
+      }
+
+      @Override
+      public LocalDate fromString(String s) {
+        return null;
+      }
+    });
+
+    paymentDueDateComboBox.getSelectionModel().selectedItemProperty()
+        .addListener((obs, oldVal, newVal) -> {
+          if (newVal != null) {
+            intervalStartPicker.setValue(newVal);
+            intervalEndPicker.setValue(newVal.plusMonths(1).minusDays(1));
+          }
+        });
 
     datePicker.setValue(LocalDate.now());
     installCreateModeContractListener(editMode);
@@ -261,17 +300,47 @@ public class ReceiptFormController {
     if (editMode) {
       return;
     }
-    contractComboBox.getSelectionModel().selectedItemProperty().addListener(
-        (obs, oldValue, newValue) -> applyPeriodFromContract(newValue, LocalDate.now()));
+    contractComboBox.getSelectionModel().selectedItemProperty()
+        .addListener((obs, oldValue, newValue) -> {
+          if (newValue != null) {
+            loadPaymentDueDates(newValue.getId(), null);
+          }
+        });
   }
 
-  private void applyPeriodFromContract(Contract contract, LocalDate today) {
-    if (contract == null || contract.getStartDate() == null) {
-      return;
-    }
-    PeriodInterval period = calculatePeriod(today, contract.getStartDate());
-    intervalStartPicker.setValue(period.start());
-    intervalEndPicker.setValue(period.end());
+  private void loadPaymentDueDates(Long contractId, Long excludeReceiptId) {
+    paymentDueDateComboBox.getItems().clear();
+    paymentDueDateInfoLabel.setVisible(false);
+    paymentDueDateInfoLabel.setManaged(false);
+    submitButton.setDisable(true);
+
+    Task<java.util.List<LocalDate>> task = new Task<>() {
+      @Override
+      protected java.util.List<LocalDate> call() {
+        return getUnreceiptedDueDates.execute(
+                new GetUnreceiptedDueDatesInput(contractId, LocalDate.now(), excludeReceiptId))
+            .dueDates();
+      }
+    };
+
+    task.setOnSucceeded(e -> {
+      java.util.List<LocalDate> dates = task.getValue();
+      if (dates.isEmpty()) {
+        paymentDueDateInfoLabel.setText(bundle.getString("receipt.form.info.no_due_dates"));
+        paymentDueDateInfoLabel.setVisible(true);
+        paymentDueDateInfoLabel.setManaged(true);
+      } else {
+        paymentDueDateComboBox.getItems().setAll(dates);
+        submitButton.setDisable(false);
+      }
+    });
+
+    task.setOnFailed(e -> {
+      submitButton.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
+
+    new Thread(task).start();
   }
 
   private void loadData() {
@@ -303,19 +372,54 @@ public class ReceiptFormController {
               .findFirst().ifPresent(c -> contractComboBox.getSelectionModel().select(c));
         }
         datePicker.setValue(r.getDate());
-        intervalStartPicker.setValue(r.getIntervalStart());
-        intervalEndPicker.setValue(r.getIntervalEnd());
         discountField.setText(MoneyFormatter.format(r.getDiscount()));
         fineField.setText(MoneyFormatter.format(r.getFine()));
         observationTextArea.setText(r.getObservation());
+        if (r.getContract() != null) {
+          Long contractId = r.getContract().getId();
+          LocalDate currentDueDate = r.getPaymentDueDate();
+          loadPaymentDueDatesForEdit(contractId, receiptId, currentDueDate, r.getIntervalStart(),
+              r.getIntervalEnd());
+        }
       } else if (preSelectedContractId != null) {
         data.contracts().stream().filter(c -> c.getId().equals(preSelectedContractId)).findFirst()
             .ifPresent(c -> contractComboBox.getSelectionModel().select(c));
-
-        applyPeriodFromContract(contractComboBox.getSelectionModel().getSelectedItem(),
-            LocalDate.now());
+      } else {
+        submitButton.setDisable(false);
       }
+    });
 
+    task.setOnFailed(e -> {
+      submitButton.setDisable(false);
+      ErrorHandler.handle(task.getException(), bundle);
+    });
+
+    new Thread(task).start();
+  }
+
+  private void loadPaymentDueDatesForEdit(Long contractId, Long excludeReceiptId,
+      LocalDate currentDueDate, LocalDate existingIntervalStart, LocalDate existingIntervalEnd) {
+    paymentDueDateComboBox.getItems().clear();
+    paymentDueDateInfoLabel.setVisible(false);
+    paymentDueDateInfoLabel.setManaged(false);
+
+    Task<java.util.List<LocalDate>> task = new Task<>() {
+      @Override
+      protected java.util.List<LocalDate> call() {
+        return getUnreceiptedDueDates.execute(
+                new GetUnreceiptedDueDatesInput(contractId, LocalDate.now(), excludeReceiptId))
+            .dueDates();
+      }
+    };
+
+    task.setOnSucceeded(e -> {
+      java.util.List<LocalDate> dates = task.getValue();
+      paymentDueDateComboBox.getItems().setAll(dates);
+      if (currentDueDate != null) {
+        paymentDueDateComboBox.getSelectionModel().select(currentDueDate);
+      }
+      intervalStartPicker.setValue(existingIntervalStart);
+      intervalEndPicker.setValue(existingIntervalEnd);
       submitButton.setDisable(false);
     });
 
@@ -342,6 +446,11 @@ public class ReceiptFormController {
 
     if (datePicker.getValue() == null) {
       showValidationError(ERROR_DATE_REQUIRED);
+      return false;
+    }
+
+    if (paymentDueDateComboBox.getSelectionModel().getSelectedItem() == null) {
+      showValidationError(ERROR_PAYMENT_DUE_DATE_REQUIRED);
       return false;
     }
 
@@ -378,6 +487,7 @@ public class ReceiptFormController {
 
     Contract selectedContract = contractComboBox.getSelectionModel().getSelectedItem();
     LocalDate date = datePicker.getValue();
+    LocalDate paymentDueDate = paymentDueDateComboBox.getSelectionModel().getSelectedItem();
     LocalDate intervalStart = intervalStartPicker.getValue();
     LocalDate intervalEnd = intervalEndPicker.getValue();
     String observation = observationTextArea.getText();
@@ -396,8 +506,8 @@ public class ReceiptFormController {
 
     if (receiptId != null) {
       EditReceiptInput input =
-          new EditReceiptInput(receiptId, date, intervalStart, intervalEnd, discount, fine,
-              observation, selectedContract.getId());
+          new EditReceiptInput(receiptId, date, paymentDueDate, intervalStart, intervalEnd,
+              discount, fine, observation, selectedContract.getId());
 
       Task<Void> task = new Task<>() {
         @Override
@@ -414,8 +524,8 @@ public class ReceiptFormController {
 
     } else {
       CreateReceiptInput input =
-          new CreateReceiptInput(date, intervalStart, intervalEnd, discount, fine, observation,
-              selectedContract.getId());
+          new CreateReceiptInput(date, paymentDueDate, intervalStart, intervalEnd, discount, fine,
+              observation, selectedContract.getId());
 
       Task<Void> task = new Task<>() {
         @Override

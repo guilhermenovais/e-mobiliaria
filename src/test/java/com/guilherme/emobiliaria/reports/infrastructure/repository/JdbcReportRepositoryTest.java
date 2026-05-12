@@ -135,12 +135,13 @@ class JdbcReportRepositoryTest {
   private void insertReceipt(Connection conn, long contractId, LocalDate date, LocalDate start,
       LocalDate end) throws SQLException {
     String sql =
-        "INSERT INTO receipts (date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, 0, 0, ?)";
+        "INSERT INTO receipts (date, payment_due_date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, ?, 0, 0, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setObject(1, date);
       stmt.setObject(2, start);
-      stmt.setObject(3, end);
-      stmt.setLong(4, contractId);
+      stmt.setObject(3, start);
+      stmt.setObject(4, end);
+      stmt.setLong(5, contractId);
       stmt.executeUpdate();
     }
   }

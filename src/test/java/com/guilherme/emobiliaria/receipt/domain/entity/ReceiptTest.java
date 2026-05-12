@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ReceiptTest {
 
   private static final LocalDate VALID_DATE = LocalDate.of(2026, 3, 1);
+  private static final LocalDate VALID_PAYMENT_DUE_DATE = LocalDate.of(2026, 2, 15);
   private static final LocalDate VALID_INTERVAL_START = LocalDate.of(2026, 2, 1);
   private static final LocalDate VALID_INTERVAL_END = LocalDate.of(2026, 2, 28);
 
@@ -40,20 +41,21 @@ class ReceiptTest {
   }
 
   private Property validProperty() {
-    return Property.create("Apartamento Centro", "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    return Property.create("Apartamento Centro", "Apartamento", "1234567890", "0987654321",
+        "IPTU-001", validAddress());
   }
 
   private Contract validContract() {
     PaymentAccount paymentAccount =
         PaymentAccount.create("Banco do Brasil", "1234-5", "12345-6", null);
     return Contract.create(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000, "Residencial",
-        paymentAccount, validProperty(), validPerson(), List.of(validPerson()), List.of(), List.of());
+        paymentAccount, validProperty(), validPerson(), List.of(validPerson()), List.of(),
+        List.of());
   }
 
   private Receipt validReceipt() {
-    return Receipt.create(VALID_DATE, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0, null,
-        validContract());
+    return Receipt.create(VALID_DATE, VALID_PAYMENT_DUE_DATE, VALID_INTERVAL_START,
+        VALID_INTERVAL_END, 0, 0, null, validContract());
   }
 
   @Nested
@@ -66,8 +68,18 @@ class ReceiptTest {
 
       assertNull(receipt.getId());
       assertEquals(VALID_DATE, receipt.getDate());
+      assertEquals(VALID_PAYMENT_DUE_DATE, receipt.getPaymentDueDate());
       assertEquals(VALID_INTERVAL_START, receipt.getIntervalStart());
       assertEquals(VALID_INTERVAL_END, receipt.getIntervalEnd());
+    }
+
+    @Test
+    @DisplayName("When paymentDueDate is null, should throw BusinessException")
+    void shouldThrowWhenPaymentDueDateIsNull() {
+      BusinessException ex = assertThrows(BusinessException.class,
+          () -> Receipt.create(VALID_DATE, null, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0,
+              null, validContract()));
+      assertEquals(ErrorMessage.Receipt.PAYMENT_DUE_DATE_NULL, ex.getErrorMessage());
     }
   }
 
@@ -79,10 +91,11 @@ class ReceiptTest {
     @DisplayName("When restored with id, should set id")
     void shouldRestoreWithId() {
       Receipt receipt =
-          Receipt.restore(42L, VALID_DATE, VALID_INTERVAL_START, VALID_INTERVAL_END, 0, 0, null,
-              validContract());
+          Receipt.restore(42L, VALID_DATE, VALID_PAYMENT_DUE_DATE, VALID_INTERVAL_START,
+              VALID_INTERVAL_END, 0, 0, null, validContract());
 
       assertEquals(42L, receipt.getId());
+      assertEquals(VALID_PAYMENT_DUE_DATE, receipt.getPaymentDueDate());
     }
   }
 

@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.dashboard.infrastructure.repository;
 
+import com.guilherme.emobiliaria.contract.domain.service.PaymentDueDateService;
 import com.guilherme.emobiliaria.dashboard.domain.entity.DashboardData;
 import com.guilherme.emobiliaria.dashboard.domain.entity.ExpiringContractEntry;
 import com.guilherme.emobiliaria.dashboard.domain.entity.TopRentEntry;
@@ -20,7 +21,12 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JdbcDashboardRepository implements DashboardRepository {
 
@@ -48,10 +54,13 @@ public class JdbcDashboardRepository implements DashboardRepository {
       """;
 
   private final DataSource dataSource;
+  private final PaymentDueDateService paymentDueDateService;
 
   @Inject
-  public JdbcDashboardRepository(DataSource dataSource) {
+  public JdbcDashboardRepository(DataSource dataSource,
+      PaymentDueDateService paymentDueDateService) {
     this.dataSource = dataSource;
+    this.paymentDueDateService = paymentDueDateService;
   }
 
   @Override
@@ -62,7 +71,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
       List<UnpaidRentEntry> unpaidRents = loadUnpaidRents(conn, today);
       List<VacantPropertyEntry> vacantProperties = loadVacantProperties(conn);
       List<ExpiringContractEntry> expiringContracts = loadExpiringContracts(conn, today);
-      return new DashboardData(revenue[0], revenue[1], topRents, unpaidRents, vacantProperties, expiringContracts);
+      return new DashboardData(revenue[0], revenue[1], topRents, unpaidRents, vacantProperties,
+          expiringContracts);
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Dashboard.LOAD_ERROR, e);
     }
@@ -74,10 +84,9 @@ public class JdbcDashboardRepository implements DashboardRepository {
         FROM active_contracts ac
         JOIN contracts c ON c.id = ac.id
         """;
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       rs.next();
-      return new int[]{rs.getInt("total_revenue"), rs.getInt("active_count")};
+      return new int[] {rs.getInt("total_revenue"), rs.getInt("active_count")};
     }
   }
 
@@ -102,8 +111,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
         LIMIT 3
         """;
     List<TopRentEntry> results = new ArrayList<>();
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       int rank = 1;
       while (rs.next()) {
         results.add(mapTopRent(rs, rank++));
@@ -112,7 +120,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
     return results;
   }
 
-  private List<UnpaidRentEntry> loadUnpaidRents(Connection conn, LocalDate today) throws SQLException {
+  private List<UnpaidRentEntry> loadUnpaidRents(Connection conn, LocalDate today)
+      throws SQLException {
     String fetchSql = ACTIVE_CONTRACTS_CTE + """
         SELECT c.id, c.start_date, c.payment_day, c.rent,
                p.name AS property_name,
@@ -132,42 +141,41 @@ public class JdbcDashboardRepository implements DashboardRepository {
         """;
     List<ContractCandidate> candidates = new ArrayList<>();
     try (PreparedStatement stmt = conn.prepareStatement(fetchSql);
-         ResultSet rs = stmt.executeQuery()) {
+        ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
-        candidates.add(new ContractCandidate(
-            rs.getLong("id"),
-            rs.getDate("start_date").toLocalDate(),
-            rs.getInt("payment_day"),
-            rs.getInt("rent"),
-            rs.getString("property_name"),
-            rs.getString("tenant_name")
-        ));
+        candidates.add(
+            new ContractCandidate(rs.getLong("id"), rs.getDate("start_date").toLocalDate(),
+                rs.getInt("payment_day"), rs.getInt("rent"), rs.getString("property_name"),
+                rs.getString("tenant_name")));
       }
     }
 
-    LocalDate alertCutoff = today.plusDays(UNPAID_ALERT_DAYS - 1);
-    String receiptSql = """
-        SELECT 1 FROM receipts
-        WHERE contract_id = ?
-          AND interval_start <= ?
-          AND interval_end >= ?
-        """;
+    if (candidates.isEmpty()) {
+      return List.of();
+    }
+
+    String ids =
+        candidates.stream().map(c -> String.valueOf(c.id())).collect(Collectors.joining(","));
+    String receiptSql =
+        "SELECT contract_id, payment_due_date FROM receipts WHERE contract_id IN (" + ids + ")";
+    Map<Long, Set<LocalDate>> receiptedByContract = new HashMap<>();
+    try (PreparedStatement stmt = conn.prepareStatement(receiptSql);
+        ResultSet rs = stmt.executeQuery()) {
+      while (rs.next()) {
+        long contractId = rs.getLong("contract_id");
+        LocalDate dueDate = rs.getDate("payment_due_date").toLocalDate();
+        receiptedByContract.computeIfAbsent(contractId, k -> new HashSet<>()).add(dueDate);
+      }
+    }
+
     List<UnpaidRentEntry> results = new ArrayList<>();
-    try (PreparedStatement stmt = conn.prepareStatement(receiptSql)) {
-      for (ContractCandidate c : candidates) {
-        LocalDate periodStart = computePeriodStart(today, c.startDate().getDayOfMonth());
-        LocalDate periodEnd = computePeriodEnd(periodStart);
-        LocalDate deadline = computeDeadline(periodStart, c.paymentDay());
-
-        if (deadline.isAfter(alertCutoff)) continue;
-
-        stmt.setLong(1, c.id());
-        stmt.setDate(2, Date.valueOf(periodStart));
-        stmt.setDate(3, Date.valueOf(periodEnd));
-        try (ResultSet rs = stmt.executeQuery()) {
-          if (!rs.next()) {
-            results.add(new UnpaidRentEntry(c.propertyName(), c.tenantName(), c.rent(), deadline));
-          }
+    for (ContractCandidate c : candidates) {
+      List<LocalDate> dueDates =
+          paymentDueDateService.computeDueDates(c.startDate(), c.paymentDay(), today);
+      Set<LocalDate> receipted = receiptedByContract.getOrDefault(c.id(), Set.of());
+      for (LocalDate dueDate : dueDates) {
+        if (!receipted.contains(dueDate)) {
+          results.add(new UnpaidRentEntry(c.propertyName(), c.tenantName(), c.rent(), dueDate));
         }
       }
     }
@@ -175,32 +183,6 @@ public class JdbcDashboardRepository implements DashboardRepository {
     results.sort(Comparator.comparing(UnpaidRentEntry::dueDate));
     return results;
   }
-
-  static LocalDate computePeriodStart(LocalDate today, int startDay) {
-    int clampedToCurrentMonth = Math.min(startDay, today.lengthOfMonth());
-    if (today.getDayOfMonth() >= clampedToCurrentMonth) {
-      return today.withDayOfMonth(clampedToCurrentMonth);
-    }
-    LocalDate prevMonth = today.minusMonths(1);
-    return prevMonth.withDayOfMonth(Math.min(startDay, prevMonth.lengthOfMonth()));
-  }
-
-  static LocalDate computePeriodEnd(LocalDate periodStart) {
-    return periodStart.plusMonths(1).minusDays(1);
-  }
-
-  static LocalDate computeDeadline(LocalDate periodStart, int paymentDay) {
-    return periodStart.withDayOfMonth(Math.min(paymentDay, periodStart.lengthOfMonth()));
-  }
-
-  private record ContractCandidate(
-      long id,
-      LocalDate startDate,
-      int paymentDay,
-      int rent,
-      String propertyName,
-      String tenantName
-  ) {}
 
   private List<VacantPropertyEntry> loadVacantProperties(Connection conn) throws SQLException {
     String sql = """
@@ -226,8 +208,7 @@ public class JdbcDashboardRepository implements DashboardRepository {
         ORDER BY p.name ASC
         """;
     List<VacantPropertyEntry> results = new ArrayList<>();
-    try (PreparedStatement stmt = conn.prepareStatement(sql);
-         ResultSet rs = stmt.executeQuery()) {
+    try (PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
         results.add(mapVacantProperty(rs));
       }
@@ -235,7 +216,8 @@ public class JdbcDashboardRepository implements DashboardRepository {
     return results;
   }
 
-  private List<ExpiringContractEntry> loadExpiringContracts(Connection conn, LocalDate today) throws SQLException {
+  private List<ExpiringContractEntry> loadExpiringContracts(Connection conn, LocalDate today)
+      throws SQLException {
     LocalDate horizon = today.plusDays(EXPIRING_HORIZON_DAYS);
     String sql = """
         WITH latest AS (
@@ -283,31 +265,19 @@ public class JdbcDashboardRepository implements DashboardRepository {
   }
 
   private TopRentEntry mapTopRent(ResultSet rs, int rank) throws SQLException {
-    return new TopRentEntry(
-        rank,
-        rs.getString("property_name"),
-        rs.getString("tenant_name"),
-        rs.getInt("rent")
-    );
+    return new TopRentEntry(rank, rs.getString("property_name"), rs.getString("tenant_name"),
+        rs.getInt("rent"));
   }
 
   private UnpaidRentEntry mapUnpaidRent(ResultSet rs) throws SQLException {
-    return new UnpaidRentEntry(
-        rs.getString("property_name"),
-        rs.getString("tenant_name"),
-        rs.getInt("rent"),
-        rs.getDate("due_date").toLocalDate()
-    );
+    return new UnpaidRentEntry(rs.getString("property_name"), rs.getString("tenant_name"),
+        rs.getInt("rent"), rs.getDate("due_date").toLocalDate());
   }
 
   private VacantPropertyEntry mapVacantProperty(ResultSet rs) throws SQLException {
-    String address = rs.getString("address") + ", " + rs.getString("number")
-        + " — " + rs.getString("neighborhood");
-    return new VacantPropertyEntry(
-        rs.getString("property_name"),
-        rs.getString("type"),
-        address
-    );
+    String address = rs.getString("address") + ", " + rs.getString("number") + " — " + rs.getString(
+        "neighborhood");
+    return new VacantPropertyEntry(rs.getString("property_name"), rs.getString("type"), address);
   }
 
   private ExpiringContractEntry mapExpiringContract(ResultSet rs) throws SQLException {
@@ -320,12 +290,12 @@ public class JdbcDashboardRepository implements DashboardRepository {
     } else {
       urgency = UrgencyLevel.NORMAL;
     }
-    return new ExpiringContractEntry(
-        rs.getDate("end_date").toLocalDate(),
-        rs.getString("property_name"),
-        rs.getString("tenant_name"),
-        daysLeft,
-        urgency
-    );
+    return new ExpiringContractEntry(rs.getDate("end_date").toLocalDate(),
+        rs.getString("property_name"), rs.getString("tenant_name"), daysLeft, urgency);
+  }
+
+
+  private record ContractCandidate(long id, LocalDate startDate, int paymentDay, int rent,
+                                   String propertyName, String tenantName) {
   }
 }
