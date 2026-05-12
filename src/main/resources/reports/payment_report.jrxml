@@ -1,0 +1,141 @@
+<!-- Created for Payment Report — JasperReports 7.0.3 -->
+<jasperReport name="payment_report" language="java" pageWidth="595" pageHeight="842"
+              columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20"
+              uuid="e4000001-0000-0000-0000-000000000001">
+    <parameter name="month_label" forPrompting="false" class="java.lang.String"/>
+    <parameter name="generation_date" forPrompting="false" class="java.lang.String"/>
+    <parameter name="app_name" forPrompting="false" class="java.lang.String"/>
+    <field name="propertyName" class="java.lang.String"/>
+    <field name="primaryTenantName" class="java.lang.String"/>
+    <field name="primaryTenantTaxId" class="java.lang.String"/>
+    <field name="paymentDate" class="java.lang.String"/>
+    <field name="rent" class="java.lang.String"/>
+    <field name="period" class="java.lang.String"/>
+    <field name="statusLabel" class="java.lang.String"/>
+    <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count" resetType="Report">
+        <expression><![CDATA[1]]></expression>
+    </variable>
+    <background splitType="Stretch"/>
+    <title height="28" splitType="Prevent">
+        <element kind="textField" uuid="e4000003-0000-0000-0000-000000000001" x="0" y="0"
+                 width="555" height="28" fontName="Arial" fontSize="16.0" bold="true"
+                 hTextAlign="Center">
+            <expression><![CDATA["Relatório de Pagamentos — " + $P{month_label}]]></expression>
+        </element>
+    </title>
+    <pageHeader height="40">
+        <element kind="textField" uuid="e4000001-0000-0000-0000-000000000002" x="0" y="6"
+                 width="200" height="18" fontName="Arial" fontSize="11.0" bold="true">
+            <expression><![CDATA[$P{app_name}]]></expression>
+        </element>
+        <element kind="textField" uuid="e4000001-0000-0000-0000-000000000003" x="300" y="6"
+                 width="255" height="18" fontName="Arial" fontSize="9.0" hTextAlign="Right"
+                 forecolor="#888888">
+            <expression><![CDATA["Gerado em " + $P{generation_date}]]></expression>
+        </element>
+        <element kind="line" uuid="e4000001-0000-0000-0000-000000000004" x="0" y="36"
+                 width="555" height="1">
+            <pen lineWidth="0.5" lineColor="#CCCCCC"/>
+        </element>
+    </pageHeader>
+    <columnHeader height="18">
+        <element kind="rectangle" uuid="e4000003-0000-0000-0000-000000000010" x="0" y="0"
+                 width="555" height="18" forecolor="#E8E8E8" backcolor="#E8E8E8">
+            <pen lineWidth="0.0"/>
+        </element>
+        <element kind="staticText" uuid="e4000003-0000-0000-0000-000000000011" x="4" y="2"
+                 width="107" height="14" fontName="Arial" fontSize="9.0" bold="true">
+            <text><![CDATA[Imóvel]]></text>
+        </element>
+        <element kind="staticText" uuid="e4000003-0000-0000-0000-000000000012" x="115" y="2"
+                 width="103" height="14" fontName="Arial" fontSize="9.0" bold="true">
+            <text><![CDATA[Locatário]]></text>
+        </element>
+        <element kind="staticText" uuid="e4000003-0000-0000-0000-000000000013" x="222" y="2"
+                 width="85" height="14" fontName="Arial" fontSize="9.0" bold="true">
+            <text><![CDATA[CPF/CNPJ]]></text>
+        </element>
+        <element kind="staticText" uuid="e4000003-0000-0000-0000-000000000014" x="311" y="2"
+                 width="65" height="14" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Center">
+            <text><![CDATA[Dt. Pagamento]]></text>
+        </element>
+        <element kind="staticText" uuid="e4000003-0000-0000-0000-000000000015" x="380" y="2"
+                 width="66" height="14" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Right">
+            <text><![CDATA[Aluguel]]></text>
+        </element>
+        <element kind="staticText" uuid="e4000003-0000-0000-0000-000000000016" x="450" y="2"
+                 width="105" height="14" fontName="Arial" fontSize="9.0" bold="true"
+                 hTextAlign="Center">
+            <text><![CDATA[Período]]></text>
+        </element>
+    </columnHeader>
+    <detail>
+        <band height="18" splitType="Stretch">
+            <!-- Alternating row background -->
+            <element kind="rectangle" uuid="e4000004-0000-0000-0000-000000000001"
+                     x="0" y="0" width="555" height="18" forecolor="#F5F5F5" backcolor="#F5F5F5">
+                <pen lineWidth="0.0"/>
+                <printWhenExpression><![CDATA[$V{ROW_NUMBER} % 2 == 0]]></printWhenExpression>
+            </element>
+            <!-- Imóvel -->
+            <element kind="textField" uuid="e4000004-0000-0000-0000-000000000002"
+                     x="4" y="2" width="107" height="14" fontName="Arial" fontSize="9.0"
+                     blankWhenNull="true">
+                <expression><![CDATA[$F{propertyName}]]></expression>
+            </element>
+            <!-- Locatário -->
+            <element kind="textField" uuid="e4000004-0000-0000-0000-000000000003"
+                     x="115" y="2" width="103" height="14" fontName="Arial" fontSize="9.0"
+                     blankWhenNull="true">
+                <expression><![CDATA[$F{primaryTenantName}]]></expression>
+            </element>
+            <!-- CPF/CNPJ -->
+            <element kind="textField" uuid="e4000004-0000-0000-0000-000000000004"
+                     x="222" y="2" width="85" height="14" fontName="Arial" fontSize="9.0"
+                     blankWhenNull="true">
+                <expression><![CDATA[$F{primaryTenantTaxId}]]></expression>
+            </element>
+            <!-- Data de Pagamento -->
+            <element kind="textField" uuid="e4000004-0000-0000-0000-000000000005"
+                     x="311" y="2" width="65" height="14" fontName="Arial" fontSize="9.0"
+                     hTextAlign="Center" blankWhenNull="true">
+                <expression><![CDATA[$F{paymentDate}.isEmpty() ? "—" : $F{paymentDate}]]></expression>
+            </element>
+            <!-- Valor do Aluguel -->
+            <element kind="textField" uuid="e4000004-0000-0000-0000-000000000006"
+                     x="380" y="2" width="66" height="14" fontName="Arial" fontSize="9.0"
+                     hTextAlign="Right" blankWhenNull="true">
+                <expression><![CDATA[$F{rent}.isEmpty() ? "—" : $F{rent}]]></expression>
+            </element>
+            <!-- Período -->
+            <element kind="textField" uuid="e4000004-0000-0000-0000-000000000007"
+                     x="450" y="2" width="105" height="14" fontName="Arial" fontSize="8.0"
+                     hTextAlign="Center" blankWhenNull="true">
+                <expression><![CDATA[$F{period}.isEmpty() ? "—" : $F{period}]]></expression>
+            </element>
+            <!-- Row divider -->
+            <element kind="line" uuid="e4000004-0000-0000-0000-000000000008"
+                     x="0" y="17" width="555" height="1">
+                <pen lineWidth="0.3" lineColor="#E0E0E0"/>
+            </element>
+        </band>
+    </detail>
+    <pageFooter height="25">
+        <element kind="line" uuid="e4000002-0000-0000-0000-000000000001" x="0" y="0"
+                 width="555" height="1">
+            <pen lineWidth="0.5" lineColor="#CCCCCC"/>
+        </element>
+        <element kind="textField" uuid="e4000002-0000-0000-0000-000000000002" x="390" y="6"
+                 width="145" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Right"
+                 forecolor="#888888">
+            <expression><![CDATA["Página " + $V{PAGE_NUMBER} + " / "]]></expression>
+        </element>
+        <element kind="textField" uuid="e4000002-0000-0000-0000-000000000003" x="535" y="6"
+                 width="20" height="14" fontName="Arial" fontSize="9.0" hTextAlign="Left"
+                 forecolor="#888888" evaluationTime="Report">
+            <expression><![CDATA[$V{PAGE_NUMBER}]]></expression>
+        </element>
+    </pageFooter>
+</jasperReport>

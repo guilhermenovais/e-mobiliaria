@@ -18,13 +18,14 @@ import javafx.scene.layout.StackPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.Desktop;
+import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 
 public class ReportsController {
 
@@ -35,28 +36,45 @@ public class ReportsController {
 
   private final GenerateRentEvolutionReportInteractor generateRentEvolutionReport;
   private final GenerateOccupationRateReportInteractor generateOccupationRateReport;
+  private final PaymentReportController paymentReportController;
   private final GuiceFxmlLoader fxmlLoader;
 
   private ResourceBundle bundle;
 
-  @FXML private ProgressIndicator loadingIndicator;
-  @FXML private ScrollPane contentScrollPane;
-  @FXML private Label titleLabel;
-  @FXML private Label subtitleLabel;
-  @FXML private Label rentEvolutionNameLabel;
-  @FXML private Label rentEvolutionDescLabel;
-  @FXML private Button generateRentEvolutionButton;
-  @FXML private Label occupationRateNameLabel;
-  @FXML private Label occupationRateDescLabel;
-  @FXML private Button generateOccupationRateButton;
+  @FXML
+  private ProgressIndicator loadingIndicator;
+  @FXML
+  private ScrollPane contentScrollPane;
+  @FXML
+  private Label titleLabel;
+  @FXML
+  private Label subtitleLabel;
+  @FXML
+  private Label rentEvolutionNameLabel;
+  @FXML
+  private Label rentEvolutionDescLabel;
+  @FXML
+  private Button generateRentEvolutionButton;
+  @FXML
+  private Label occupationRateNameLabel;
+  @FXML
+  private Label occupationRateDescLabel;
+  @FXML
+  private Button generateOccupationRateButton;
+  @FXML
+  private Label paymentReportNameLabel;
+  @FXML
+  private Label paymentReportDescLabel;
+  @FXML
+  private Button openPaymentReportButton;
 
   @Inject
-  public ReportsController(
-      GenerateRentEvolutionReportInteractor generateRentEvolutionReport,
+  public ReportsController(GenerateRentEvolutionReportInteractor generateRentEvolutionReport,
       GenerateOccupationRateReportInteractor generateOccupationRateReport,
-      GuiceFxmlLoader fxmlLoader) {
+      PaymentReportController paymentReportController, GuiceFxmlLoader fxmlLoader) {
     this.generateRentEvolutionReport = generateRentEvolutionReport;
     this.generateOccupationRateReport = generateOccupationRateReport;
+    this.paymentReportController = paymentReportController;
     this.fxmlLoader = fxmlLoader;
   }
 
@@ -72,6 +90,9 @@ public class ReportsController {
     occupationRateNameLabel.setText(bundle.getString("reports.occupation_rate.name"));
     occupationRateDescLabel.setText(bundle.getString("reports.occupation_rate.description"));
     generateOccupationRateButton.setText(bundle.getString("reports.button.generate_pdf"));
+    paymentReportNameLabel.setText(bundle.getString("reports.payment_report.name"));
+    paymentReportDescLabel.setText(bundle.getString("reports.payment_report.description"));
+    openPaymentReportButton.setText(bundle.getString("reports.payment_report.button.generate_pdf"));
 
     loadingIndicator.setVisible(false);
     contentScrollPane.setVisible(true);
@@ -79,20 +100,24 @@ public class ReportsController {
 
   @FXML
   private void onGenerateRentEvolutionPdf() {
-    generatePdf(
-        () -> generateRentEvolutionReport.execute(new GenerateRentEvolutionReportInput()).pdfBytes(),
-        "rent_evolution",
-        generateRentEvolutionButton
-    );
+    generatePdf(() -> generateRentEvolutionReport.execute(new GenerateRentEvolutionReportInput())
+        .pdfBytes(), "rent_evolution", generateRentEvolutionButton);
   }
 
   @FXML
   private void onGenerateOccupationRatePdf() {
-    generatePdf(
-        () -> generateOccupationRateReport.execute(new GenerateOccupationRateReportInput()).pdfBytes(),
-        "occupation_rate",
-        generateOccupationRateButton
-    );
+    generatePdf(() -> generateOccupationRateReport.execute(new GenerateOccupationRateReportInput())
+        .pdfBytes(), "occupation_rate", generateOccupationRateButton);
+  }
+
+  @FXML
+  private void onOpenPaymentReport() {
+    openSubView(paymentReportController::buildView);
+  }
+
+  private void openSubView(Supplier<Node> viewBuilder) {
+    Node view = viewBuilder.get();
+    contentScrollPane.setContent(view);
   }
 
   private void generatePdf(PdfSupplier supplier, String filePrefix, Button button) {

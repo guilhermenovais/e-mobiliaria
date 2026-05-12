@@ -1,8 +1,12 @@
 package com.guilherme.emobiliaria.reports.domain.service;
 
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRow;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
 import com.guilherme.emobiliaria.shared.fake.FakeImplementation;
+
+import java.time.YearMonth;
+import java.util.List;
 
 public class FakeReportFileService extends FakeImplementation implements ReportFileService {
 
@@ -16,6 +20,12 @@ public class FakeReportFileService extends FakeImplementation implements ReportF
 
   @Override
   public byte[] generateOccupationRatePdf(OccupationRateData data) {
+    maybeFail();
+    return DUMMY_PDF;
+  }
+
+  @Override
+  public byte[] generatePaymentReportPdf(List<PaymentReportRow> rows, YearMonth month) {
     maybeFail();
     return DUMMY_PDF;
   }

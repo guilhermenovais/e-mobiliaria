@@ -1,18 +1,21 @@
 package com.guilherme.emobiliaria.reports.infrastructure.service;
 
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRow;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyRentHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
 import com.guilherme.emobiliaria.reports.domain.service.ReportFileService;
 import com.guilherme.emobiliaria.shared.chart.ChartGenerator;
 import com.guilherme.emobiliaria.shared.pdf.PdfGenerationService;
 import com.guilherme.emobiliaria.shared.pdf.templates.OccupationRateTemplate;
+import com.guilherme.emobiliaria.shared.pdf.templates.PaymentReportTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.PropertyChartBean;
 import com.guilherme.emobiliaria.shared.pdf.templates.PropertyInflationLagRowBean;
 import com.guilherme.emobiliaria.shared.pdf.templates.RentEvolutionTemplate;
 import com.guilherme.emobiliaria.shared.pdf.templates.VacancyTableRowBean;
 import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
@@ -67,6 +70,24 @@ public class ReportFileServiceImpl implements ReportFileService {
             propertyCharts, lagRows, generationDate(), periodLabel(data.months()),
             kpis.statusHeadline(), kpis.gapVsIpca(), kpis.gapVsIgpm(), kpis.nominalGrowth(),
             kpis.realGrowth()));
+  }
+
+  @Override
+  public byte[] generatePaymentReportPdf(List<PaymentReportRow> rows, YearMonth month) {
+    String monthLabel = formatPaymentMonthLabel(month);
+    String generationDate = LocalDate.now().format(DATE_FMT);
+    String appName = bundle.getString("pdf.app_name");
+    List<PaymentReportRowBean> beans = rows.stream().map(PaymentReportRowBean::new).toList();
+    JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(beans);
+    return pdfGenerationService.generatePdf(
+        new PaymentReportTemplate(monthLabel, generationDate, appName), ds);
+  }
+
+  private String formatPaymentMonthLabel(YearMonth month) {
+    String[] ptMonths =
+        {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro",
+            "outubro", "novembro", "dezembro"};
+    return ptMonths[month.getMonthValue() - 1] + "/" + month.getYear();
   }
 
   @Override

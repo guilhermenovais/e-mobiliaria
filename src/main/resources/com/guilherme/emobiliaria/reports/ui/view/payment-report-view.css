@@ -1,0 +1,46 @@
+.payment-report-root {
+    -fx-padding: 24px;
+    -fx-spacing: 16px;
+}
+
+.payment-report-selector-row {
+    -fx-spacing: 8px;
+    -fx-padding: 0 0 4px 0;
+}
+
+.payment-report-selector-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-min-width: 48px;
+}
+
+.payment-report-combo {
+    -fx-pref-width: 160px;
+}
+
+.payment-report-inline-loading {
+    -fx-max-width: 20px;
+    -fx-max-height: 20px;
+}
+
+.payment-report-table {
+    -fx-pref-height: 400px;
+}
+
+.payment-report-actions-row {
+    -fx-spacing: 8px;
+    -fx-padding: 8px 0 0 0;
+}
+
+.payment-report-export-button {
+    -fx-font-size: 13px;
+}
+
+/* Row coloring by status */
+.payment-row-unpaid .table-cell {
+    -fx-text-fill: #d32f2f;
+}
+
+.payment-row-vacant .table-cell {
+    -fx-text-fill: #9e9e9e;
+}

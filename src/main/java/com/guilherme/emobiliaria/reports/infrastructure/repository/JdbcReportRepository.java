@@ -3,6 +3,8 @@ package com.guilherme.emobiliaria.reports.infrastructure.repository;
 import com.guilherme.emobiliaria.inflation.domain.entity.IndexType;
 import com.guilherme.emobiliaria.inflation.domain.repository.InflationIndexRepository;
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRow;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRowStatus;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyOccupationHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyRentHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
@@ -21,6 +23,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -371,6 +374,137 @@ public class JdbcReportRepository implements ReportRepository {
     return histories;
   }
 
+
+  @Override
+  public List<YearMonth> loadPaymentReportMonths() {
+    String sql = "SELECT MIN(start_date) AS earliest FROM contracts";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery()) {
+      if (!rs.next() || rs.getDate("earliest") == null) {
+        return List.of(YearMonth.now());
+      }
+      YearMonth start = YearMonth.from(rs.getDate("earliest").toLocalDate());
+      YearMonth end = YearMonth.now();
+      List<YearMonth> months = new ArrayList<>();
+      for (YearMonth m = start; !m.isAfter(end); m = m.plusMonths(1)) {
+        months.add(m);
+      }
+      Collections.reverse(months);
+      return months;
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Report.LOAD_ERROR, e);
+    }
+  }
+
+  @Override
+  public List<PaymentReportRow> loadPaymentReportData(YearMonth month) {
+    LocalDate firstDay = month.atDay(1);
+    LocalDate lastDay = month.atEndOfMonth();
+    String sql = """
+        SELECT
+            p.name                                     AS property_name,
+            c.id                                       AS contract_id,
+            r.id                                       AS receipt_id,
+            COALESCE(pp.name, jp.corporate_name)       AS tenant_name,
+            COALESCE(pp.cpf, jp.cnpj)                  AS tenant_tax_id,
+            r.date                                     AS payment_date,
+            c.rent                                     AS rent,
+            r.interval_start                           AS period_start,
+            r.interval_end                             AS period_end
+        FROM properties p
+        LEFT JOIN contracts c ON c.property_id = p.id
+            AND c.start_date <= ?
+            AND CASE WHEN c.rescinded_at IS NOT NULL
+                     THEN c.rescinded_at
+                     ELSE DATEADD('MONTH',
+                            CAST(SUBSTRING(c.duration, 2, LENGTH(c.duration) - 2) AS INT),
+                            c.start_date)
+                END > ?
+            AND c.id = (
+                SELECT c2.id FROM contracts c2
+                WHERE c2.property_id = p.id
+                  AND c2.start_date <= ?
+                  AND CASE WHEN c2.rescinded_at IS NOT NULL
+                           THEN c2.rescinded_at
+                           ELSE DATEADD('MONTH',
+                                  CAST(SUBSTRING(c2.duration, 2, LENGTH(c2.duration) - 2) AS INT),
+                                  c2.start_date)
+                      END > ?
+                ORDER BY c2.start_date DESC, c2.id DESC
+                LIMIT 1
+            )
+        LEFT JOIN contract_tenants ct ON ct.contract_id = c.id
+            AND ct.id = (SELECT MIN(id) FROM contract_tenants WHERE contract_id = c.id)
+        LEFT JOIN physical_persons pp  ON pp.id = ct.tenant_id AND ct.tenant_type = 'PHYSICAL'
+        LEFT JOIN juridical_persons jp ON jp.id = ct.tenant_id AND ct.tenant_type = 'JURIDICAL'
+        LEFT JOIN receipts r ON r.contract_id = c.id
+            AND r.interval_start <= ?
+            AND r.interval_end   >= ?
+            AND r.id = (
+                SELECT MAX(r2.id) FROM receipts r2
+                WHERE r2.contract_id = c.id
+                  AND r2.interval_start <= ?
+                  AND r2.interval_end   >= ?
+            )
+        ORDER BY p.name
+        """;
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setObject(1, firstDay);
+      stmt.setObject(2, firstDay);
+      stmt.setObject(3, firstDay);
+      stmt.setObject(4, firstDay);
+      stmt.setObject(5, lastDay);
+      stmt.setObject(6, firstDay);
+      stmt.setObject(7, lastDay);
+      stmt.setObject(8, firstDay);
+      List<PaymentReportRow> rows = new ArrayList<>();
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          String propertyName = rs.getString("property_name");
+          long contractId = rs.getLong("contract_id");
+          boolean hasContract = !rs.wasNull() && contractId != 0;
+          long receiptId = rs.getLong("receipt_id");
+          boolean hasReceipt = !rs.wasNull() && receiptId != 0;
+
+          PaymentReportRowStatus status;
+          String tenantName = null;
+          String tenantTaxId = null;
+          LocalDate paymentDate = null;
+          Integer rent = null;
+          LocalDate periodStart = null;
+          LocalDate periodEnd = null;
+
+          if (!hasContract) {
+            status = PaymentReportRowStatus.VACANT;
+          } else if (!hasReceipt) {
+            status = PaymentReportRowStatus.UNPAID;
+            tenantName = rs.getString("tenant_name");
+            tenantTaxId = rs.getString("tenant_tax_id");
+            rent = rs.getInt("rent");
+          } else {
+            status = PaymentReportRowStatus.PAID;
+            tenantName = rs.getString("tenant_name");
+            tenantTaxId = rs.getString("tenant_tax_id");
+            java.sql.Date pd = rs.getDate("payment_date");
+            paymentDate = pd != null ? pd.toLocalDate() : null;
+            rent = rs.getInt("rent");
+            java.sql.Date ps = rs.getDate("period_start");
+            java.sql.Date pe = rs.getDate("period_end");
+            periodStart = ps != null ? ps.toLocalDate() : null;
+            periodEnd = pe != null ? pe.toLocalDate() : null;
+          }
+
+          rows.add(new PaymentReportRow(propertyName, tenantName, tenantTaxId, paymentDate, rent,
+              periodStart, periodEnd, status));
+        }
+      }
+      return rows;
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Report.LOAD_ERROR, e);
+    }
+  }
 
   private record ContractSegment(LocalDate start, LocalDate end, long initialRent) {
   }

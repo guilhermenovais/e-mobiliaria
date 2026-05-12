@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.shared.pdf;
 
+import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -23,7 +24,13 @@ public class PdfGenerationService {
   public byte[] generatePdf(PdfTemplate<?, ?> pdfTemplate) {
     String templatePath = getTemplatePath(pdfTemplate);
     Map<String, Object> parameters = getReportParameters(pdfTemplate);
-    return generateJasperReport(templatePath, parameters);
+    return generateJasperReport(templatePath, parameters, new JREmptyDataSource());
+  }
+
+  public byte[] generatePdf(PdfTemplate<?, ?> pdfTemplate, JRDataSource dataSource) {
+    String templatePath = getTemplatePath(pdfTemplate);
+    Map<String, Object> parameters = getReportParameters(pdfTemplate);
+    return generateJasperReport(templatePath, parameters, dataSource);
   }
 
   private Map<String, Object> getReportParameters(PdfTemplate<?, ?> pdfTemplate) {
@@ -40,11 +47,11 @@ public class PdfGenerationService {
     return TEMPLATES_BASE_PATH + pdfTemplate.getTemplateName() + ".jasper";
   }
 
-  private byte[] generateJasperReport(String templatePath, Map<String, Object> params) {
+  private byte[] generateJasperReport(String templatePath, Map<String, Object> params,
+      JRDataSource dataSource) {
     try (InputStream reportStream = getClass().getResourceAsStream(templatePath)) {
       JasperReport jasperReport = (JasperReport) JRLoader.loadObject(reportStream);
-      JasperPrint jasperPrint =
-          JasperFillManager.fillReport(jasperReport, params, new JREmptyDataSource());
+      JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource);
       return JasperExportManager.exportReportToPdf(jasperPrint);
     } catch (Exception e) {
       log.error("Error generating JasperReport PDF for template {}", templatePath, e);

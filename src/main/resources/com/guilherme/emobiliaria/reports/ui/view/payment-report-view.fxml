@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import java.net.URL?>
+<VBox
+        xmlns:fx="http://javafx.com/fxml"
+        styleClass="payment-report-root">
+
+    <stylesheets>
+        <URL value="@payment-report-view.css"/>
+    </stylesheets>
+
+    <!-- Month selector row -->
+    <HBox styleClass="payment-report-selector-row" alignment="CENTER_LEFT">
+        <Label fx:id="monthSelectorLabel" styleClass="payment-report-selector-label"/>
+        <ComboBox fx:id="monthComboBox" styleClass="payment-report-combo"/>
+        <ProgressIndicator fx:id="tableLoadingIndicator" styleClass="payment-report-inline-loading" visible="false"/>
+    </HBox>
+
+    <!-- Table -->
+    <TableView fx:id="reportTable" styleClass="payment-report-table" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="propertyCol" prefWidth="160"/>
+            <TableColumn fx:id="tenantCol" prefWidth="150"/>
+            <TableColumn fx:id="taxIdCol" prefWidth="120"/>
+            <TableColumn fx:id="paymentDateCol" prefWidth="100"/>
+            <TableColumn fx:id="rentCol" prefWidth="100"/>
+            <TableColumn fx:id="periodCol" prefWidth="190"/>
+        </columns>
+    </TableView>
+
+    <!-- Export button row -->
+    <HBox styleClass="payment-report-actions-row" alignment="CENTER_RIGHT">
+        <Button fx:id="exportPdfButton" styleClass="payment-report-export-button"
+                onAction="#onExportPdf"/>
+        <ProgressIndicator fx:id="pdfLoadingIndicator" styleClass="payment-report-inline-loading" visible="false"/>
+    </HBox>
+
+</VBox>

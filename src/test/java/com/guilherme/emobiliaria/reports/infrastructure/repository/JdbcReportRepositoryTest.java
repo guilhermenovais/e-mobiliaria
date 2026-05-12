@@ -3,6 +3,8 @@ package com.guilherme.emobiliaria.reports.infrastructure.repository;
 import com.guilherme.emobiliaria.inflation.domain.repository.InflationIndexRepository;
 import com.guilherme.emobiliaria.inflation.infrastructure.repository.JdbcInflationIndexRepository;
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRow;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRowStatus;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -20,11 +22,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JdbcReportRepositoryTest {
@@ -146,6 +150,22 @@ class JdbcReportRepositoryTest {
     }
   }
 
+  private long insertPropertyWithName(Connection conn, String name, long addressId)
+      throws SQLException {
+    String sql =
+        "INSERT INTO properties (name, type, cemig, copasa, iptu, address_id) VALUES (?, 'Apartamento', 'C001', 'C002', 'I001', ?)";
+    try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+      stmt.setString(1, name);
+      stmt.setLong(2, addressId);
+      stmt.executeUpdate();
+      try (ResultSet keys = stmt.getGeneratedKeys()) {
+        keys.next();
+        return keys.getLong(1);
+      }
+    }
+  }
+
+
   @Nested
   class LoadRentEvolutionData {
 
@@ -265,6 +285,165 @@ class JdbcReportRepositoryTest {
       OccupationRateData data = repository.loadOccupationRateData();
 
       assertEquals(2, data.totalProperties());
+    }
+  }
+
+
+  @Nested
+  class PaymentReportMonthsTests {
+
+    @Test
+    @DisplayName("When no contracts exist, should return only the current month")
+    void shouldReturnCurrentMonthWhenNoContracts() {
+      List<YearMonth> months = repository.loadPaymentReportMonths();
+
+      assertNotNull(months);
+      assertEquals(1, months.size());
+      assertEquals(YearMonth.now(), months.get(0));
+    }
+
+    @Test
+    @DisplayName("When contracts exist, should return descending range from earliest start to now")
+    void shouldReturnDescendingRangeFromEarliestStartToNow() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2025, 1, 1), "P3M", 100000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<YearMonth> months = repository.loadPaymentReportMonths();
+
+      assertNotNull(months);
+      assertFalse(months.isEmpty());
+      assertEquals(YearMonth.now(), months.get(0));
+      assertTrue(months.contains(YearMonth.of(2025, 1)));
+      for (int i = 0; i < months.size() - 1; i++) {
+        assertTrue(months.get(i).isAfter(months.get(i + 1)),
+            "Months should be in descending order");
+      }
+    }
+
+    @Test
+    @DisplayName("Returned months should span from earliest start with no gaps")
+    void shouldHaveNoGapsBetweenMonths() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2025, 11, 1), "P3M", 100000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<YearMonth> months = repository.loadPaymentReportMonths();
+
+      for (int i = 0; i < months.size() - 1; i++) {
+        YearMonth expected = months.get(i).minusMonths(1);
+        assertEquals(expected, months.get(i + 1),
+            "Each month should be exactly one month before the previous");
+      }
+    }
+  }
+
+
+  @Nested
+  class PaymentReportDataTests {
+
+    @Test
+    @DisplayName("When property has no active contract, should return VACANT row")
+    void shouldReturnVacantRowWhenNoActiveContract() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        insertProperty(conn, addressId);
+      }
+
+      YearMonth month = YearMonth.of(2026, 5);
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      assertEquals(PaymentReportRowStatus.VACANT, rows.get(0).status());
+      assertNull(rows.get(0).primaryTenantName());
+      assertNull(rows.get(0).rent());
+    }
+
+    @Test
+    @DisplayName("When property has active contract but no receipt, should return UNPAID row")
+    void shouldReturnUnpaidRowWhenActiveContractWithNoReceipt() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.UNPAID, row.status());
+      assertNotNull(row.primaryTenantName());
+      assertEquals(150000, row.rent());
+      assertNull(row.paymentDate());
+    }
+
+    @Test
+    @DisplayName("When property has active contract with matching receipt, should return PAID row")
+    void shouldReturnPaidRowWhenReceiptCoversMonth() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 5, 31));
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.PAID, row.status());
+      assertNotNull(row.primaryTenantName());
+      assertEquals(150000, row.rent());
+      assertEquals(LocalDate.of(2026, 5, 10), row.paymentDate());
+      assertEquals(LocalDate.of(2026, 5, 1), row.periodStart());
+      assertEquals(LocalDate.of(2026, 5, 31), row.periodEnd());
+    }
+
+    @Test
+    @DisplayName("When multiple properties exist, rows should be ordered by property name")
+    void shouldOrderRowsByPropertyName() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        insertPropertyWithName(conn, "Zeta", addressId);
+        insertPropertyWithName(conn, "Alpha", addressId);
+        insertPropertyWithName(conn, "Mango", addressId);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(3, rows.size());
+      assertEquals("Alpha", rows.get(0).propertyName());
+      assertEquals("Mango", rows.get(1).propertyName());
+      assertEquals("Zeta", rows.get(2).propertyName());
     }
   }
 

@@ -5,14 +5,12 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import java.net.URL?>
 <StackPane
-    xmlns:fx="http://javafx.com/fxml"
-    styleClass="reports-root">
+        xmlns:fx="http://javafx.com/fxml"
+        styleClass="reports-root">
 
     <stylesheets>
         <URL value="@reports-view.css"/>
@@ -56,6 +54,19 @@
                     </VBox>
                     <Button fx:id="generateOccupationRateButton" styleClass="reports-card-button"
                             onAction="#onGenerateOccupationRatePdf"/>
+                </HBox>
+
+                <!-- Payment Report Card -->
+                <HBox styleClass="reports-card" alignment="CENTER_LEFT">
+                    <VBox styleClass="reports-card-icon-box">
+                        <Label text="₿" styleClass="reports-card-icon"/>
+                    </VBox>
+                    <VBox styleClass="reports-card-info" HBox.hgrow="ALWAYS">
+                        <Label fx:id="paymentReportNameLabel" styleClass="reports-card-name"/>
+                        <Label fx:id="paymentReportDescLabel" styleClass="reports-card-description"/>
+                    </VBox>
+                    <Button fx:id="openPaymentReportButton" styleClass="reports-card-button"
+                            onAction="#onOpenPaymentReport"/>
                 </HBox>
 
             </VBox>

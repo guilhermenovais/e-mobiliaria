@@ -83,7 +83,7 @@ module com.guilherme.emobiliaria {
   opens com.guilherme.emobiliaria.reports.di to com.google.guice;
   opens com.guilherme.emobiliaria.reports.application.usecase to com.google.guice;
   opens com.guilherme.emobiliaria.reports.infrastructure.repository to com.google.guice;
-  opens com.guilherme.emobiliaria.reports.infrastructure.service to com.google.guice;
+  opens com.guilherme.emobiliaria.reports.infrastructure.service;
   opens com.guilherme.emobiliaria.reports.ui.controller to javafx.fxml, com.google.guice;
 
   opens db.migration;
