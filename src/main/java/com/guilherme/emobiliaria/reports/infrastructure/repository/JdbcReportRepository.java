@@ -439,13 +439,13 @@ public class JdbcReportRepository implements ReportRepository {
         LEFT JOIN physical_persons pp  ON pp.id = ct.tenant_id AND ct.tenant_type = 'PHYSICAL'
         LEFT JOIN juridical_persons jp ON jp.id = ct.tenant_id AND ct.tenant_type = 'JURIDICAL'
         LEFT JOIN receipts r ON r.contract_id = c.id
-            AND r.interval_start <= ?
-            AND r.interval_end   >= ?
+            AND r.payment_due_date >= ?
+            AND r.payment_due_date <= ?
             AND r.id = (
                 SELECT MAX(r2.id) FROM receipts r2
                 WHERE r2.contract_id = c.id
-                  AND r2.interval_start <= ?
-                  AND r2.interval_end   >= ?
+                  AND r2.payment_due_date >= ?
+                  AND r2.payment_due_date <= ?
             )
         ORDER BY p.name
         """;
@@ -455,10 +455,10 @@ public class JdbcReportRepository implements ReportRepository {
       stmt.setObject(2, firstDay);
       stmt.setObject(3, firstDay);
       stmt.setObject(4, firstDay);
-      stmt.setObject(5, lastDay);
-      stmt.setObject(6, firstDay);
-      stmt.setObject(7, lastDay);
-      stmt.setObject(8, firstDay);
+      stmt.setObject(5, firstDay);
+      stmt.setObject(6, lastDay);
+      stmt.setObject(7, firstDay);
+      stmt.setObject(8, lastDay);
       List<PaymentReportRow> rows = new ArrayList<>();
       try (ResultSet rs = stmt.executeQuery()) {
         while (rs.next()) {

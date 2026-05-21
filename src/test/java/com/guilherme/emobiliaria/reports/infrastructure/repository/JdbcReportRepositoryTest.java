@@ -136,13 +136,13 @@ class JdbcReportRepositoryTest {
     }
   }
 
-  private void insertReceipt(Connection conn, long contractId, LocalDate date, LocalDate start,
-      LocalDate end) throws SQLException {
+  private void insertReceipt(Connection conn, long contractId, LocalDate date,
+      LocalDate paymentDueDate, LocalDate start, LocalDate end) throws SQLException {
     String sql =
         "INSERT INTO receipts (date, payment_due_date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, ?, 0, 0, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setObject(1, date);
-      stmt.setObject(2, start);
+      stmt.setObject(2, paymentDueDate);
       stmt.setObject(3, start);
       stmt.setObject(4, end);
       stmt.setLong(5, contractId);
@@ -193,7 +193,7 @@ class JdbcReportRepositoryTest {
                 personId);
         insertContractTenant(conn, contractId, personId);
         insertReceipt(conn, contractId, LocalDate.of(2026, 1, 15), LocalDate.of(2026, 1, 1),
-            LocalDate.of(2026, 1, 31));
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
       }
 
       RentEvolutionData data = repository.loadRentEvolutionData();
@@ -218,7 +218,7 @@ class JdbcReportRepositoryTest {
                 personId);
         insertContractTenant(conn, contractId, personId);
         insertReceipt(conn, contractId, LocalDate.of(2026, 1, 15), LocalDate.of(2026, 1, 1),
-            LocalDate.of(2026, 1, 31));
+            LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 31));
       }
 
       RentEvolutionData data = repository.loadRentEvolutionData();
@@ -412,7 +412,7 @@ class JdbcReportRepositoryTest {
                 personId);
         insertContractTenant(conn, contractId, personId);
         insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 1),
-            LocalDate.of(2026, 5, 31));
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31));
       }
 
       List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
@@ -425,6 +425,34 @@ class JdbcReportRepositoryTest {
       assertEquals(LocalDate.of(2026, 5, 10), row.paymentDate());
       assertEquals(LocalDate.of(2026, 5, 1), row.periodStart());
       assertEquals(LocalDate.of(2026, 5, 31), row.periodEnd());
+    }
+
+    @Test
+    @DisplayName(
+        "When receipt paymentDueDate is in a different month than the interval, it should appear in the paymentDueDate month")
+    void shouldPlaceReceiptInPaymentDueDateMonth() throws SQLException {
+      // Receipt covers April interval but paymentDueDate is in May
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30));
+      }
+
+      List<PaymentReportRow> mayRows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
+      List<PaymentReportRow> aprilRows = repository.loadPaymentReportData(YearMonth.of(2026, 4));
+
+      assertEquals(1, mayRows.size());
+      assertEquals(PaymentReportRowStatus.PAID, mayRows.get(0).status());
+
+      assertEquals(1, aprilRows.size());
+      assertEquals(PaymentReportRowStatus.UNPAID, aprilRows.get(0).status());
     }
 
     @Test
