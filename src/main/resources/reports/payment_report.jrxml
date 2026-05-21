@@ -12,9 +12,53 @@
     <field name="rent" class="java.lang.String"/>
     <field name="period" class="java.lang.String"/>
     <field name="statusLabel" class="java.lang.String"/>
-    <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count" resetType="Report">
+    <field name="pageGroup" class="java.lang.String"/>
+    <variable name="ROW_NUMBER" class="java.lang.Integer" calculation="Count"
+              resetType="Group" resetGroup="pageGroupGroup">
         <expression><![CDATA[1]]></expression>
     </variable>
+    <style name="detailText" fontName="Arial" fontSize="9.0" forecolor="#000000">
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$F{statusLabel}.equals("EM ABERTO")]]></conditionExpression>
+            <style forecolor="#C62828"/>
+        </conditionalStyle>
+        <conditionalStyle>
+            <conditionExpression><![CDATA[$F{statusLabel}.equals("IMÓVEL VAGO")]]></conditionExpression>
+            <style forecolor="#9E9E9E" italic="true"/>
+        </conditionalStyle>
+    </style>
+    <group name="pageGroupGroup" startNewPage="true" keepTogether="false">
+        <expression><![CDATA[$F{pageGroup}]]></expression>
+        <groupHeader>
+            <band height="24" splitType="Prevent">
+                <element kind="rectangle" uuid="e4000010-0000-0000-0000-000000000001"
+                         x="0" y="2" width="555" height="20" forecolor="#E3F2FD" backcolor="#E3F2FD">
+                    <pen lineWidth="0.0"/>
+                    <printWhenExpression><![CDATA[$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+                <element kind="rectangle" uuid="e4000010-0000-0000-0000-000000000002"
+                         x="0" y="2" width="555" height="20" forecolor="#FFF3E0" backcolor="#FFF3E0">
+                    <pen lineWidth="0.0"/>
+                    <printWhenExpression><![CDATA[!$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+                <element kind="staticText" uuid="e4000010-0000-0000-0000-000000000003"
+                         x="4" y="4" width="547" height="16" fontName="Arial" fontSize="10.0"
+                         bold="true" forecolor="#1565C0">
+                    <text><![CDATA[Pagamentos confirmados]]></text>
+                    <printWhenExpression><![CDATA[$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+                <element kind="staticText" uuid="e4000010-0000-0000-0000-000000000004"
+                         x="4" y="4" width="547" height="16" fontName="Arial" fontSize="10.0"
+                         bold="true" forecolor="#E65100">
+                    <text><![CDATA[Pagamentos pendentes]]></text>
+                    <printWhenExpression><![CDATA[!$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+            </band>
+        </groupHeader>
+        <groupFooter>
+            <band height="0"/>
+        </groupFooter>
+    </group>
     <background splitType="Stretch"/>
     <title height="28" splitType="Prevent">
         <element kind="textField" uuid="e4000003-0000-0000-0000-000000000001" x="0" y="0"
@@ -81,37 +125,35 @@
             </element>
             <!-- Imóvel -->
             <element kind="textField" uuid="e4000004-0000-0000-0000-000000000002"
-                     x="4" y="2" width="107" height="14" fontName="Arial" fontSize="9.0"
-                     blankWhenNull="true">
+                     style="detailText" x="4" y="2" width="107" height="14" blankWhenNull="true">
                 <expression><![CDATA[$F{propertyName}]]></expression>
             </element>
             <!-- Locatário -->
             <element kind="textField" uuid="e4000004-0000-0000-0000-000000000003"
-                     x="115" y="2" width="103" height="14" fontName="Arial" fontSize="9.0"
-                     blankWhenNull="true">
-                <expression><![CDATA[$F{primaryTenantName}]]></expression>
+                     style="detailText" x="115" y="2" width="103" height="14" blankWhenNull="true">
+                <expression>
+                    <![CDATA[$F{statusLabel}.equals("IMÓVEL VAGO") ? "Imóvel vago" : $F{primaryTenantName}]]></expression>
             </element>
             <!-- CPF/CNPJ -->
             <element kind="textField" uuid="e4000004-0000-0000-0000-000000000004"
-                     x="222" y="2" width="85" height="14" fontName="Arial" fontSize="9.0"
-                     blankWhenNull="true">
+                     style="detailText" x="222" y="2" width="85" height="14" blankWhenNull="true">
                 <expression><![CDATA[$F{primaryTenantTaxId}]]></expression>
             </element>
             <!-- Data de Pagamento -->
             <element kind="textField" uuid="e4000004-0000-0000-0000-000000000005"
-                     x="311" y="2" width="65" height="14" fontName="Arial" fontSize="9.0"
+                     style="detailText" x="311" y="2" width="65" height="14"
                      hTextAlign="Center" blankWhenNull="true">
                 <expression><![CDATA[$F{paymentDate}.isEmpty() ? "—" : $F{paymentDate}]]></expression>
             </element>
             <!-- Valor do Aluguel -->
             <element kind="textField" uuid="e4000004-0000-0000-0000-000000000006"
-                     x="380" y="2" width="66" height="14" fontName="Arial" fontSize="9.0"
+                     style="detailText" x="380" y="2" width="66" height="14"
                      hTextAlign="Right" blankWhenNull="true">
                 <expression><![CDATA[$F{rent}.isEmpty() ? "—" : $F{rent}]]></expression>
             </element>
             <!-- Período -->
             <element kind="textField" uuid="e4000004-0000-0000-0000-000000000007"
-                     x="450" y="2" width="105" height="14" fontName="Arial" fontSize="8.0"
+                     style="detailText" fontSize="8.0" x="450" y="2" width="105" height="14"
                      hTextAlign="Center" blankWhenNull="true">
                 <expression><![CDATA[$F{period}.isEmpty() ? "—" : $F{period}]]></expression>
             </element>

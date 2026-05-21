@@ -18,6 +18,7 @@ public class PaymentReportRowBean {
   private final String rent;
   private final String period;
   private final String statusLabel;
+  private final String pageGroup;
 
   public PaymentReportRowBean(PaymentReportRow row) {
     this.propertyName = row.propertyName();
@@ -33,6 +34,7 @@ public class PaymentReportRowBean {
       case PaymentReportRowStatus.UNPAID -> "EM ABERTO";
       case PaymentReportRowStatus.VACANT -> "IMÓVEL VAGO";
     };
+    this.pageGroup = (row.status() == PaymentReportRowStatus.PAID) ? "1_PAID" : "2_UNPAID_VACANT";
   }
 
   public String getPropertyName() {
@@ -61,5 +63,9 @@ public class PaymentReportRowBean {
 
   public String getStatusLabel() {
     return statusLabel;
+  }
+
+  public String getPageGroup() {
+    return pageGroup;
   }
 }

@@ -77,7 +77,9 @@ public class ReportFileServiceImpl implements ReportFileService {
     String monthLabel = formatPaymentMonthLabel(month);
     String generationDate = LocalDate.now().format(DATE_FMT);
     String appName = bundle.getString("pdf.app_name");
-    List<PaymentReportRowBean> beans = rows.stream().map(PaymentReportRowBean::new).toList();
+    List<PaymentReportRowBean> beans = rows.stream().map(PaymentReportRowBean::new).sorted(
+        Comparator.comparing(PaymentReportRowBean::getPageGroup)
+            .thenComparing(PaymentReportRowBean::getPropertyName)).toList();
     JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(beans);
     return pdfGenerationService.generatePdf(
         new PaymentReportTemplate(monthLabel, generationDate, appName), ds);
