@@ -11,6 +11,7 @@ import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRowStatus;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
+import com.guilherme.emobiliaria.shared.util.TaxIdFormatter;
 import jakarta.inject.Inject;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -111,7 +112,7 @@ public class PaymentReportController {
     tenantCol.setCellValueFactory(data -> new SimpleStringProperty(
         data.getValue().primaryTenantName() != null ? data.getValue().primaryTenantName() : ""));
     taxIdCol.setCellValueFactory(data -> new SimpleStringProperty(
-        data.getValue().primaryTenantTaxId() != null ? data.getValue().primaryTenantTaxId() : ""));
+        TaxIdFormatter.format(data.getValue().primaryTenantTaxId())));
     paymentDateCol.setCellValueFactory(data -> {
       LocalDate date = data.getValue().paymentDate();
       return new SimpleStringProperty(

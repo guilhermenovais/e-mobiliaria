@@ -3,6 +3,7 @@ package com.guilherme.emobiliaria.reports.infrastructure.service;
 import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRow;
 import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRowStatus;
 import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
+import com.guilherme.emobiliaria.shared.util.TaxIdFormatter;
 
 import java.time.format.DateTimeFormatter;
 
@@ -21,7 +22,7 @@ public class PaymentReportRowBean {
   public PaymentReportRowBean(PaymentReportRow row) {
     this.propertyName = row.propertyName();
     this.primaryTenantName = row.primaryTenantName() != null ? row.primaryTenantName() : "";
-    this.primaryTenantTaxId = row.primaryTenantTaxId() != null ? row.primaryTenantTaxId() : "";
+    this.primaryTenantTaxId = TaxIdFormatter.format(row.primaryTenantTaxId());
     this.paymentDate = row.paymentDate() != null ? row.paymentDate().format(DATE_FMT) : "";
     this.rent = row.rent() != null ? MoneyFormatter.formatWithSymbol(row.rent()) : "";
     this.period = (row.periodStart() != null && row.periodEnd() != null) ?
