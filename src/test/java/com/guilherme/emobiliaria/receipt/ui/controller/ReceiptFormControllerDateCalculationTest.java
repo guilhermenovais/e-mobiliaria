@@ -30,6 +30,19 @@ class ReceiptFormControllerDateCalculationTest {
   }
 
   @Test
+  @DisplayName(
+      "Period start is next contract day after payment due date, end is start + 1 month - 1 day")
+  void shouldCalculateStartEndBasedOnPaymentDueDate() {
+    // Contract started 03/15/2026, payment due date 05/20/2026
+    // → period start = 06/15/2026, period end = 07/14/2026
+    ReceiptFormController.PeriodInterval period =
+        ReceiptFormController.calculatePeriod(LocalDate.of(2026, 5, 20), LocalDate.of(2026, 3, 15));
+
+    assertEquals(LocalDate.of(2026, 6, 15), period.start());
+    assertEquals(LocalDate.of(2026, 7, 14), period.end());
+  }
+
+  @Test
   @DisplayName("Should skip months without target day and keep exact day")
   void shouldSkipMonthsWithoutTargetDayAndKeepExactDay() {
     ReceiptFormController.PeriodInterval period = ReceiptFormController.calculatePeriod(

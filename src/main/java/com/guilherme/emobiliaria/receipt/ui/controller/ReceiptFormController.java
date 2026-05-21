@@ -282,8 +282,15 @@ public class ReceiptFormController {
     paymentDueDateComboBox.getSelectionModel().selectedItemProperty()
         .addListener((obs, oldVal, newVal) -> {
           if (newVal != null) {
-            intervalStartPicker.setValue(newVal);
-            intervalEndPicker.setValue(newVal.plusMonths(1).minusDays(1));
+            Contract selectedContract = contractComboBox.getSelectionModel().getSelectedItem();
+            if (selectedContract != null) {
+              PeriodInterval period = calculatePeriod(newVal, selectedContract.getStartDate());
+              intervalStartPicker.setValue(period.start());
+              intervalEndPicker.setValue(period.end());
+            } else {
+              intervalStartPicker.setValue(newVal);
+              intervalEndPicker.setValue(newVal.plusMonths(1).minusDays(1));
+            }
           }
         });
 
