@@ -12,11 +12,15 @@ public class PaymentReportTemplate
   private final String generationDate;
   private final String appName;
 
-  public PaymentReportTemplate(String monthLabel, String generationDate, String appName) {
+  private final String paidTotal;
+
+  public PaymentReportTemplate(String monthLabel, String generationDate, String appName,
+      String paidTotal) {
     super("payment_report");
     this.monthLabel = monthLabel;
     this.generationDate = generationDate;
     this.appName = appName;
+    this.paidTotal = paidTotal;
   }
 
   @Override
@@ -25,6 +29,7 @@ public class PaymentReportTemplate
     params.put(Param.MONTH_LABEL, monthLabel);
     params.put(Param.GENERATION_DATE, generationDate);
     params.put(Param.APP_NAME, appName);
+    params.put(Param.PAID_TOTAL, paidTotal);
     return params;
   }
 
@@ -34,7 +39,7 @@ public class PaymentReportTemplate
   }
 
   public enum Param {
-    MONTH_LABEL, GENERATION_DATE, APP_NAME
+    MONTH_LABEL, GENERATION_DATE, APP_NAME, PAID_TOTAL
   }
 
 

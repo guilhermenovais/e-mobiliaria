@@ -5,6 +5,7 @@
     <parameter name="month_label" forPrompting="false" class="java.lang.String"/>
     <parameter name="generation_date" forPrompting="false" class="java.lang.String"/>
     <parameter name="app_name" forPrompting="false" class="java.lang.String"/>
+    <parameter name="paid_total" forPrompting="false" class="java.lang.String"/>
     <field name="propertyName" class="java.lang.String"/>
     <field name="primaryTenantName" class="java.lang.String"/>
     <field name="primaryTenantTaxId" class="java.lang.String"/>
@@ -56,7 +57,25 @@
             </band>
         </groupHeader>
         <groupFooter>
-            <band height="0"/>
+            <band height="22" splitType="Prevent">
+                <element kind="line" uuid="e4000020-0000-0000-0000-000000000001"
+                         x="0" y="0" width="555" height="1">
+                    <pen lineWidth="0.5" lineColor="#BBDEFB"/>
+                    <printWhenExpression><![CDATA[$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+                <element kind="staticText" uuid="e4000020-0000-0000-0000-000000000002"
+                         x="310" y="4" width="65" height="14" fontName="Arial" fontSize="9.0"
+                         bold="true" forecolor="#1565C0" hTextAlign="Right">
+                    <text><![CDATA[Total confirmado:]]></text>
+                    <printWhenExpression><![CDATA[$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+                <element kind="textField" uuid="e4000020-0000-0000-0000-000000000003"
+                         x="380" y="4" width="66" height="14" fontName="Arial" fontSize="9.0"
+                         bold="true" forecolor="#1565C0" hTextAlign="Right">
+                    <expression><![CDATA[$P{paid_total}]]></expression>
+                    <printWhenExpression><![CDATA[$F{pageGroup}.equals("1_PAID")]]></printWhenExpression>
+                </element>
+            </band>
         </groupFooter>
     </group>
     <background splitType="Stretch"/>

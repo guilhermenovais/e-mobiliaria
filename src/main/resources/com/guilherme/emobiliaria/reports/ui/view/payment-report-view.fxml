@@ -36,6 +36,11 @@
         </columns>
     </TableView>
 
+    <!-- Paid total row -->
+    <HBox styleClass="payment-report-total-row" alignment="CENTER_RIGHT">
+        <Label fx:id="paidTotalLabel" styleClass="payment-report-total-label"/>
+    </HBox>
+
     <!-- Export button row -->
     <HBox styleClass="payment-report-actions-row" alignment="CENTER_RIGHT">
         <Button fx:id="exportPdfButton" styleClass="payment-report-export-button"

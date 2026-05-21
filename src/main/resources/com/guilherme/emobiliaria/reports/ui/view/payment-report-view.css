@@ -27,6 +27,16 @@
     -fx-pref-height: 400px;
 }
 
+.payment-report-total-row {
+    -fx-padding: 4px 0 0 0;
+}
+
+.payment-report-total-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1565C0;
+}
+
 .payment-report-actions-row {
     -fx-spacing: 8px;
     -fx-padding: 8px 0 0 0;

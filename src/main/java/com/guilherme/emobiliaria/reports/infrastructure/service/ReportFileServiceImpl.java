@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.reports.infrastructure.service;
 
 import com.guilherme.emobiliaria.reports.domain.entity.OccupationRateData;
 import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRow;
+import com.guilherme.emobiliaria.reports.domain.entity.PaymentReportRowStatus;
 import com.guilherme.emobiliaria.reports.domain.entity.PropertyRentHistory;
 import com.guilherme.emobiliaria.reports.domain.entity.RentEvolutionData;
 import com.guilherme.emobiliaria.reports.domain.service.ReportFileService;
@@ -80,9 +81,13 @@ public class ReportFileServiceImpl implements ReportFileService {
     List<PaymentReportRowBean> beans = rows.stream().map(PaymentReportRowBean::new).sorted(
         Comparator.comparing(PaymentReportRowBean::getPageGroup)
             .thenComparing(PaymentReportRowBean::getPropertyName)).toList();
+    long paidTotalCents =
+        rows.stream().filter(r -> r.status() == PaymentReportRowStatus.PAID && r.rent() != null)
+            .mapToLong(r -> r.rent().longValue()).sum();
+    String paidTotal = MoneyFormatter.formatWithSymbol(paidTotalCents);
     JRBeanCollectionDataSource ds = new JRBeanCollectionDataSource(beans);
     return pdfGenerationService.generatePdf(
-        new PaymentReportTemplate(monthLabel, generationDate, appName), ds);
+        new PaymentReportTemplate(monthLabel, generationDate, appName, paidTotal), ds);
   }
 
   private String formatPaymentMonthLabel(YearMonth month) {

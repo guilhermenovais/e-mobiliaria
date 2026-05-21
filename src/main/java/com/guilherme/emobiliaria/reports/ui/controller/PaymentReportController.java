@@ -77,6 +77,8 @@ public class PaymentReportController {
   @FXML
   private TableColumn<PaymentReportRow, String> periodCol;
   @FXML
+  private Label paidTotalLabel;
+  @FXML
   private Button exportPdfButton;
   @FXML
   private ProgressIndicator pdfLoadingIndicator;
@@ -194,6 +196,7 @@ public class PaymentReportController {
   private void loadTableData(YearMonth month) {
     tableLoadingIndicator.setVisible(true);
     reportTable.setItems(FXCollections.emptyObservableList());
+    paidTotalLabel.setText("");
 
     Task<List<PaymentReportRow>> task = new Task<>() {
       @Override
@@ -204,7 +207,14 @@ public class PaymentReportController {
 
     task.setOnSucceeded(e -> {
       tableLoadingIndicator.setVisible(false);
-      reportTable.setItems(FXCollections.observableArrayList(task.getValue()));
+      List<PaymentReportRow> rows = task.getValue();
+      reportTable.setItems(FXCollections.observableArrayList(rows));
+      long paidTotalCents =
+          rows.stream().filter(r -> r.status() == PaymentReportRowStatus.PAID && r.rent() != null)
+              .mapToLong(PaymentReportRow::rent).sum();
+      paidTotalLabel.setText(bundle.getString(
+          "reports.payment_report.paid_total_label") + " " + MoneyFormatter.formatWithSymbol(
+          paidTotalCents));
     });
 
     task.setOnFailed(e -> {
