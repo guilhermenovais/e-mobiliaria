@@ -447,7 +447,7 @@ public class JdbcReportRepository implements ReportRepository {
                   AND r2.payment_due_date >= ?
                   AND r2.payment_due_date <= ?
             )
-        ORDER BY p.name
+        ORDER BY r.date NULLS LAST, p.name
         """;
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {

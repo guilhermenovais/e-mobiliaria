@@ -118,6 +118,17 @@ public class PaymentReportController {
       return new SimpleStringProperty(
           date != null ? date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "—");
     });
+    DateTimeFormatter paymentDateSortFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    paymentDateCol.setComparator((a, b) -> {
+      if ("—".equals(a))
+        return 1;
+      if ("—".equals(b))
+        return -1;
+      return LocalDate.parse(a, paymentDateSortFmt)
+          .compareTo(LocalDate.parse(b, paymentDateSortFmt));
+    });
+    paymentDateCol.setSortType(TableColumn.SortType.ASCENDING);
+    reportTable.getSortOrder().setAll(paymentDateCol);
     rentCol.setCellValueFactory(data -> {
       Integer rent = data.getValue().rent();
       return new SimpleStringProperty(rent != null ? MoneyFormatter.formatWithSymbol(rent) : "—");
