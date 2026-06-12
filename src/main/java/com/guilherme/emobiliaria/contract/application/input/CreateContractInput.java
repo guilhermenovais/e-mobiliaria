@@ -4,16 +4,9 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 
-public record CreateContractInput(
-    LocalDate startDate,
-    Period duration,
-    int paymentDay,
-    int rent,
-    String purpose,
-    Long paymentAccountId,
-    Long propertyId,
-    PersonReference landlord,
-    List<PersonReference> tenants,
-    List<PersonReference> guarantors,
-    List<PersonReference> witnesses
-) {}
+public record CreateContractInput(LocalDate startDate, Period duration, int paymentDay, int rent,
+                                  String purpose, Long paymentAccountId, Long propertyId,
+                                  PersonReference landlord, List<PersonReference> tenants,
+                                  List<PersonReference> guarantors, List<PersonReference> witnesses,
+                                  boolean delayedPayment) {
+}

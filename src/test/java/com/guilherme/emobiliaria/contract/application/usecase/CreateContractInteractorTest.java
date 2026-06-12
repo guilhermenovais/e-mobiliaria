@@ -56,28 +56,30 @@ class CreateContractInteractorTest {
   }
 
   private Long createPaymentAccount() {
-    return new CreatePaymentAccountInteractor(paymentAccountRepository)
-        .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
+    return new CreatePaymentAccountInteractor(paymentAccountRepository).execute(
+            new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
   }
 
   private Long createProperty() {
-    Property property = Property.create("Apto Centro", "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    Property property =
+        Property.create("Apto Centro", "Apartamento", "1234567890", "0987654321", "IPTU-001",
+            validAddress());
     return propertyRepository.create(property).getId();
   }
 
   private Long createPhysicalPerson() {
-    PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
-        "Engenheiro", "529.982.247-25", "MG-1234567", validAddress());
+    PhysicalPerson person =
+        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
+            "529.982.247-25", "MG-1234567", validAddress());
     return physicalPersonRepository.create(person).getId();
   }
 
   private CreateContractInput validInput(Long paymentAccountId, Long propertyId, Long personId) {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
-    return new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10,
-        150000, "Residencial",
-        paymentAccountId, propertyId, personRef, List.of(personRef), List.of(), List.of());
+    return new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
+        "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
+        List.of(), false);
   }
 
   @Nested
@@ -90,7 +92,8 @@ class CreateContractInteractorTest {
       Long propertyId = createProperty();
       Long personId = createPhysicalPerson();
 
-      CreateContractOutput output = interactor.execute(validInput(paymentAccountId, propertyId, personId));
+      CreateContractOutput output =
+          interactor.execute(validInput(paymentAccountId, propertyId, personId));
 
       assertNotNull(output.contract().getId());
       assertEquals(LocalDate.of(2026, 1, 1), output.contract().getStartDate());
@@ -99,7 +102,8 @@ class CreateContractInteractorTest {
     }
 
     @Test
-    @DisplayName("When payment account does not exist, should throw BusinessException with NOT_FOUND")
+    @DisplayName(
+        "When payment account does not exist, should throw BusinessException with NOT_FOUND")
     void shouldThrowWhenPaymentAccountNotFound() {
       Long propertyId = createProperty();
       Long personId = createPhysicalPerson();
@@ -126,9 +130,10 @@ class CreateContractInteractorTest {
       Long paymentAccountId = createPaymentAccount();
       Long propertyId = createProperty();
       PersonReference missingPerson = new PersonReference(999L, PersonType.PHYSICAL);
-      CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, missingPerson,
-          List.of(missingPerson), List.of(), List.of());
+      CreateContractInput input =
+          new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
+              "Residencial", paymentAccountId, propertyId, missingPerson, List.of(missingPerson),
+              List.of(), List.of(), false);
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.PhysicalPerson.NOT_FOUND, ex.getErrorMessage());
@@ -142,9 +147,10 @@ class CreateContractInteractorTest {
       Long landlordId = createPhysicalPerson();
       PersonReference landlord = new PersonReference(landlordId, PersonType.PHYSICAL);
       PersonReference missingTenant = new PersonReference(999L, PersonType.PHYSICAL);
-      CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
-          Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, landlord,
-          List.of(missingTenant), List.of(), List.of());
+      CreateContractInput input =
+          new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
+              "Residencial", paymentAccountId, propertyId, landlord, List.of(missingTenant),
+              List.of(), List.of(), false);
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.PhysicalPerson.NOT_FOUND, ex.getErrorMessage());

@@ -81,7 +81,7 @@ class EditContractInteractorTest {
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
     CreateContractInput input = new CreateContractInput(LocalDate.of(2026, 1, 1),
         Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
-        List.of(personRef), List.of(), List.of());
+        List.of(personRef), List.of(), List.of(), false);
     CreateContractOutput output = createInteractor.execute(input);
     return output.contract().getId();
   }
@@ -99,7 +99,7 @@ class EditContractInteractorTest {
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 6, 1),
           Period.ofYears(2), 15, 150000, "Residencial", paymentAccountId, propertyId, personRef,
-          List.of(personRef), List.of(), List.of());
+          List.of(personRef), List.of(), List.of(), false);
 
       EditContractOutput output = interactor.execute(input);
 
@@ -118,7 +118,7 @@ class EditContractInteractorTest {
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(999L, LocalDate.of(2026, 1, 1),
           Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, propertyId, personRef,
-          List.of(personRef), List.of(), List.of());
+          List.of(personRef), List.of(), List.of(), false);
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.Contract.NOT_FOUND, ex.getErrorMessage());
@@ -134,7 +134,7 @@ class EditContractInteractorTest {
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 1, 1),
           Period.ofMonths(12), 10, 150000, "Residencial", 999L, propertyId, personRef, List.of(personRef),
-          List.of(), List.of());
+          List.of(), List.of(), false);
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.PaymentAccount.NOT_FOUND, ex.getErrorMessage());
@@ -150,7 +150,7 @@ class EditContractInteractorTest {
       PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
       EditContractInput input = new EditContractInput(contractId, LocalDate.of(2026, 1, 1),
           Period.ofMonths(12), 10, 150000, "Residencial", paymentAccountId, 999L, personRef, List.of(personRef),
-          List.of(), List.of());
+          List.of(), List.of(), false);
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(input));
       assertEquals(ErrorMessage.Property.NOT_FOUND, ex.getErrorMessage());

@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.contract.application.usecase;
 
+import com.google.inject.Inject;
 import com.guilherme.emobiliaria.contract.application.input.EditContractInput;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference;
 import com.guilherme.emobiliaria.contract.application.output.EditContractOutput;
@@ -14,7 +15,6 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.repository.PropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
-import com.google.inject.Inject;
 
 import java.util.List;
 
@@ -27,13 +27,10 @@ public class EditContractInteractor {
   private final JuridicalPersonRepository juridicalPersonRepository;
 
   @Inject
-  public EditContractInteractor(
-      ContractRepository contractRepository,
-      PaymentAccountRepository paymentAccountRepository,
-      PropertyRepository propertyRepository,
+  public EditContractInteractor(ContractRepository contractRepository,
+      PaymentAccountRepository paymentAccountRepository, PropertyRepository propertyRepository,
       PhysicalPersonRepository physicalPersonRepository,
-      JuridicalPersonRepository juridicalPersonRepository
-  ) {
+      JuridicalPersonRepository juridicalPersonRepository) {
     this.contractRepository = contractRepository;
     this.paymentAccountRepository = paymentAccountRepository;
     this.propertyRepository = propertyRepository;
@@ -63,6 +60,7 @@ public class EditContractInteractor {
     contract.setTenants(tenants);
     contract.setGuarantors(guarantors);
     contract.setWitnesses(witnesses);
+    contract.setDelayedPayment(input.delayedPayment());
     Contract updated = contractRepository.update(contract);
     return new EditContractOutput(updated);
   }
@@ -80,8 +78,6 @@ public class EditContractInteractor {
     if (references == null) {
       return List.of();
     }
-    return references.stream()
-        .map(this::resolvePerson)
-        .toList();
+    return references.stream().map(this::resolvePerson).toList();
   }
 }

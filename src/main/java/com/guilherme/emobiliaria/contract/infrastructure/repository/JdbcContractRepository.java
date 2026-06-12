@@ -45,7 +45,7 @@ public class JdbcContractRepository implements ContractRepository {
   @Override
   public Contract create(Contract contract) {
     String sql =
-        "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type, rescinded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type, rescinded_at, delayed_payment) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setDate(1, Date.valueOf(contract.getStartDate()));
@@ -59,6 +59,7 @@ public class JdbcContractRepository implements ContractRepository {
       stmt.setString(9, personType(contract.getLandlord()));
       stmt.setDate(10,
           contract.getRescindedAt() != null ? Date.valueOf(contract.getRescindedAt()) : null);
+      stmt.setBoolean(11, contract.isDelayedPayment());
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
@@ -76,7 +77,7 @@ public class JdbcContractRepository implements ContractRepository {
   @Override
   public Contract update(Contract contract) {
     String sql =
-        "UPDATE contracts SET start_date=?, duration=?, payment_day=?, rent=?, purpose=?, payment_account_id=?, property_id=?, landlord_id=?, landlord_type=?, rescinded_at=? WHERE id=?";
+        "UPDATE contracts SET start_date=?, duration=?, payment_day=?, rent=?, purpose=?, payment_account_id=?, property_id=?, landlord_id=?, landlord_type=?, rescinded_at=?, delayed_payment=? WHERE id=?";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setDate(1, Date.valueOf(contract.getStartDate()));
@@ -90,7 +91,8 @@ public class JdbcContractRepository implements ContractRepository {
       stmt.setString(9, personType(contract.getLandlord()));
       stmt.setDate(10,
           contract.getRescindedAt() != null ? Date.valueOf(contract.getRescindedAt()) : null);
-      stmt.setLong(11, contract.getId());
+      stmt.setBoolean(11, contract.isDelayedPayment());
+      stmt.setLong(12, contract.getId());
       if (stmt.executeUpdate() == 0) {
         throw new PersistenceException(ErrorMessage.Contract.NOT_FOUND, null);
       }
@@ -127,7 +129,7 @@ public class JdbcContractRepository implements ContractRepository {
   public Optional<Contract> findById(Long id) {
     String sql = """
         SELECT id, start_date, duration, payment_day, rent, purpose,
-               payment_account_id, property_id, landlord_id, landlord_type, rescinded_at,
+               payment_account_id, property_id, landlord_id, landlord_type, rescinded_at, delayed_payment,
                (SELECT c2.id FROM contracts c2 WHERE c2.property_id = contracts.property_id ORDER BY c2.start_date DESC, c2.id DESC LIMIT 1) AS latest_id
         FROM contracts WHERE id=?
         """;
@@ -168,7 +170,7 @@ public class JdbcContractRepository implements ContractRepository {
       String sql = """
           WITH ranked AS (
             SELECT id, start_date, duration, payment_day, rent, purpose,
-                   payment_account_id, property_id, landlord_id, landlord_type, rescinded_at,
+                   payment_account_id, property_id, landlord_id, landlord_type, rescinded_at, delayed_payment,
                    FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
           )
@@ -207,7 +209,7 @@ public class JdbcContractRepository implements ContractRepository {
       String sql = """
           WITH ranked AS (
             SELECT id, start_date, duration, payment_day, rent, purpose,
-                   payment_account_id, property_id, landlord_id, landlord_type, rescinded_at,
+                   payment_account_id, property_id, landlord_id, landlord_type, rescinded_at, delayed_payment,
                    FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
           )
@@ -280,7 +282,7 @@ public class JdbcContractRepository implements ContractRepository {
           ),
           ranked AS (
             SELECT id, start_date, duration, payment_day, rent, purpose,
-                   payment_account_id, property_id, landlord_id, landlord_type, rescinded_at,
+                   payment_account_id, property_id, landlord_id, landlord_type, rescinded_at, delayed_payment,
                    FIRST_VALUE(id) OVER (PARTITION BY property_id ORDER BY start_date DESC, id DESC) AS latest_id
             FROM contracts
           )
@@ -355,10 +357,12 @@ public class JdbcContractRepository implements ContractRepository {
     List<Person> guarantors = loadGuarantors(conn, id);
     List<Person> witnesses = loadWitnesses(conn, id);
     Date rescindedAt = rs.getDate("rescinded_at");
-    return Contract.restore(id, rs.getDate("start_date").toLocalDate(), duration,
+    Contract contract = Contract.restore(id, rs.getDate("start_date").toLocalDate(), duration,
         rs.getInt("payment_day"), rs.getInt("rent"), rs.getString("purpose"), paymentAccount,
         property, landlord, tenants, guarantors, witnesses,
         rescindedAt != null ? rescindedAt.toLocalDate() : null);
+    contract.setDelayedPayment(rs.getBoolean("delayed_payment"));
+    return contract;
   }
 
   private Contract mapWithStatus(ResultSet rs, Connection conn) throws SQLException {

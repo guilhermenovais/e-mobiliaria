@@ -67,7 +67,7 @@ class ContractDetailsStepPaneTest {
     void shouldFormatRentUsingCurrencyMaskWhenPaneIsPopulatedWithRentCents() throws Exception {
       String rentText = onFX(() -> {
         ContractDetailsStepPane pane = createPane();
-        pane.populate(LocalDate.of(2026, 4, 10), 12, 123456, 10, "Residencial");
+        pane.populate(LocalDate.of(2026, 4, 10), 12, 123456, 10, "Residencial", false);
         return rentField(pane).getText();
       });
 

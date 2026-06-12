@@ -80,7 +80,7 @@ class DeleteReceiptInteractorTest {
     return createContractInteractor.execute(
         new CreateContractInput(LocalDate.of(2026, 1, 1), Period.ofMonths(12), 10, 150000,
             "Residencial", paymentAccountId, propertyId, personRef, List.of(personRef), List.of(),
-            List.of())).contract().getId();
+            List.of(), false)).contract().getId();
   }
 
   private Long createReceipt(Long contractId) {

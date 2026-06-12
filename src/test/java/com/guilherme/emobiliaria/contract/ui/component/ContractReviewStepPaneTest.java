@@ -86,7 +86,7 @@ class ContractReviewStepPaneTest {
       pane.populate(sampleProperty(), samplePerson("Locador", "52998224725"),
           List.of(samplePerson("Locatário", "11144477735")), List.of(), List.of(),
           LocalDate.of(2026, 1, 1), 12, 150000, 5, "Residencial",
-          PaymentAccount.restore(10L, "Banco XPTO", "1234", "998877", "pix-x"));
+          PaymentAccount.restore(10L, "Banco XPTO", "1234", "998877", "pix-x"), false);
 
       return accountSectionTexts(pane);
     });
@@ -104,7 +104,7 @@ class ContractReviewStepPaneTest {
       ContractReviewStepPane pane = new ContractReviewStepPane(messages());
       pane.populate(sampleProperty(), samplePerson("Locador", "52998224725"),
           List.of(samplePerson("Locatário", "11144477735")), List.of(), List.of(),
-          LocalDate.of(2026, 1, 1), 12, 150000, 5, "Residencial", null);
+          LocalDate.of(2026, 1, 1), 12, 150000, 5, "Residencial", null, false);
 
       return accountSectionTexts(pane);
     });

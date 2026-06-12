@@ -24,6 +24,7 @@ public class Contract {
   private List<Person> witnesses;
   private ContractStatus status;
   private LocalDate rescindedAt;
+  private boolean delayedPayment;
 
   private Contract() {
   }
@@ -206,6 +207,14 @@ public class Contract {
 
   public void setRescindedAt(LocalDate rescindedAt) {
     this.rescindedAt = rescindedAt;
+  }
+
+  public boolean isDelayedPayment() {
+    return delayedPayment;
+  }
+
+  public void setDelayedPayment(boolean delayedPayment) {
+    this.delayedPayment = delayedPayment;
   }
 
   public LocalDate getPlannedEndDate() {

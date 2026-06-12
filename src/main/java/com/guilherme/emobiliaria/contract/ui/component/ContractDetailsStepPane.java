@@ -2,6 +2,7 @@ package com.guilherme.emobiliaria.contract.ui.component;
 
 import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import javafx.geometry.Insets;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
@@ -28,6 +29,7 @@ public class ContractDetailsStepPane extends VBox {
   private final TextField rentField = new TextField();
   private final Spinner<Integer> paymentDaySpinner =
       new Spinner<>(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 31, 1));
+  private final CheckBox delayedPaymentCheckBox = new CheckBox();
 
   private final Label purposeError = new Label();
   private final Label startDateError = new Label();
@@ -63,6 +65,8 @@ public class ContractDetailsStepPane extends VBox {
 
     paymentDaySpinner.setEditable(true);
     paymentDaySpinner.setMaxWidth(Double.MAX_VALUE);
+
+    delayedPaymentCheckBox.setText(bundle.getString("contract.wizard.step4.field.delayed_payment"));
 
     purposeError.getStyleClass().add("form-error-label");
     purposeError.setVisible(false);
@@ -118,6 +122,9 @@ public class ContractDetailsStepPane extends VBox {
     grid.add(paymentDaySpinner, 1, 7);
     grid.add(rentError, 0, 8);
 
+    // Row 9: Delayed payment
+    grid.add(delayedPaymentCheckBox, 0, 9, 2, 1);
+
     VBox card = new VBox(20, grid);
     card.setPadding(new Insets(24, 24, 24, 24));
     card.getStyleClass().add("wizard-section-card");
@@ -125,12 +132,13 @@ public class ContractDetailsStepPane extends VBox {
   }
 
   public void populate(LocalDate startDate, int durationMonths, int rentCents, int paymentDay,
-      String purpose) {
+      String purpose, boolean delayedPayment) {
     purposeField.setText(purpose);
     startDatePicker.setValue(startDate);
     durationSpinner.getValueFactory().setValue(durationMonths);
     rentField.setText(formatCents(rentCents));
     paymentDaySpinner.getValueFactory().setValue(paymentDay);
+    delayedPaymentCheckBox.setSelected(delayedPayment);
   }
 
   public String getPurpose() {
@@ -190,6 +198,10 @@ public class ContractDetailsStepPane extends VBox {
 
   public int getPaymentDay() {
     return paymentDaySpinner.getValue();
+  }
+
+  public boolean getDelayedPayment() {
+    return delayedPaymentCheckBox.isSelected();
   }
 
   public boolean validate() {

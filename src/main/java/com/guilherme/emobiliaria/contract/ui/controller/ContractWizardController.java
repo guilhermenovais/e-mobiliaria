@@ -27,11 +27,11 @@ import com.guilherme.emobiliaria.contract.ui.component.ContractTenantsStepPane;
 import com.guilherme.emobiliaria.contract.ui.component.ContractWitnessesStepPane;
 import com.guilherme.emobiliaria.person.application.input.FindAllJuridicalPeopleInput;
 import com.guilherme.emobiliaria.person.application.input.FindAllPhysicalPeopleInput;
-import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllJuridicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.application.usecase.FindAllPhysicalPeopleInteractor;
 import com.guilherme.emobiliaria.person.domain.entity.JuridicalPerson;
 import com.guilherme.emobiliaria.person.domain.entity.Person;
+import com.guilherme.emobiliaria.person.domain.entity.PersonFilter;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.property.application.input.FindAllPropertiesInput;
 import com.guilherme.emobiliaria.property.application.usecase.FindAllPropertiesInteractor;
@@ -85,20 +85,51 @@ public class ContractWizardController {
   private final CreatePaymentAccountInteractor createPaymentAccount;
   private final NavigationService navigationService;
   private final GuiceFxmlLoader fxmlLoader;
+  @FXML
+  private Label stepTitleLabel;
+
+  // ── FXML fields ────────────────────────────────────────────────────────────
+  @FXML
+  private Label stepSubtitleLabel;
+  @FXML
+  private HBox stepperContainer;
+  @FXML
+  private StackPane contentPane;
+  @FXML
+  private Button backButton;
+  @FXML
+  private Button nextButton;
+  private int currentStep = 1;
+
+  // ── Wizard state ───────────────────────────────────────────────────────────
+  private Long contractId = null;
+  private ResourceBundle bundle;
+  private WizardStepperBar stepperBar;
+  private ContractPropertyStepPane propertyPane;
+
+  // ── Step pane references ───────────────────────────────────────────────────
+  private ContractLandlordStepPane landlordPane;
+  private ContractTenantsStepPane tenantsPane;
+  private ContractGuarantorsStepPane guarantorsPane;
+  private ContractWitnessesStepPane witnessesPane;
+  private ContractDetailsStepPane detailsPane;
+  private ContractPaymentAccountStepPane accountPane;
+  private ContractReviewStepPane reviewPane;
+  private PaymentAccount resolvedAccount;
+
+  // ── Loaded data (cached for review step) ──────────────────────────────────
+  private Long renewFromContractId = null;
+
+  // ── Edit / Renewal mode ───────────────────────────────────────────────────
 
   @Inject
-  public ContractWizardController(
-      FindAllPropertiesInteractor findAllProperties,
+  public ContractWizardController(FindAllPropertiesInteractor findAllProperties,
       FindAllPhysicalPeopleInteractor findAllPhysical,
       FindAllJuridicalPeopleInteractor findAllJuridical,
-      FindAllPaymentAccountsInteractor findAllAccounts,
-      GetConfigInteractor getConfig,
-      FindContractByIdInteractor findContractById,
-      CreateContractInteractor createContract,
-      EditContractInteractor editContract,
-      CreatePaymentAccountInteractor createPaymentAccount,
-      NavigationService navigationService,
-      GuiceFxmlLoader fxmlLoader) {
+      FindAllPaymentAccountsInteractor findAllAccounts, GetConfigInteractor getConfig,
+      FindContractByIdInteractor findContractById, CreateContractInteractor createContract,
+      EditContractInteractor editContract, CreatePaymentAccountInteractor createPaymentAccount,
+      NavigationService navigationService, GuiceFxmlLoader fxmlLoader) {
     this.findAllProperties = findAllProperties;
     this.findAllPhysical = findAllPhysical;
     this.findAllJuridical = findAllJuridical;
@@ -112,50 +143,27 @@ public class ContractWizardController {
     this.fxmlLoader = fxmlLoader;
   }
 
-  // ── FXML fields ────────────────────────────────────────────────────────────
+  static PaymentAccount resolveAccountForReview(ContractPaymentAccountStepPane accountPane) {
+    if (!accountPane.isNewAccount()) {
+      return accountPane.getSelectedAccount();
+    }
 
-  @FXML private Label stepTitleLabel;
-  @FXML private Label stepSubtitleLabel;
-  @FXML private HBox stepperContainer;
-  @FXML private StackPane contentPane;
-  @FXML private Button backButton;
-  @FXML private Button nextButton;
-
-  // ── Wizard state ───────────────────────────────────────────────────────────
-
-  private int currentStep = 1;
-  private Long contractId = null;
-  private ResourceBundle bundle;
-  private WizardStepperBar stepperBar;
-
-  // ── Step pane references ───────────────────────────────────────────────────
-
-  private ContractPropertyStepPane propertyPane;
-  private ContractLandlordStepPane landlordPane;
-  private ContractTenantsStepPane tenantsPane;
-  private ContractGuarantorsStepPane guarantorsPane;
-  private ContractWitnessesStepPane witnessesPane;
-  private ContractDetailsStepPane detailsPane;
-  private ContractPaymentAccountStepPane accountPane;
-  private ContractReviewStepPane reviewPane;
-
-  // ── Loaded data (cached for review step) ──────────────────────────────────
-
-  private PaymentAccount resolvedAccount;
-
-  // ── Edit / Renewal mode ───────────────────────────────────────────────────
+    String pixKey = accountPane.getNewPixKey();
+    return PaymentAccount.create(accountPane.getNewBank(), accountPane.getNewBranch(),
+        accountPane.getNewAccountNumber(), pixKey.isBlank() ? null : pixKey);
+  }
 
   public void setContractId(Long contractId) {
     this.contractId = contractId;
   }
 
-  private Long renewFromContractId = null;
+  // ── Initialization ─────────────────────────────────────────────────────────
 
   public void setRenewFromContractId(Long id) {
     this.renewFromContractId = id;
   }
 
-  // ── Initialization ─────────────────────────────────────────────────────────
+  // ── Stepper ────────────────────────────────────────────────────────────────
 
   @FXML
   public void initialize() {
@@ -178,19 +186,17 @@ public class ContractWizardController {
     loadAllData();
   }
 
-  // ── Stepper ────────────────────────────────────────────────────────────────
+  // ── Data loading ───────────────────────────────────────────────────────────
 
   private void buildStepper() {
-    List<String> labels = List.of(
-        bundle.getString("contract.wizard.stepper.property"),
+    List<String> labels = List.of(bundle.getString("contract.wizard.stepper.property"),
         bundle.getString("contract.wizard.stepper.landlord"),
         bundle.getString("contract.wizard.stepper.tenants"),
         bundle.getString("contract.wizard.stepper.guarantors"),
         bundle.getString("contract.wizard.stepper.witnesses"),
         bundle.getString("contract.wizard.stepper.details"),
         bundle.getString("contract.wizard.stepper.account"),
-        bundle.getString("contract.wizard.stepper.review")
-    );
+        bundle.getString("contract.wizard.stepper.review"));
     stepperBar = new WizardStepperBar(labels);
     stepperBar.setOnStepClick(step -> {
       if (validateCurrentStep())
@@ -201,35 +207,27 @@ public class ContractWizardController {
     stepperBar.setCurrentStep(currentStep);
   }
 
-  // ── Data loading ───────────────────────────────────────────────────────────
-
-  private record WizardData(
-      List<Property> properties,
-      List<Person> allPersons,
-      List<PaymentAccount> accounts,
-      Config config,
-      Contract existingContract
-  ) {}
-
   private void loadAllData() {
     PaginationInput all = new PaginationInput(LOAD_ALL_LIMIT, 0);
 
     Task<WizardData> task = new Task<>() {
       @Override
       protected WizardData call() {
-        List<Property> properties = findAllProperties
-            .execute(new FindAllPropertiesInput(all)).result().items();
+        List<Property> properties =
+            findAllProperties.execute(new FindAllPropertiesInput(all)).result().items();
 
-        List<PhysicalPerson> physical = findAllPhysical
-            .execute(new FindAllPhysicalPeopleInput(all, PersonFilter.NONE)).result().items();
-        List<JuridicalPerson> juridical = findAllJuridical
-            .execute(new FindAllJuridicalPeopleInput(all, PersonFilter.NONE)).result().items();
+        List<PhysicalPerson> physical =
+            findAllPhysical.execute(new FindAllPhysicalPeopleInput(all, PersonFilter.NONE)).result()
+                .items();
+        List<JuridicalPerson> juridical =
+            findAllJuridical.execute(new FindAllJuridicalPeopleInput(all, PersonFilter.NONE))
+                .result().items();
         List<Person> allPersons = new ArrayList<>();
         allPersons.addAll(physical);
         allPersons.addAll(juridical);
 
-        List<PaymentAccount> accounts = findAllAccounts
-            .execute(new FindAllPaymentAccountsInput(all)).result().items();
+        List<PaymentAccount> accounts =
+            findAllAccounts.execute(new FindAllPaymentAccountsInput(all)).result().items();
 
         Config config = getConfig.execute().config();
 
@@ -237,7 +235,8 @@ public class ContractWizardController {
         if (contractId != null) {
           existing = findContractById.execute(new FindContractByIdInput(contractId)).contract();
         } else if (renewFromContractId != null) {
-          existing = findContractById.execute(new FindContractByIdInput(renewFromContractId)).contract();
+          existing =
+              findContractById.execute(new FindContractByIdInput(renewFromContractId)).contract();
         }
 
         return new WizardData(properties, allPersons, accounts, config, existing);
@@ -297,14 +296,10 @@ public class ContractWizardController {
     tenantsPane.populate(contract.getTenants());
     guarantorsPane.populate(contract.getGuarantors());
     witnessesPane.populate(contract.getWitnesses());
-    detailsPane.populate(
-        contract.getStartDate(),
-        contract.getDuration().toTotalMonths() > 0
-            ? (int) contract.getDuration().toTotalMonths() : 1,
-        contract.getRent(),
-        contract.getPaymentDay(),
-        contract.getPurpose()
-    );
+    detailsPane.populate(contract.getStartDate(), contract.getDuration().toTotalMonths() > 0 ?
+            (int) contract.getDuration().toTotalMonths() :
+            1, contract.getRent(), contract.getPaymentDay(), contract.getPurpose(),
+        contract.isDelayedPayment());
     accountPane.populate(contract.getPaymentAccount());
   }
 
@@ -314,21 +309,18 @@ public class ContractWizardController {
     tenantsPane.populate(source.getTenants());
     guarantorsPane.populate(source.getGuarantors());
     witnessesPane.populate(source.getWitnesses());
-    int months = source.getDuration().toTotalMonths() > 0
-        ? (int) source.getDuration().toTotalMonths() : 12;
-    detailsPane.populate(
-        source.getStartDate().plus(source.getDuration()).plusDays(1),
-        months,
-        source.getRent(),
-        source.getPaymentDay(),
-        source.getPurpose()
-    );
+    int months =
+        source.getDuration().toTotalMonths() > 0 ? (int) source.getDuration().toTotalMonths() : 12;
+    detailsPane.populate(source.getStartDate().plus(source.getDuration()).plusDays(1), months,
+        source.getRent(), source.getPaymentDay(), source.getPurpose(), source.isDelayedPayment());
     accountPane.populate(source.getPaymentAccount());
   }
 
   private String resolveWizardTitleKey() {
-    if (contractId != null) return "contract.wizard.title.edit";
-    if (renewFromContractId != null) return "contract.wizard.title.renew";
+    if (contractId != null)
+      return "contract.wizard.title.edit";
+    if (renewFromContractId != null)
+      return "contract.wizard.title.renew";
     return "contract.wizard.title.create";
   }
 
@@ -343,9 +335,9 @@ public class ContractWizardController {
     backButton.setManaged(step > 1);
 
     boolean isLast = step == TOTAL_STEPS;
-    nextButton.setText(isLast
-        ? bundle.getString("contract.wizard.button.finish")
-        : bundle.getString("contract.wizard.button.next"));
+    nextButton.setText(isLast ?
+        bundle.getString("contract.wizard.button.finish") :
+        bundle.getString("contract.wizard.button.next"));
 
     contentPane.getChildren().setAll(buildStepContent(step));
     stepperBar.setCurrentStep(step);
@@ -368,35 +360,18 @@ public class ContractWizardController {
     };
   }
 
-  static PaymentAccount resolveAccountForReview(ContractPaymentAccountStepPane accountPane) {
-    if (!accountPane.isNewAccount()) {
-      return accountPane.getSelectedAccount();
-    }
-
-    String pixKey = accountPane.getNewPixKey();
-    return PaymentAccount.create(accountPane.getNewBank(), accountPane.getNewBranch(),
-        accountPane.getNewAccountNumber(), pixKey.isBlank() ? null : pixKey);
-  }
-
   private void populateReview() {
     resolvedAccount = resolveAccountForReview(accountPane);
-    reviewPane.populate(
-        propertyPane.getSelectedProperty(),
-        landlordPane.getSelectedLandlord(),
-        tenantsPane.getSelectedTenants(),
-        guarantorsPane.getSelectedGuarantors(),
-        witnessesPane.getSelectedWitnesses(),
-        detailsPane.getStartDate(),
-        detailsPane.getDurationMonths(),
-        detailsPane.getRentCents(),
-        detailsPane.getPaymentDay(),
-        detailsPane.getPurpose(),
-        resolvedAccount
-    );
+    reviewPane.populate(propertyPane.getSelectedProperty(), landlordPane.getSelectedLandlord(),
+        tenantsPane.getSelectedTenants(), guarantorsPane.getSelectedGuarantors(),
+        witnessesPane.getSelectedWitnesses(), detailsPane.getStartDate(),
+        detailsPane.getDurationMonths(), detailsPane.getRentCents(), detailsPane.getPaymentDay(),
+        detailsPane.getPurpose(), resolvedAccount, detailsPane.getDelayedPayment());
   }
 
   private void handleNext() {
-    if (!validateCurrentStep()) return;
+    if (!validateCurrentStep())
+      return;
     if (currentStep == TOTAL_STEPS) {
       handleSubmit();
       return;
@@ -405,11 +380,10 @@ public class ContractWizardController {
   }
 
   private void handleBack() {
-    if (currentStep <= 1) return;
+    if (currentStep <= 1)
+      return;
     showStep(currentStep - 1);
   }
-
-  // ── Validation ─────────────────────────────────────────────────────────────
 
   private boolean validateCurrentStep() {
     return switch (currentStep) {
@@ -424,7 +398,7 @@ public class ContractWizardController {
     };
   }
 
-  // ── Submission ─────────────────────────────────────────────────────────────
+  // ── Validation ─────────────────────────────────────────────────────────────
 
   private void handleSubmit() {
     nextButton.setDisable(true);
@@ -437,13 +411,13 @@ public class ContractWizardController {
     }
   }
 
+  // ── Submission ─────────────────────────────────────────────────────────────
+
   private void submitWithNewAccount() {
-    CreatePaymentAccountInput input = new CreatePaymentAccountInput(
-        accountPane.getNewBank(),
-        accountPane.getNewBranch(),
-        accountPane.getNewAccountNumber(),
-        accountPane.getNewPixKey().isBlank() ? null : accountPane.getNewPixKey()
-    );
+    CreatePaymentAccountInput input =
+        new CreatePaymentAccountInput(accountPane.getNewBank(), accountPane.getNewBranch(),
+            accountPane.getNewAccountNumber(),
+            accountPane.getNewPixKey().isBlank() ? null : accountPane.getNewPixKey());
 
     Task<CreatePaymentAccountOutput> task = new Task<>() {
       @Override
@@ -464,32 +438,16 @@ public class ContractWizardController {
     List<Person> guarantors = guarantorsPane.getSelectedGuarantors();
     List<Person> witnesses = witnessesPane.getSelectedWitnesses();
 
-    List<PersonReference> tenantRefs = tenants.stream()
-        .map(this::toPersonReference)
-        .toList();
-    List<PersonReference> guarantorRefs = guarantors.stream()
-        .map(this::toPersonReference)
-        .toList();
-    List<PersonReference> witnessRefs = witnesses.stream()
-        .map(this::toPersonReference)
-        .toList();
+    List<PersonReference> tenantRefs = tenants.stream().map(this::toPersonReference).toList();
+    List<PersonReference> guarantorRefs = guarantors.stream().map(this::toPersonReference).toList();
+    List<PersonReference> witnessRefs = witnesses.stream().map(this::toPersonReference).toList();
     PersonReference landlordRef = toPersonReference(landlord);
 
     if (contractId != null) {
-      EditContractInput input = new EditContractInput(
-          contractId,
-          detailsPane.getStartDate(),
-          Period.ofMonths(detailsPane.getDurationMonths()),
-          detailsPane.getPaymentDay(),
-          detailsPane.getRentCents(),
-          detailsPane.getPurpose(),
-          accountId,
-          property.getId(),
-          landlordRef,
-          tenantRefs,
-          guarantorRefs,
-          witnessRefs
-      );
+      EditContractInput input = new EditContractInput(contractId, detailsPane.getStartDate(),
+          Period.ofMonths(detailsPane.getDurationMonths()), detailsPane.getPaymentDay(),
+          detailsPane.getRentCents(), detailsPane.getPurpose(), accountId, property.getId(),
+          landlordRef, tenantRefs, guarantorRefs, witnessRefs, detailsPane.getDelayedPayment());
 
       Task<Void> task = new Task<>() {
         @Override
@@ -504,19 +462,10 @@ public class ContractWizardController {
       new Thread(task).start();
 
     } else {
-      CreateContractInput input = new CreateContractInput(
-          detailsPane.getStartDate(),
-          Period.ofMonths(detailsPane.getDurationMonths()),
-          detailsPane.getPaymentDay(),
-          detailsPane.getRentCents(),
-          detailsPane.getPurpose(),
-          accountId,
-          property.getId(),
-          landlordRef,
-          tenantRefs,
-          guarantorRefs,
-          witnessRefs
-      );
+      CreateContractInput input = new CreateContractInput(detailsPane.getStartDate(),
+          Period.ofMonths(detailsPane.getDurationMonths()), detailsPane.getPaymentDay(),
+          detailsPane.getRentCents(), detailsPane.getPurpose(), accountId, property.getId(),
+          landlordRef, tenantRefs, guarantorRefs, witnessRefs, detailsPane.getDelayedPayment());
 
       Task<CreateContractOutput> task = new Task<>() {
         @Override
@@ -532,9 +481,9 @@ public class ContractWizardController {
   }
 
   private PersonReference toPersonReference(Person p) {
-    PersonReference.PersonType type = (p instanceof PhysicalPerson)
-        ? PersonReference.PersonType.PHYSICAL
-        : PersonReference.PersonType.JURIDICAL;
+    PersonReference.PersonType type = (p instanceof PhysicalPerson) ?
+        PersonReference.PersonType.PHYSICAL :
+        PersonReference.PersonType.JURIDICAL;
     return new PersonReference(p.getId(), type);
   }
 
@@ -545,8 +494,6 @@ public class ContractWizardController {
     });
     ErrorHandler.handle(t, bundle);
   }
-
-  // ── Build view ─────────────────────────────────────────────────────────────
 
   public Node buildView() {
     URL resource = getClass().getResource(WIZARD_FXML);
@@ -560,5 +507,13 @@ public class ContractWizardController {
       log.error("Failed to load contract wizard view", e);
       return new StackPane();
     }
+  }
+
+  // ── Build view ─────────────────────────────────────────────────────────────
+
+
+  private record WizardData(List<Property> properties, List<Person> allPersons,
+                            List<PaymentAccount> accounts, Config config,
+                            Contract existingContract) {
   }
 }

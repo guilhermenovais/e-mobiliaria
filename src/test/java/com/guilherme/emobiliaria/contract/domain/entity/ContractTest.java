@@ -18,9 +18,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ContractTest {
 
@@ -202,6 +204,26 @@ class ContractTest {
 
 
   @Nested
+  class SetDelayedPayment {
+
+    @Test
+    @DisplayName("When created, should default delayedPayment to false")
+    void shouldDefaultToFalseWhenCreated() {
+      Contract contract = validContract();
+      assertFalse(contract.isDelayedPayment());
+    }
+
+    @Test
+    @DisplayName("When set to true, should update delayedPayment")
+    void shouldSetDelayedPaymentToTrue() {
+      Contract contract = validContract();
+      contract.setDelayedPayment(true);
+      assertTrue(contract.isDelayedPayment());
+    }
+  }
+
+
+  @Nested
   class SetPaymentAccount {
 
     @Test
@@ -352,6 +374,7 @@ class ContractTest {
       assertEquals(rescissionDate, contract.getRescindedAt());
     }
   }
+
 
   @Nested
   class ResolveStatus {

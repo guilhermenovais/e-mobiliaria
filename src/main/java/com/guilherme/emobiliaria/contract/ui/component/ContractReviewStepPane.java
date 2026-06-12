@@ -59,7 +59,8 @@ public class ContractReviewStepPane extends VBox {
 
   public void populate(Property property, Person landlord, List<Person> tenants,
       List<Person> guarantors, List<Person> witnesses, LocalDate startDate, int durationMonths,
-      int rentCents, int paymentDay, String purpose, PaymentAccount account) {
+      int rentCents, int paymentDay, String purpose, PaymentAccount account,
+      boolean delayedPayment) {
 
     // Property
     propertySection.getChildren().clear();
@@ -129,6 +130,8 @@ public class ContractReviewStepPane extends VBox {
     detailsSection.getChildren().add(sectionValue(
         "Valor do Aluguel: " + MoneyFormatter.formatWithSymbol(
             rentCents) + " | Dia do Pagamento: " + paymentDay));
+    detailsSection.getChildren()
+        .add(sectionValue("Atraso no pagamento: " + (delayedPayment ? "Sim" : "Não")));
 
     // Account
     accountSection.getChildren().clear();

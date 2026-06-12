@@ -172,11 +172,14 @@ public class ReceiptFormController {
 
   // ── Initialization ─────────────────────────────────────────────────────────
 
-  static PeriodInterval calculatePeriod(LocalDate today, LocalDate contractStartDate) {
+  static PeriodInterval calculatePeriod(LocalDate today, LocalDate contractStartDate,
+      boolean delayedPayment) {
     if (contractStartDate == null) {
       throw new IllegalArgumentException("contractStartDate must not be null");
     }
-    LocalDate periodStart = nextOccurrenceOnOrAfter(today, contractStartDate.getDayOfMonth());
+    LocalDate periodStart = delayedPayment ?
+        previousOccurrenceBefore(today, contractStartDate.getDayOfMonth()) :
+        nextOccurrenceOnOrAfter(today, contractStartDate.getDayOfMonth());
     return new PeriodInterval(periodStart, periodStart.plusMonths(1).minusDays(1));
   }
 
@@ -199,6 +202,26 @@ public class ReceiptFormController {
         }
       }
       cursor = cursor.plusMonths(1).withDayOfMonth(1);
+    }
+  }
+
+  static LocalDate previousOccurrenceBefore(LocalDate today, int targetDayOfMonth) {
+    if (today == null) {
+      throw new IllegalArgumentException("today must not be null");
+    }
+    if (targetDayOfMonth < 1 || targetDayOfMonth > 31) {
+      throw new IllegalArgumentException("targetDayOfMonth must be between 1 and 31");
+    }
+
+    LocalDate cursor = LocalDate.of(today.getYear(), today.getMonth(), 1);
+    while (true) {
+      if (targetDayOfMonth <= cursor.lengthOfMonth()) {
+        LocalDate candidate = cursor.withDayOfMonth(targetDayOfMonth);
+        if (candidate.isBefore(today)) {
+          return candidate;
+        }
+      }
+      cursor = cursor.minusMonths(1).withDayOfMonth(1);
     }
   }
 
@@ -284,7 +307,8 @@ public class ReceiptFormController {
           if (newVal != null) {
             Contract selectedContract = contractComboBox.getSelectionModel().getSelectedItem();
             if (selectedContract != null) {
-              PeriodInterval period = calculatePeriod(newVal, selectedContract.getStartDate());
+              PeriodInterval period = calculatePeriod(newVal, selectedContract.getStartDate(),
+                  selectedContract.isDelayedPayment());
               intervalStartPicker.setValue(period.start());
               intervalEndPicker.setValue(period.end());
             } else {

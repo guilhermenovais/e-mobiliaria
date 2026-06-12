@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.contract.application.usecase;
 
+import com.google.inject.Inject;
 import com.guilherme.emobiliaria.contract.application.input.CreateContractInput;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference;
 import com.guilherme.emobiliaria.contract.application.output.CreateContractOutput;
@@ -14,7 +15,6 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.repository.PropertyRepository;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
-import com.google.inject.Inject;
 
 import java.util.List;
 
@@ -27,13 +27,10 @@ public class CreateContractInteractor {
   private final JuridicalPersonRepository juridicalPersonRepository;
 
   @Inject
-  public CreateContractInteractor(
-      ContractRepository contractRepository,
-      PaymentAccountRepository paymentAccountRepository,
-      PropertyRepository propertyRepository,
+  public CreateContractInteractor(ContractRepository contractRepository,
+      PaymentAccountRepository paymentAccountRepository, PropertyRepository propertyRepository,
       PhysicalPersonRepository physicalPersonRepository,
-      JuridicalPersonRepository juridicalPersonRepository
-  ) {
+      JuridicalPersonRepository juridicalPersonRepository) {
     this.contractRepository = contractRepository;
     this.paymentAccountRepository = paymentAccountRepository;
     this.propertyRepository = propertyRepository;
@@ -50,19 +47,10 @@ public class CreateContractInteractor {
     List<Person> tenants = resolvePeople(input.tenants());
     List<Person> guarantors = resolvePeople(input.guarantors());
     List<Person> witnesses = resolvePeople(input.witnesses());
-    Contract contract = Contract.create(
-        input.startDate(),
-        input.duration(),
-        input.paymentDay(),
-        input.rent(),
-        input.purpose(),
-        paymentAccount,
-        property,
-        landlord,
-        tenants,
-        guarantors,
-        witnesses
-    );
+    Contract contract =
+        Contract.create(input.startDate(), input.duration(), input.paymentDay(), input.rent(),
+            input.purpose(), paymentAccount, property, landlord, tenants, guarantors, witnesses);
+    contract.setDelayedPayment(input.delayedPayment());
     Contract created = contractRepository.create(contract);
     return new CreateContractOutput(created);
   }
@@ -80,8 +68,6 @@ public class CreateContractInteractor {
     if (references == null) {
       return List.of();
     }
-    return references.stream()
-        .map(this::resolvePerson)
-        .toList();
+    return references.stream().map(this::resolvePerson).toList();
   }
 }

@@ -6,7 +6,6 @@ import com.guilherme.emobiliaria.contract.application.input.PersonReference;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference.PersonType;
 import com.guilherme.emobiliaria.contract.application.usecase.CreateContractInteractor;
 import com.guilherme.emobiliaria.contract.application.usecase.CreatePaymentAccountInteractor;
-import com.guilherme.emobiliaria.contract.application.usecase.RescindContractInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.repository.FakeContractRepository;
 import com.guilherme.emobiliaria.contract.domain.repository.FakePaymentAccountRepository;
@@ -94,8 +93,9 @@ class GetUnreceiptedDueDatesInteractorTest {
             jurRepo);
     PersonReference ref = new PersonReference(personId, PersonType.PHYSICAL);
     return localContractInteractor.execute(
-        new CreateContractInput(startDate, Period.ofMonths(120), paymentDay, 150000, "Residencial",
-            accountId, propertyId, ref, List.of(ref), List.of(), List.of())).contract().getId();
+            new CreateContractInput(startDate, Period.ofMonths(120), paymentDay, 150000, "Residencial",
+                accountId, propertyId, ref, List.of(ref), List.of(), List.of(), false)).contract()
+        .getId();
   }
 
   private void createReceipt(Long contractId, LocalDate paymentDueDate) {

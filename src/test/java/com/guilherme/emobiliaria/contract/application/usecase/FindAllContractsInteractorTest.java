@@ -3,10 +3,10 @@ package com.guilherme.emobiliaria.contract.application.usecase;
 import com.guilherme.emobiliaria.contract.application.input.CreateContractInput;
 import com.guilherme.emobiliaria.contract.application.input.CreatePaymentAccountInput;
 import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInput;
-import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference;
 import com.guilherme.emobiliaria.contract.application.input.PersonReference.PersonType;
 import com.guilherme.emobiliaria.contract.application.output.FindAllContractsOutput;
+import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.contract.domain.repository.FakeContractRepository;
 import com.guilherme.emobiliaria.contract.domain.repository.FakePaymentAccountRepository;
 import com.guilherme.emobiliaria.person.domain.entity.Address;
@@ -56,19 +56,22 @@ class FindAllContractsInteractorTest {
   }
 
   private void createContract(LocalDate startDate) {
-    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository)
-        .execute(new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
+    Long paymentAccountId = new CreatePaymentAccountInteractor(paymentAccountRepository).execute(
+            new CreatePaymentAccountInput("Banco do Brasil", "1234-5", "12345-6", null))
         .paymentAccount().getId();
-    Property property = Property.create("Apto Centro", "Apartamento",
-        "1234567890", "0987654321", "IPTU-001", validAddress());
+    Property property =
+        Property.create("Apto Centro", "Apartamento", "1234567890", "0987654321", "IPTU-001",
+            validAddress());
     Long propertyId = propertyRepository.create(property).getId();
-    PhysicalPerson person = PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE,
-        "Engenheiro", "529.982.247-25", "MG-1234567", validAddress());
+    PhysicalPerson person =
+        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
+            "529.982.247-25", "MG-1234567", validAddress());
     Long personId = physicalPersonRepository.create(person).getId();
     PersonReference personRef = new PersonReference(personId, PersonType.PHYSICAL);
-    createInteractor.execute(new CreateContractInput(startDate, Period.ofMonths(12), 10,
-        150000, "Residencial",
-        paymentAccountId, propertyId, personRef, List.of(personRef), List.of(), List.of()));
+    createInteractor.execute(
+        new CreateContractInput(startDate, Period.ofMonths(12), 10, 150000, "Residencial",
+            paymentAccountId, propertyId, personRef, List.of(personRef), List.of(), List.of(),
+            false));
   }
 
   @Nested
@@ -79,7 +82,8 @@ class FindAllContractsInteractorTest {
     void shouldReturnAllContracts() {
       createContract(LocalDate.of(2026, 1, 1));
       createContract(LocalDate.of(2026, 3, 1));
-      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(null, null), ContractFilter.NONE);
+      FindAllContractsInput input =
+          new FindAllContractsInput(new PaginationInput(null, null), ContractFilter.NONE);
 
       FindAllContractsOutput output = interactor.execute(input);
 
@@ -90,7 +94,8 @@ class FindAllContractsInteractorTest {
     @Test
     @DisplayName("When no contracts exist, should return empty result")
     void shouldReturnEmptyWhenNoContracts() {
-      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(null, null), ContractFilter.NONE);
+      FindAllContractsInput input =
+          new FindAllContractsInput(new PaginationInput(null, null), ContractFilter.NONE);
 
       FindAllContractsOutput output = interactor.execute(input);
 
@@ -104,7 +109,8 @@ class FindAllContractsInteractorTest {
       createContract(LocalDate.of(2026, 1, 1));
       createContract(LocalDate.of(2026, 3, 1));
       createContract(LocalDate.of(2026, 6, 1));
-      FindAllContractsInput input = new FindAllContractsInput(new PaginationInput(2, 0), ContractFilter.NONE);
+      FindAllContractsInput input =
+          new FindAllContractsInput(new PaginationInput(2, 0), ContractFilter.NONE);
 
       FindAllContractsOutput output = interactor.execute(input);
 
