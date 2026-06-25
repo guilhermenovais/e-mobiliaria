@@ -419,7 +419,9 @@ public class JdbcReportRepository implements ReportRepository {
                 WHERE r3.contract_id = c.id
                   AND r3.payment_due_date >= ?
                   AND r3.payment_due_date <= ?
-            ) THEN true ELSE false END                 AS due_date_paid
+            ) THEN true ELSE false END                 AS due_date_paid,
+            c.start_date                               AS contract_start_date,
+            c.payment_day                              AS payment_day
         FROM properties p
         LEFT JOIN contracts c ON c.property_id = p.id
             AND c.start_date <= ?
@@ -481,6 +483,11 @@ public class JdbcReportRepository implements ReportRepository {
           if (!hasContract) {
             status = PaymentReportRowStatus.VACANT;
           } else if (!hasReceipt) {
+            LocalDate contractStartDate = rs.getObject("contract_start_date", LocalDate.class);
+            int paymentDay = rs.getInt("payment_day");
+            if (!isPaymentDueInMonth(contractStartDate, paymentDay, month)) {
+              continue;
+            }
             boolean dueDatePaid = rs.getBoolean("due_date_paid");
             if (dueDatePaid) {
               continue;
@@ -513,6 +520,16 @@ public class JdbcReportRepository implements ReportRepository {
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Report.LOAD_ERROR, e);
     }
+  }
+
+  private boolean isPaymentDueInMonth(LocalDate startDate, int paymentDay, YearMonth month) {
+    int clampedDay = Math.min(paymentDay, startDate.lengthOfMonth());
+    LocalDate candidate = startDate.withDayOfMonth(clampedDay);
+    if (candidate.isBefore(startDate)) {
+      YearMonth nextMonth = YearMonth.from(startDate).plusMonths(1);
+      candidate = nextMonth.atDay(Math.min(paymentDay, nextMonth.lengthOfMonth()));
+    }
+    return !YearMonth.from(candidate).isAfter(month);
   }
 
   private record ContractSegment(LocalDate start, LocalDate end, long initialRent) {

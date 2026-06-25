@@ -108,15 +108,21 @@ class JdbcReportRepositoryTest {
 
   private long insertContract(Connection conn, LocalDate startDate, String duration, long rent,
       long accountId, long propertyId, long landlordId) throws SQLException {
+    return insertContract(conn, startDate, duration, 10, rent, accountId, propertyId, landlordId);
+  }
+
+  private long insertContract(Connection conn, LocalDate startDate, String duration, int paymentDay,
+      long rent, long accountId, long propertyId, long landlordId) throws SQLException {
     String sql =
-        "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, 10, ?, 'Residencial', ?, ?, ?, 'PHYSICAL')";
+        "INSERT INTO contracts (start_date, duration, payment_day, rent, purpose, payment_account_id, property_id, landlord_id, landlord_type) VALUES (?, ?, ?, ?, 'Residencial', ?, ?, ?, 'PHYSICAL')";
     try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setObject(1, startDate);
       stmt.setString(2, duration);
-      stmt.setLong(3, rent);
-      stmt.setLong(4, accountId);
-      stmt.setLong(5, propertyId);
-      stmt.setLong(6, landlordId);
+      stmt.setInt(3, paymentDay);
+      stmt.setLong(4, rent);
+      stmt.setLong(5, accountId);
+      stmt.setLong(6, propertyId);
+      stmt.setLong(7, landlordId);
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
@@ -590,8 +596,9 @@ class JdbcReportRepositoryTest {
     }
 
     @Test
-    @DisplayName("When contract starts mid-month, should return UNPAID row with tenant info")
-    void shouldReturnUnpaidRowWhenContractStartsMidMonth() throws SQLException {
+    @DisplayName(
+        "When contract starts mid-month and payment day is before start day, should not show UNPAID in start month")
+    void shouldNotShowUnpaidWhenPaymentDayBeforeContractStartDay() throws SQLException {
       YearMonth month = YearMonth.of(2026, 5);
       try (Connection conn = dataSource.getConnection()) {
         long addressId = insertAddress(conn);
@@ -606,11 +613,7 @@ class JdbcReportRepositoryTest {
 
       List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
 
-      assertEquals(1, rows.size());
-      PaymentReportRow row = rows.get(0);
-      assertEquals(PaymentReportRowStatus.UNPAID, row.status());
-      assertNotNull(row.primaryTenantName());
-      assertEquals(150000, row.rent());
+      assertEquals(0, rows.size());
     }
 
     @Test
@@ -637,6 +640,53 @@ class JdbcReportRepositoryTest {
       assertEquals(PaymentReportRowStatus.PAID, row.status());
       assertNotNull(row.primaryTenantName());
       assertEquals(150000, row.rent());
+    }
+
+    @Test
+    @DisplayName(
+        "When contract starts mid-month and payment day is on or after start day, should show UNPAID")
+    void shouldShowUnpaidWhenPaymentDayOnOrAfterContractStartDay() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 5, 10), "P12M", 20, 150000L, accountId,
+                propertyId, personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.UNPAID, row.status());
+      assertNotNull(row.primaryTenantName());
+      assertEquals(150000, row.rent());
+    }
+
+    @Test
+    @DisplayName("When payment day is before start day, should show UNPAID in the next month")
+    void shouldShowUnpaidInNextMonthWhenPaymentDayBeforeStartDay() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 5, 15), "P12M", 10, 150000L, accountId,
+                propertyId, personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<PaymentReportRow> mayRows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
+      assertEquals(0, mayRows.size());
+
+      List<PaymentReportRow> juneRows = repository.loadPaymentReportData(YearMonth.of(2026, 6));
+      assertEquals(1, juneRows.size());
+      assertEquals(PaymentReportRowStatus.UNPAID, juneRows.get(0).status());
     }
 
     @Test
