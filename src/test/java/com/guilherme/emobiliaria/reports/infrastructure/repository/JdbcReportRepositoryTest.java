@@ -138,14 +138,22 @@ class JdbcReportRepositoryTest {
 
   private void insertReceipt(Connection conn, long contractId, LocalDate date,
       LocalDate paymentDueDate, LocalDate start, LocalDate end) throws SQLException {
+    insertReceipt(conn, contractId, date, paymentDueDate, start, end, 0, 0);
+  }
+
+  private void insertReceipt(Connection conn, long contractId, LocalDate date,
+      LocalDate paymentDueDate, LocalDate start, LocalDate end, int discount, int fine)
+      throws SQLException {
     String sql =
-        "INSERT INTO receipts (date, payment_due_date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, ?, 0, 0, ?)";
+        "INSERT INTO receipts (date, payment_due_date, interval_start, interval_end, discount, fine, contract_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setObject(1, date);
       stmt.setObject(2, paymentDueDate);
       stmt.setObject(3, start);
       stmt.setObject(4, end);
-      stmt.setLong(5, contractId);
+      stmt.setInt(5, discount);
+      stmt.setInt(6, fine);
+      stmt.setLong(7, contractId);
       stmt.executeUpdate();
     }
   }
@@ -429,9 +437,104 @@ class JdbcReportRepositoryTest {
 
     @Test
     @DisplayName(
-        "When receipt paymentDueDate is in a different month than the interval, it should appear in the paymentDueDate month")
-    void shouldPlaceReceiptInPaymentDueDateMonth() throws SQLException {
-      // Receipt covers April interval but paymentDueDate is in May
+        "When receipt date is in month X but payment due date is in month Y, should appear as PAID in month X and skip month Y")
+    void shouldPlaceReceiptInReceiptDateMonth() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 4, 1),
+            LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30));
+      }
+
+      List<PaymentReportRow> mayRows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
+      List<PaymentReportRow> aprilRows = repository.loadPaymentReportData(YearMonth.of(2026, 4));
+
+      assertEquals(1, mayRows.size());
+      assertEquals(PaymentReportRowStatus.PAID, mayRows.get(0).status());
+
+      assertEquals(0, aprilRows.size());
+    }
+
+    @Test
+    @DisplayName("When receipt is paid late, should not show UNPAID in due month")
+    void shouldNotShowUnpaidWhenReceiptPaidLate() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 6, 10), LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31));
+      }
+
+      List<PaymentReportRow> mayRows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
+      List<PaymentReportRow> juneRows = repository.loadPaymentReportData(YearMonth.of(2026, 6));
+
+      assertEquals(0, mayRows.size());
+
+      assertEquals(1, juneRows.size());
+      assertEquals(PaymentReportRowStatus.PAID, juneRows.get(0).status());
+    }
+
+    @Test
+    @DisplayName("When receipt is paid early, should not show UNPAID in due month")
+    void shouldNotShowUnpaidWhenReceiptPaidEarly() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 25), LocalDate.of(2026, 6, 1),
+            LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 30));
+      }
+
+      List<PaymentReportRow> mayRows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
+      List<PaymentReportRow> juneRows = repository.loadPaymentReportData(YearMonth.of(2026, 6));
+
+      assertEquals(1, mayRows.size());
+      assertEquals(PaymentReportRowStatus.PAID, mayRows.get(0).status());
+
+      assertEquals(0, juneRows.size());
+    }
+
+    @Test
+    @DisplayName("When no receipt exists at all, should show UNPAID")
+    void shouldShowUnpaidWhenNoReceiptExistsAtAll() throws SQLException {
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
+
+      assertEquals(1, rows.size());
+      assertEquals(PaymentReportRowStatus.UNPAID, rows.get(0).status());
+    }
+
+    @Test
+    @DisplayName(
+        "When multiple receipts exist with different due dates, each month should reflect correctly")
+    void shouldHandleMultipleReceiptsWithDifferentDueDates() throws SQLException {
       try (Connection conn = dataSource.getConnection()) {
         long addressId = insertAddress(conn);
         long personId = insertPhysicalPerson(conn, addressId);
@@ -442,17 +545,169 @@ class JdbcReportRepositoryTest {
                 personId);
         insertContractTenant(conn, contractId, personId);
         insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 1),
-            LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30));
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31));
+        insertReceipt(conn, contractId, LocalDate.of(2026, 7, 5), LocalDate.of(2026, 6, 1),
+            LocalDate.of(2026, 6, 1), LocalDate.of(2026, 6, 30));
       }
 
       List<PaymentReportRow> mayRows = repository.loadPaymentReportData(YearMonth.of(2026, 5));
-      List<PaymentReportRow> aprilRows = repository.loadPaymentReportData(YearMonth.of(2026, 4));
+      List<PaymentReportRow> juneRows = repository.loadPaymentReportData(YearMonth.of(2026, 6));
+      List<PaymentReportRow> julyRows = repository.loadPaymentReportData(YearMonth.of(2026, 7));
 
       assertEquals(1, mayRows.size());
       assertEquals(PaymentReportRowStatus.PAID, mayRows.get(0).status());
 
-      assertEquals(1, aprilRows.size());
-      assertEquals(PaymentReportRowStatus.UNPAID, aprilRows.get(0).status());
+      assertEquals(0, juneRows.size());
+
+      assertEquals(1, julyRows.size());
+      assertEquals(PaymentReportRowStatus.PAID, julyRows.get(0).status());
+    }
+
+    @Test
+    @DisplayName(
+        "When two receipts have receipt dates in the same month for one contract, should produce two PAID rows")
+    void shouldProduceTwoPaidRowsWhenTwoReceiptsInSameMonth() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 5), LocalDate.of(2026, 4, 1),
+            LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30));
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 15), LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31));
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      long paidCount = rows.stream().filter(r -> r.status() == PaymentReportRowStatus.PAID).count();
+      assertEquals(2, paidCount);
+    }
+
+    @Test
+    @DisplayName("When contract starts mid-month, should return UNPAID row with tenant info")
+    void shouldReturnUnpaidRowWhenContractStartsMidMonth() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 5, 15), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.UNPAID, row.status());
+      assertNotNull(row.primaryTenantName());
+      assertEquals(150000, row.rent());
+    }
+
+    @Test
+    @DisplayName("When contract starts mid-month and has receipt, should return PAID row")
+    void shouldReturnPaidRowWhenContractStartsMidMonthWithReceipt() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 5, 15), "P12M", 150000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 20), LocalDate.of(2026, 5, 15),
+            LocalDate.of(2026, 5, 15), LocalDate.of(2026, 5, 31));
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.PAID, row.status());
+      assertNotNull(row.primaryTenantName());
+      assertEquals(150000, row.rent());
+    }
+
+    @Test
+    @DisplayName("When paid row has discount and fine, should show adjusted rent")
+    void shouldShowAdjustedRentWhenDiscountAndFine() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 100000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31), 5000, 2000);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.PAID, row.status());
+      assertEquals(97000, row.rent());
+    }
+
+    @Test
+    @DisplayName("When paid row has zero discount and fine, should show base rent")
+    void shouldShowBaseRentWhenZeroDiscountAndFine() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 100000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+        insertReceipt(conn, contractId, LocalDate.of(2026, 5, 10), LocalDate.of(2026, 5, 1),
+            LocalDate.of(2026, 5, 1), LocalDate.of(2026, 5, 31), 0, 0);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      assertEquals(100000, rows.get(0).rent());
+    }
+
+    @Test
+    @DisplayName("When row is unpaid, should show base contract rent unmodified")
+    void shouldShowBaseRentWhenUnpaid() throws SQLException {
+      YearMonth month = YearMonth.of(2026, 5);
+      try (Connection conn = dataSource.getConnection()) {
+        long addressId = insertAddress(conn);
+        long personId = insertPhysicalPerson(conn, addressId);
+        long propertyId = insertProperty(conn, addressId);
+        long accountId = insertPaymentAccount(conn);
+        long contractId =
+            insertContract(conn, LocalDate.of(2026, 1, 1), "P12M", 100000L, accountId, propertyId,
+                personId);
+        insertContractTenant(conn, contractId, personId);
+      }
+
+      List<PaymentReportRow> rows = repository.loadPaymentReportData(month);
+
+      assertEquals(1, rows.size());
+      PaymentReportRow row = rows.get(0);
+      assertEquals(PaymentReportRowStatus.UNPAID, row.status());
+      assertEquals(100000, row.rent());
     }
 
     @Test

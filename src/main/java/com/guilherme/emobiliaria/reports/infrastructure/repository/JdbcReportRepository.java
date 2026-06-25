@@ -410,8 +410,16 @@ public class JdbcReportRepository implements ReportRepository {
             COALESCE(pp.cpf, jp.cnpj)                  AS tenant_tax_id,
             r.date                                     AS payment_date,
             c.rent                                     AS rent,
+            r.discount                                 AS discount,
+            r.fine                                     AS fine,
             r.interval_start                           AS period_start,
-            r.interval_end                             AS period_end
+            r.interval_end                             AS period_end,
+            CASE WHEN c.id IS NOT NULL AND EXISTS (
+                SELECT 1 FROM receipts r3
+                WHERE r3.contract_id = c.id
+                  AND r3.payment_due_date >= ?
+                  AND r3.payment_due_date <= ?
+            ) THEN true ELSE false END                 AS due_date_paid
         FROM properties p
         LEFT JOIN contracts c ON c.property_id = p.id
             AND c.start_date <= ?
@@ -439,24 +447,18 @@ public class JdbcReportRepository implements ReportRepository {
         LEFT JOIN physical_persons pp  ON pp.id = ct.tenant_id AND ct.tenant_type = 'PHYSICAL'
         LEFT JOIN juridical_persons jp ON jp.id = ct.tenant_id AND ct.tenant_type = 'JURIDICAL'
         LEFT JOIN receipts r ON r.contract_id = c.id
-            AND r.payment_due_date >= ?
-            AND r.payment_due_date <= ?
-            AND r.id = (
-                SELECT MAX(r2.id) FROM receipts r2
-                WHERE r2.contract_id = c.id
-                  AND r2.payment_due_date >= ?
-                  AND r2.payment_due_date <= ?
-            )
+            AND r.date >= ?
+            AND r.date <= ?
         ORDER BY r.date NULLS LAST, p.name
         """;
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setObject(1, firstDay);
-      stmt.setObject(2, firstDay);
-      stmt.setObject(3, firstDay);
+      stmt.setObject(2, lastDay);
+      stmt.setObject(3, lastDay);
       stmt.setObject(4, firstDay);
-      stmt.setObject(5, firstDay);
-      stmt.setObject(6, lastDay);
+      stmt.setObject(5, lastDay);
+      stmt.setObject(6, firstDay);
       stmt.setObject(7, firstDay);
       stmt.setObject(8, lastDay);
       List<PaymentReportRow> rows = new ArrayList<>();
@@ -479,6 +481,10 @@ public class JdbcReportRepository implements ReportRepository {
           if (!hasContract) {
             status = PaymentReportRowStatus.VACANT;
           } else if (!hasReceipt) {
+            boolean dueDatePaid = rs.getBoolean("due_date_paid");
+            if (dueDatePaid) {
+              continue;
+            }
             status = PaymentReportRowStatus.UNPAID;
             tenantName = rs.getString("tenant_name");
             tenantTaxId = rs.getString("tenant_tax_id");
@@ -489,7 +495,10 @@ public class JdbcReportRepository implements ReportRepository {
             tenantTaxId = rs.getString("tenant_tax_id");
             java.sql.Date pd = rs.getDate("payment_date");
             paymentDate = pd != null ? pd.toLocalDate() : null;
-            rent = rs.getInt("rent");
+            int baseRent = rs.getInt("rent");
+            int discount = rs.getInt("discount");
+            int fine = rs.getInt("fine");
+            rent = baseRent - discount + fine;
             java.sql.Date ps = rs.getDate("period_start");
             java.sql.Date pe = rs.getDate("period_end");
             periodStart = ps != null ? ps.toLocalDate() : null;

@@ -78,9 +78,12 @@ public class ReportFileServiceImpl implements ReportFileService {
     String monthLabel = formatPaymentMonthLabel(month);
     String generationDate = LocalDate.now().format(DATE_FMT);
     String appName = bundle.getString("pdf.app_name");
-    List<PaymentReportRowBean> beans = rows.stream().map(PaymentReportRowBean::new).sorted(
-        Comparator.comparing(PaymentReportRowBean::getPageGroup)
-            .thenComparing(PaymentReportRowBean::getPropertyName)).toList();
+    List<PaymentReportRow> sorted = new ArrayList<>(rows);
+    sorted.sort(Comparator.<PaymentReportRow, String>comparing(
+            r -> r.status() == PaymentReportRowStatus.PAID ? "1_PAID" : "2_UNPAID_VACANT")
+        .thenComparing(r -> r.paymentDate() != null ? r.paymentDate() : LocalDate.MAX)
+        .thenComparing(PaymentReportRow::propertyName));
+    List<PaymentReportRowBean> beans = sorted.stream().map(PaymentReportRowBean::new).toList();
     long paidTotalCents =
         rows.stream().filter(r -> r.status() == PaymentReportRowStatus.PAID && r.rent() != null)
             .mapToLong(r -> r.rent().longValue()).sum();
