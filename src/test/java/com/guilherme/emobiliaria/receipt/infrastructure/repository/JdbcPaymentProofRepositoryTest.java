@@ -54,6 +54,10 @@ class JdbcPaymentProofRepositoryTest {
   }
 
   private Long createReceipt() {
+    return createReceipt("529.982.247-25", "MG-1234567");
+  }
+
+  private Long createReceipt(String cpf, String idCardNumber) {
     JdbcAddressRepository addressRepo = new JdbcAddressRepository(dataSource);
     JdbcPhysicalPersonRepository personRepo = new JdbcPhysicalPersonRepository(dataSource);
     JdbcPropertyRepository propertyRepo = new JdbcPropertyRepository(dataSource);
@@ -64,8 +68,8 @@ class JdbcPaymentProofRepositoryTest {
     Address address = addressRepo.create(
         Address.create("01001000", "Rua A", "1", null, "Centro", "São Paulo", BrazilianState.SP));
     PhysicalPerson person = personRepo.create(
-        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro",
-            "529.982.247-25", "MG-1234567", address));
+        PhysicalPerson.create("João Silva", "Brasileiro", CivilState.SINGLE, "Engenheiro", cpf,
+            idCardNumber, address));
     Property property = propertyRepo.create(
         Property.create("Apto 1", "Apartamento", "1234567890", "0987654321", "IPTU-001", address));
     PaymentAccount paymentAccount = paymentAccountRepo.create(
@@ -181,8 +185,8 @@ class JdbcPaymentProofRepositoryTest {
     @Test
     @DisplayName("When proofs exist, should return correct counts per receipt")
     void shouldReturnCorrectCountsPerReceipt() {
-      Long receiptId1 = createReceipt();
-      Long receiptId2 = createReceipt();
+      Long receiptId1 = createReceipt("529.982.247-25", "MG-1234567");
+      Long receiptId2 = createReceipt("110.876.543-27", "MG-7654321");
       repository.create(PaymentProof.create("a.pdf", "a.pdf", "stored-a.pdf", ProofFileType.PDF,
           LocalDate.of(2026, 6, 1), receiptId1));
       repository.create(PaymentProof.create("b.jpg", "b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
