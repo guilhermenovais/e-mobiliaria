@@ -150,11 +150,14 @@ public class ProofDropZonePane extends VBox {
     if (bundle != null) {
       chooser.setTitle(bundle.getString("receipt.form.proof.dialog.title"));
     }
-    chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("PDF", "*.pdf"),
-        new FileChooser.ExtensionFilter("Images", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp",
-            "*.webp", "*.tiff", "*.tif"),
+    FileChooser.ExtensionFilter allSupported =
         new FileChooser.ExtensionFilter("All supported", "*.pdf", "*.jpg", "*.jpeg", "*.png",
-            "*.gif", "*.bmp", "*.webp", "*.tiff", "*.tif"));
+            "*.gif", "*.bmp", "*.webp", "*.tiff", "*.tif");
+    chooser.getExtensionFilters()
+        .addAll(allSupported, new FileChooser.ExtensionFilter("PDF", "*.pdf"),
+        new FileChooser.ExtensionFilter("Images", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp",
+            "*.webp", "*.tiff", "*.tif"));
+    chooser.setSelectedExtensionFilter(allSupported);
     File selected = chooser.showOpenDialog(getScene() != null ? getScene().getWindow() : null);
     if (selected != null) {
       addFileIfSupported(selected.toPath(), selected.getName());
