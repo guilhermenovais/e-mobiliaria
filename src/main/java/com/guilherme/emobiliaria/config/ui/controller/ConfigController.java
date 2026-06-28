@@ -1,5 +1,6 @@
 package com.guilherme.emobiliaria.config.ui.controller;
 
+import com.guilherme.emobiliaria.backup.ui.controller.BackupRestoreController;
 import com.guilherme.emobiliaria.config.application.input.SetConfigInput;
 import com.guilherme.emobiliaria.config.application.usecase.GetConfigInteractor;
 import com.guilherme.emobiliaria.config.application.usecase.SetConfigInteractor;
@@ -24,6 +25,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ public class ConfigController {
   private final FindAllPhysicalPeopleInteractor findAllPhysical;
   private final FindAllJuridicalPeopleInteractor findAllJuridical;
   private final GuiceFxmlLoader fxmlLoader;
+  private final BackupRestoreController backupRestoreController;
 
   private ResourceBundle bundle;
   private List<PersonEntry> physicalEntries = new ArrayList<>();
@@ -61,19 +64,22 @@ public class ConfigController {
   @FXML private Button saveButton;
   @FXML private Label statusLabel;
   @FXML private ScrollPane contentScrollPane;
+  @FXML
+  private VBox configSections;
 
   @Inject
   public ConfigController(
       GetConfigInteractor getConfig,
       SetConfigInteractor setConfig,
       FindAllPhysicalPeopleInteractor findAllPhysical,
-      FindAllJuridicalPeopleInteractor findAllJuridical,
-      GuiceFxmlLoader fxmlLoader) {
+      FindAllJuridicalPeopleInteractor findAllJuridical, GuiceFxmlLoader fxmlLoader,
+      BackupRestoreController backupRestoreController) {
     this.getConfig = getConfig;
     this.setConfig = setConfig;
     this.findAllPhysical = findAllPhysical;
     this.findAllJuridical = findAllJuridical;
     this.fxmlLoader = fxmlLoader;
+    this.backupRestoreController = backupRestoreController;
   }
 
   @FXML
@@ -99,6 +105,8 @@ public class ConfigController {
 
     Config config = getConfig.execute().config();
     preselectCurrentLandlord(config, physicalLabel, juridicalLabel);
+
+    configSections.getChildren().add(backupRestoreController.buildSection());
   }
 
   private void loadPersons() {

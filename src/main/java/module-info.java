@@ -21,6 +21,10 @@ module com.guilherme.emobiliaria {
 
   exports com.guilherme.emobiliaria.config.domain.entity;
   exports com.guilherme.emobiliaria.config.domain.repository;
+  opens com.guilherme.emobiliaria.backup.di to com.google.guice;
+  opens com.guilherme.emobiliaria.backup.application.usecase to com.google.guice;
+  opens com.guilherme.emobiliaria.backup.infrastructure.service to com.google.guice;
+  opens com.guilherme.emobiliaria.backup.ui.controller to javafx.fxml, com.google.guice;
   opens com.guilherme.emobiliaria.config.di to com.google.guice;
   opens com.guilherme.emobiliaria.config.application.usecase to com.google.guice;
   opens com.guilherme.emobiliaria.config.infrastructure.repository to com.google.guice;

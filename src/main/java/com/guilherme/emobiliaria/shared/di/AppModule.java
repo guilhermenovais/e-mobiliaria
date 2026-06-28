@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.guilherme.emobiliaria.backup.di.BackupModule;
 import com.guilherme.emobiliaria.config.di.ConfigModule;
 import com.guilherme.emobiliaria.contract.di.ContractModule;
 import com.guilherme.emobiliaria.dashboard.di.DashboardModule;
@@ -28,6 +29,7 @@ public class AppModule extends AbstractModule {
     bind(PdfGenerationService.class);
     bind(NavigationService.class).in(Scopes.SINGLETON);
 
+    install(new BackupModule());
     install(new ConfigModule());
     install(new DashboardModule());
     install(new InflationModule());

@@ -6,7 +6,6 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -31,7 +30,7 @@
             <Separator styleClass="config-divider"/>
 
             <!-- SETTINGS SECTIONS -->
-            <VBox styleClass="config-sections">
+            <VBox fx:id="configSections" styleClass="config-sections">
 
                 <!-- Default Landlord Section -->
                 <VBox styleClass="config-section">

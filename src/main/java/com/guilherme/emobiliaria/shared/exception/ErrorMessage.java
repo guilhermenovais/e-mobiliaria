@@ -297,6 +297,34 @@ public interface ErrorMessage {
   }
 
 
+  enum Backup implements ErrorMessage {
+    NO_DRIVES_FOUND("backup.error.no_drives", "No removable drives found"), NO_BACKUPS_FOUND(
+        "backup.restore.no_backups",
+        "No backup files found on the selected drive"), INSUFFICIENT_SPACE(
+        "backup.error.insufficient_space", "Insufficient space on drive for backup"), BACKUP_FAILED(
+        "backup.error.failed", "Backup operation failed"), RESTORE_FAILED("backup.error.failed",
+        "Restore operation failed");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    Backup(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
+
   enum Config implements ErrorMessage {
     NOT_FOUND("config.not_found", "Config not found");
 
