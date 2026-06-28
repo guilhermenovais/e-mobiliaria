@@ -55,8 +55,7 @@ public class ProcessRestoreService implements RestoreService {
     }
 
     log.info("Restore script launched, exiting application (PID {})", pid);
-    Platform.exit();
-    System.exit(0);
+    Platform.runLater(Platform::exit);
   }
 
   private void extractBackup(Path zipPath, Path targetDir) throws IOException {
