@@ -93,6 +93,9 @@
 
         </GridPane>
 
+        <!-- PROOF SECTION -->
+        <VBox fx:id="proofSectionContainer" styleClass="form-section" spacing="8"/>
+
         <!-- FOOTER -->
         <HBox styleClass="form-view-footer">
             <Region HBox.hgrow="ALWAYS"/>

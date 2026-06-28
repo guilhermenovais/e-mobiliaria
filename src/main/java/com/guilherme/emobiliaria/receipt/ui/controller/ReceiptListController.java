@@ -7,14 +7,19 @@ import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindAllReceiptsByContractIdInput;
+import com.guilherme.emobiliaria.receipt.application.input.FindPaymentProofsByReceiptIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInput;
+import com.guilherme.emobiliaria.receipt.application.input.GetReceiptProofCountsInput;
 import com.guilherme.emobiliaria.receipt.application.input.SearchReceiptsInput;
 import com.guilherme.emobiliaria.receipt.application.output.FindAllReceiptsByContractIdOutput;
 import com.guilherme.emobiliaria.receipt.application.output.SearchReceiptsOutput;
 import com.guilherme.emobiliaria.receipt.application.usecase.DeleteReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindAllReceiptsByContractIdInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.FindPaymentProofsByReceiptIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.GenerateReceiptPdfInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.GetReceiptProofCountsInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.SearchReceiptsInteractor;
+import com.guilherme.emobiliaria.receipt.domain.entity.PaymentProof;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
@@ -23,6 +28,7 @@ import com.guilherme.emobiliaria.shared.ui.ErrorHandler;
 import com.guilherme.emobiliaria.shared.ui.NavigationService;
 import com.guilherme.emobiliaria.shared.util.MoneyFormatter;
 import jakarta.inject.Inject;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -51,10 +57,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ReceiptListController {
 
@@ -73,6 +83,8 @@ public class ReceiptListController {
   private final FindAllContractsInteractor findAllContracts;
   private final DeleteReceiptInteractor deleteReceipt;
   private final GenerateReceiptPdfInteractor generatePdf;
+  private final GetReceiptProofCountsInteractor getProofCounts;
+  private final FindPaymentProofsByReceiptIdInteractor findProofsByReceiptId;
   private final NavigationService navigationService;
   private final Provider<ReceiptFormController> formControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
@@ -109,10 +121,14 @@ public class ReceiptListController {
   private long totalResults = 0;
   private Long preSelectedContractId = null;
   private ResourceBundle bundle;
+  private final Set<Long> receiptsWithProofs = new HashSet<>();
+
   @Inject
   public ReceiptListController(FindAllReceiptsByContractIdInteractor findAllByContract,
       SearchReceiptsInteractor searchReceipts, FindAllContractsInteractor findAllContracts,
       DeleteReceiptInteractor deleteReceipt, GenerateReceiptPdfInteractor generatePdf,
+      GetReceiptProofCountsInteractor getProofCounts,
+      FindPaymentProofsByReceiptIdInteractor findProofsByReceiptId,
       NavigationService navigationService, Provider<ReceiptFormController> formControllerProvider,
       GuiceFxmlLoader fxmlLoader) {
     this.findAllByContract = findAllByContract;
@@ -120,9 +136,15 @@ public class ReceiptListController {
     this.findAllContracts = findAllContracts;
     this.deleteReceipt = deleteReceipt;
     this.generatePdf = generatePdf;
+    this.getProofCounts = getProofCounts;
+    this.findProofsByReceiptId = findProofsByReceiptId;
     this.navigationService = navigationService;
     this.formControllerProvider = formControllerProvider;
     this.fxmlLoader = fxmlLoader;
+  }
+
+  boolean hasProofs(Long receiptId) {
+    return receiptsWithProofs.contains(receiptId);
   }
 
   // ── Pre-selection (called before buildView) ────────────────────────────────
@@ -352,10 +374,36 @@ public class ReceiptListController {
       if (empty)
         emptyLabel.setText(bundle.getString("receipt.list.empty"));
       updatePagination();
+
+      if (!result.items().isEmpty()) {
+        loadProofCounts(result.items());
+      }
     });
 
     task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
     new Thread(task).start();
+  }
+
+  private void loadProofCounts(List<Receipt> receipts) {
+    List<Long> ids = receipts.stream().map(Receipt::getId).collect(Collectors.toList());
+    Task<Map<Long, Integer>> proofCountTask = new Task<>() {
+      @Override
+      protected Map<Long, Integer> call() {
+        return getProofCounts.execute(new GetReceiptProofCountsInput(ids)).counts();
+      }
+    };
+    proofCountTask.setOnSucceeded(e -> Platform.runLater(() -> {
+      receiptsWithProofs.clear();
+      proofCountTask.getValue().forEach((id, count) -> {
+        if (count > 0) {
+          receiptsWithProofs.add(id);
+        }
+      });
+      tableView.refresh();
+    }));
+    proofCountTask.setOnFailed(
+        e -> log.warn("Failed to load proof counts", proofCountTask.getException()));
+    new Thread(proofCountTask).start();
   }
 
   // ── Pagination ─────────────────────────────────────────────────────────────
@@ -477,12 +525,33 @@ public class ReceiptListController {
   // ── Inner cell class ───────────────────────────────────────────────────────
 
 
+  private void handleOpenProof(PaymentProof proof) {
+    Task<Void> task = new Task<>() {
+      @Override
+      protected Void call() throws Exception {
+        java.nio.file.Path filePath =
+            com.guilherme.emobiliaria.shared.persistence.AppDataPaths.proofStorageDirectory()
+                .resolve(proof.getStoredFileName());
+        File file = filePath.toFile();
+        if (!file.exists()) {
+          throw new java.io.FileNotFoundException(
+              bundle.getString("receipt.list.proof.error.file_not_found"));
+        }
+        Desktop.getDesktop().open(file);
+        return null;
+      }
+    };
+    task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
+    new Thread(task).start();
+  }
+
   private class ActionsCell extends TableCell<Receipt, Void> {
 
     private final HBox actionsBox = new HBox();
     private final Button editBtn = new Button(bundle.getString("receipt.list.button.edit"));
     private final Button deleteBtn = new Button(bundle.getString("receipt.list.button.delete"));
     private final Button pdfBtn = new Button(bundle.getString("receipt.list.button.generate_pdf"));
+    private final Button proofsBtn = new Button(bundle.getString("receipt.list.button.proofs"));
 
     ActionsCell() {
       setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
@@ -495,6 +564,7 @@ public class ReceiptListController {
       editBtn.getStyleClass().add("list-row-edit-button");
       deleteBtn.getStyleClass().add("list-row-delete-button");
       pdfBtn.getStyleClass().add("list-row-pdf-button");
+      proofsBtn.getStyleClass().add("list-row-proofs-button");
 
       editBtn.setOnAction(e -> {
         Receipt receipt = getTableView().getItems().get(getIndex());
@@ -508,14 +578,50 @@ public class ReceiptListController {
         Receipt receipt = getTableView().getItems().get(getIndex());
         handleGeneratePdf(receipt, pdfBtn);
       });
+      proofsBtn.setOnAction(e -> {
+        Receipt receipt = getTableView().getItems().get(getIndex());
+        handleViewProofs(receipt);
+      });
 
-      actionsBox.getChildren().setAll(editBtn, deleteBtn, pdfBtn);
+      actionsBox.getChildren().setAll(editBtn, deleteBtn, pdfBtn, proofsBtn);
     }
 
     @Override
     protected void updateItem(Void item, boolean empty) {
       super.updateItem(item, empty);
-      setGraphic(empty ? null : actionsBox);
+      if (empty) {
+        setGraphic(null);
+        return;
+      }
+      Receipt receipt = getTableView().getItems().get(getIndex());
+      proofsBtn.setDisable(!hasProofs(receipt.getId()));
+      setGraphic(actionsBox);
+    }
+
+    private void handleViewProofs(Receipt receipt) {
+      Task<List<PaymentProof>> task = new Task<>() {
+        @Override
+        protected List<PaymentProof> call() {
+          return findProofsByReceiptId.execute(
+              new FindPaymentProofsByReceiptIdInput(receipt.getId())).proofs();
+        }
+      };
+      task.setOnSucceeded(e -> Platform.runLater(() -> {
+        List<PaymentProof> proofs = task.getValue();
+        if (proofs.isEmpty()) {
+          return;
+        }
+        if (proofs.size() == 1) {
+          handleOpenProof(proofs.get(0));
+        } else {
+          ProofSelectionDialog dialog =
+              new ProofSelectionDialog(proofs, bundle.getString("receipt.form.proof.dialog.title"));
+          Optional<PaymentProof> selected = dialog.showAndWait();
+          selected.ifPresent(ReceiptListController.this::handleOpenProof);
+        }
+      }));
+      task.setOnFailed(e -> ErrorHandler.handle(task.getException(), bundle));
+      new Thread(task).start();
     }
   }
 }

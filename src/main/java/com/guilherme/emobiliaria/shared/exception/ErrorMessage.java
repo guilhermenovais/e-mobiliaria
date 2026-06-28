@@ -264,6 +264,37 @@ public interface ErrorMessage {
   }
 
 
+  enum PaymentProof implements ErrorMessage {
+    ORIGINAL_FILENAME_BLANK("payment_proof.original_filename_blank",
+        "Original filename must not be blank"), STORED_FILENAME_BLANK(
+        "payment_proof.stored_filename_blank", "Stored filename must not be blank"), FILE_TYPE_NULL(
+        "payment_proof.file_type_null", "File type must not be null"), ATTACHED_AT_NULL(
+        "payment_proof.attached_at_null", "Attached at date must not be null"), RECEIPT_ID_NULL(
+        "payment_proof.receipt_id_null", "Receipt ID must not be null"), NOT_FOUND(
+        "payment_proof.not_found", "Payment proof not found"), UNSUPPORTED_FILE_TYPE(
+        "payment_proof.unsupported_file_type",
+        "File type not supported. Only PDF and images are accepted.");
+
+    private final String translationKey;
+    private final String logMessage;
+
+    PaymentProof(String translationKey, String logMessage) {
+      this.translationKey = translationKey;
+      this.logMessage = logMessage;
+    }
+
+    @Override
+    public String getTranslationKey() {
+      return translationKey;
+    }
+
+    @Override
+    public String getLogMessage() {
+      return logMessage;
+    }
+  }
+
+
   enum Config implements ErrorMessage {
     NOT_FOUND("config.not_found", "Config not found");
 

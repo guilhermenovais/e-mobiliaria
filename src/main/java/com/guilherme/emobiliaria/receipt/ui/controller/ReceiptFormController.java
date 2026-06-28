@@ -5,15 +5,23 @@ import com.guilherme.emobiliaria.contract.application.input.FindAllContractsInpu
 import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsInteractor;
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
+import com.guilherme.emobiliaria.receipt.application.input.AttachPaymentProofFromBytesInput;
+import com.guilherme.emobiliaria.receipt.application.input.AttachPaymentProofFromFileInput;
 import com.guilherme.emobiliaria.receipt.application.input.CreateReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.EditReceiptInput;
+import com.guilherme.emobiliaria.receipt.application.input.FindPaymentProofsByReceiptIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindReceiptByIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.GetUnreceiptedDueDatesInput;
+import com.guilherme.emobiliaria.receipt.application.input.RemovePaymentProofInput;
+import com.guilherme.emobiliaria.receipt.application.usecase.AttachPaymentProofInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.CreateReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.EditReceiptInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.FindPaymentProofsByReceiptIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindReceiptByIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.GetUnreceiptedDueDatesInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.RemovePaymentProofInteractor;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
+import com.guilherme.emobiliaria.receipt.ui.component.ProofDropZonePane;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.exception.UserFacingException;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -31,7 +39,10 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,15 +78,22 @@ public class ReceiptFormController {
   private final CreateReceiptInteractor createReceipt;
   private final EditReceiptInteractor editReceipt;
   private final GetUnreceiptedDueDatesInteractor getUnreceiptedDueDates;
+  private final AttachPaymentProofInteractor attachProof;
+  private final RemovePaymentProofInteractor removeProof;
+  private final FindPaymentProofsByReceiptIdInteractor findProofs;
+  private final Provider<ProofDropZonePane> dropZonePaneProvider;
   private final NavigationService navigationService;
   private final Provider<ReceiptListController> receiptListControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
+  private ProofDropZonePane dropZonePane;
   @FXML
   private Label titleLabel;
 
   // ── FXML fields ────────────────────────────────────────────────────────────
   @FXML
   private Label subtitleLabel;
+  @FXML
+  private VBox proofSectionContainer;
   @FXML
   private Label formSectionLabel;
   @FXML
@@ -128,13 +146,19 @@ public class ReceiptFormController {
   public ReceiptFormController(FindAllContractsInteractor findAllContracts,
       FindReceiptByIdInteractor findReceiptById, CreateReceiptInteractor createReceipt,
       EditReceiptInteractor editReceipt, GetUnreceiptedDueDatesInteractor getUnreceiptedDueDates,
-      NavigationService navigationService,
+      AttachPaymentProofInteractor attachProof, RemovePaymentProofInteractor removeProof,
+      FindPaymentProofsByReceiptIdInteractor findProofs,
+      Provider<ProofDropZonePane> dropZonePaneProvider, NavigationService navigationService,
       Provider<ReceiptListController> receiptListControllerProvider, GuiceFxmlLoader fxmlLoader) {
     this.findAllContracts = findAllContracts;
     this.findReceiptById = findReceiptById;
     this.createReceipt = createReceipt;
     this.editReceipt = editReceipt;
     this.getUnreceiptedDueDates = getUnreceiptedDueDates;
+    this.attachProof = attachProof;
+    this.removeProof = removeProof;
+    this.findProofs = findProofs;
+    this.dropZonePaneProvider = dropZonePaneProvider;
     this.navigationService = navigationService;
     this.receiptListControllerProvider = receiptListControllerProvider;
     this.fxmlLoader = fxmlLoader;
@@ -249,6 +273,20 @@ public class ReceiptFormController {
     }
   }
 
+  private void loadExistingProofs(Long rId) {
+    Task<List<com.guilherme.emobiliaria.receipt.domain.entity.PaymentProof>> proofTask =
+        new Task<>() {
+          @Override
+          protected List<com.guilherme.emobiliaria.receipt.domain.entity.PaymentProof> call() {
+            return findProofs.execute(new FindPaymentProofsByReceiptIdInput(rId)).proofs();
+          }
+        };
+    proofTask.setOnSucceeded(
+        e -> Platform.runLater(() -> dropZonePane.loadExistingProofs(proofTask.getValue())));
+    proofTask.setOnFailed(e -> ErrorHandler.handle(proofTask.getException(), bundle));
+    new Thread(proofTask).start();
+  }
+
   // ── Data loading ───────────────────────────────────────────────────────────
 
   public void setReceiptId(Long receiptId) {
@@ -323,6 +361,20 @@ public class ReceiptFormController {
 
     cancelButton.setOnAction(e -> navigationService.goBack());
     submitButton.setOnAction(e -> handleSubmit());
+
+    dropZonePane = dropZonePaneProvider.get();
+    dropZonePane.initialize(bundle);
+    proofSectionContainer.getChildren().add(dropZonePane);
+
+    proofSectionContainer.sceneProperty().addListener((obs, oldScene, newScene) -> {
+      if (newScene != null) {
+        newScene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+          if (e.isControlDown() && e.getCode() == KeyCode.V) {
+            dropZonePane.handleClipboardPaste();
+          }
+        });
+      }
+    });
 
     loadData();
   }
@@ -412,6 +464,7 @@ public class ReceiptFormController {
           loadPaymentDueDatesForEdit(contractId, receiptId, currentDueDate, r.getIntervalStart(),
               r.getIntervalEnd());
         }
+        loadExistingProofs(receiptId);
       } else if (preSelectedContractId != null) {
         data.contracts().stream().filter(c -> c.getId().equals(preSelectedContractId)).findFirst()
             .ifPresent(c -> contractComboBox.getSelectionModel().select(c));
@@ -535,15 +588,33 @@ public class ReceiptFormController {
       return;
     }
 
+    List<ProofDropZonePane.PendingProof> pendingProofs = dropZonePane.getPendingFilesToAttach();
+    List<Long> proofsToRemove = dropZonePane.getProofsToRemove();
+
     if (receiptId != null) {
       EditReceiptInput input =
           new EditReceiptInput(receiptId, date, paymentDueDate, intervalStart, intervalEnd,
               discount, fine, observation, selectedContract.getId());
+      Long finalReceiptId = receiptId;
 
       Task<Void> task = new Task<>() {
         @Override
         protected Void call() {
           editReceipt.execute(input);
+          for (Long proofId : proofsToRemove) {
+            removeProof.execute(new RemovePaymentProofInput(finalReceiptId, proofId));
+          }
+          for (ProofDropZonePane.PendingProof pending : pendingProofs) {
+            if (pending.imageBytes() != null) {
+              attachProof.execute(
+                  new AttachPaymentProofFromBytesInput(finalReceiptId, pending.imageBytes(),
+                      pending.originalFileName()));
+            } else {
+              attachProof.execute(
+                  new AttachPaymentProofFromFileInput(finalReceiptId, pending.file(),
+                      pending.originalFileName()));
+            }
+          }
           return null;
         }
       };
@@ -561,7 +632,17 @@ public class ReceiptFormController {
       Task<Void> task = new Task<>() {
         @Override
         protected Void call() {
-          createReceipt.execute(input);
+          Long newReceiptId = createReceipt.execute(input).receipt().getId();
+          for (ProofDropZonePane.PendingProof pending : pendingProofs) {
+            if (pending.imageBytes() != null) {
+              attachProof.execute(
+                  new AttachPaymentProofFromBytesInput(newReceiptId, pending.imageBytes(),
+                      pending.originalFileName()));
+            } else {
+              attachProof.execute(new AttachPaymentProofFromFileInput(newReceiptId, pending.file(),
+                  pending.originalFileName()));
+            }
+          }
           return null;
         }
       };

@@ -5,6 +5,9 @@ import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Receipt {
   private Long id;
@@ -16,6 +19,7 @@ public class Receipt {
   private int fine;
   private String observation;
   private Contract contract;
+  private List<PaymentProof> proofs = new ArrayList<>();
 
   private Receipt() {
   }
@@ -41,6 +45,16 @@ public class Receipt {
         create(date, paymentDueDate, intervalStart, intervalEnd, discount, fine, observation,
             contract);
     receipt.setId(id);
+    return receipt;
+  }
+
+  public static Receipt restoreWithProofs(Long id, LocalDate date, LocalDate paymentDueDate,
+      LocalDate intervalStart, LocalDate intervalEnd, int discount, int fine, String observation,
+      Contract contract, List<PaymentProof> proofs) {
+    Receipt receipt =
+        restore(id, date, paymentDueDate, intervalStart, intervalEnd, discount, fine, observation,
+            contract);
+    receipt.setProofs(proofs);
     return receipt;
   }
 
@@ -141,5 +155,17 @@ public class Receipt {
       throw new BusinessException(ErrorMessage.Receipt.CONTRACT_NULL);
     }
     this.contract = contract;
+  }
+
+  public List<PaymentProof> getProofs() {
+    return Collections.unmodifiableList(proofs);
+  }
+
+  public void setProofs(List<PaymentProof> proofs) {
+    this.proofs = proofs != null ? new ArrayList<>(proofs) : new ArrayList<>();
+  }
+
+  public boolean hasProofs() {
+    return !proofs.isEmpty();
   }
 }

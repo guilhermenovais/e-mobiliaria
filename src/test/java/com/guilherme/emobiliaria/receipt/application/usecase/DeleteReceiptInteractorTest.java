@@ -18,7 +18,9 @@ import com.guilherme.emobiliaria.property.domain.entity.Property;
 import com.guilherme.emobiliaria.property.domain.repository.FakePropertyRepository;
 import com.guilherme.emobiliaria.receipt.application.input.CreateReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
+import com.guilherme.emobiliaria.receipt.domain.repository.FakePaymentProofRepository;
 import com.guilherme.emobiliaria.receipt.domain.repository.FakeReceiptRepository;
+import com.guilherme.emobiliaria.receipt.domain.service.FakePaymentProofStorageService;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +54,8 @@ class DeleteReceiptInteractorTest {
     propertyRepository = new FakePropertyRepository();
     physicalPersonRepository = new FakePhysicalPersonRepository();
     FakeJuridicalPersonRepository juridicalPersonRepository = new FakeJuridicalPersonRepository();
-    interactor = new DeleteReceiptInteractor(receiptRepository);
+    interactor = new DeleteReceiptInteractor(receiptRepository, new FakePaymentProofRepository(),
+        new FakePaymentProofStorageService());
     createReceiptInteractor = new CreateReceiptInteractor(receiptRepository, contractRepository);
     createContractInteractor =
         new CreateContractInteractor(contractRepository, paymentAccountRepository,

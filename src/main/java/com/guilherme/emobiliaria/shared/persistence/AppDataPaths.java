@@ -45,6 +45,10 @@ public final class AppDataPaths {
     return ensureDirectory(resolveAppDataDir().resolve("database"));
   }
 
+  public static Path proofStorageDirectory() {
+    return ensureDirectory(resolveAppDataDir().resolve("proofs"));
+  }
+
   public static String h2DatabaseFilePath() {
     Path databaseFile = databaseDirectory().resolve("emobiliaria").toAbsolutePath().normalize();
     return databaseFile.toString().replace('\\', '/');
