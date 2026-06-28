@@ -110,8 +110,10 @@ public class ProofDropZonePane extends VBox {
     int width = (int) image.getWidth();
     int height = (int) image.getHeight();
     javafx.scene.image.PixelReader pixelReader = image.getPixelReader();
+    // TYPE_INT_RGB: Windows clipboard bitmaps have no alpha channel; JavaFX fills alpha=0,
+    // which would produce a fully-transparent (all-black) PNG with TYPE_INT_ARGB.
     java.awt.image.BufferedImage awtImage =
-        new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        new java.awt.image.BufferedImage(width, height, java.awt.image.BufferedImage.TYPE_INT_RGB);
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         awtImage.setRGB(x, y, pixelReader.getArgb(x, y));
