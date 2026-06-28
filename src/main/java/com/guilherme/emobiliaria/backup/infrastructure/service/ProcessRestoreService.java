@@ -85,11 +85,11 @@ public class ProcessRestoreService implements RestoreService {
     String dbDirStr = dbDir.toAbsolutePath().toString();
     String proofsDirStr = proofsDir.toAbsolutePath().toString();
 
-    return "$pid = " + pid + "\r\n" + "$tempDir = '" + escape(
+    return "$appPid = " + pid + "\r\n" + "$tempDir = '" + escape(
         tempDirStr) + "'\r\n" + "$dbDir = '" + escape(
         dbDirStr) + "'\r\n" + "$proofsDir = '" + escape(
         proofsDirStr) + "'\r\n" + "$exePath = '" + escape(
-        exePath) + "'\r\n" + "\r\n" + "do { Start-Sleep -Milliseconds 500 } while (Get-Process -Id $pid -ErrorAction SilentlyContinue)\r\n" + "\r\n" + "Remove-Item -Path \"$dbDir\\*\" -Recurse -Force -ErrorAction SilentlyContinue\r\n" + "Copy-Item -Path \"$tempDir\\database\\emobiliaria.mv.db\" -Destination $dbDir -Force\r\n" + "\r\n" + "Remove-Item -Path \"$proofsDir\\*\" -Recurse -Force -ErrorAction SilentlyContinue\r\n" + "$proofsSource = Join-Path $tempDir 'proofs'\r\n" + "if (Test-Path $proofsSource) {\r\n" + "    Copy-Item -Path \"$proofsSource\\*\" -Destination $proofsDir -Recurse -Force -ErrorAction SilentlyContinue\r\n" + "}\r\n" + "\r\n" + "Start-Process -FilePath $exePath\r\n";
+        exePath) + "'\r\n" + "\r\n" + "do { Start-Sleep -Milliseconds 500 } while (Get-Process -Id $appPid -ErrorAction SilentlyContinue)\r\n" + "\r\n" + "Remove-Item -Path \"$dbDir\\*\" -Recurse -Force -ErrorAction SilentlyContinue\r\n" + "Copy-Item -Path \"$tempDir\\database\\emobiliaria.mv.db\" -Destination $dbDir -Force\r\n" + "\r\n" + "Remove-Item -Path \"$proofsDir\\*\" -Recurse -Force -ErrorAction SilentlyContinue\r\n" + "$proofsSource = Join-Path $tempDir 'proofs'\r\n" + "if (Test-Path $proofsSource) {\r\n" + "    Copy-Item -Path \"$proofsSource\\*\" -Destination $proofsDir -Recurse -Force -ErrorAction SilentlyContinue\r\n" + "}\r\n" + "\r\n" + "Start-Process -FilePath $exePath\r\n";
   }
 
   private String escape(String s) {
