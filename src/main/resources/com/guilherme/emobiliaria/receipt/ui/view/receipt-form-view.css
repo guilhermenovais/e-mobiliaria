@@ -61,6 +61,51 @@
     -fx-background-radius: 0;
 }
 
+.proof-drop-zone-pane {
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 2;
+    -fx-border-style: dashed;
+    -fx-border-radius: 4;
+    -fx-background-color: #F9FAFB;
+    -fx-background-radius: 4;
+    -fx-padding: 20 16;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER;
+    -fx-min-height: 80;
+}
+
+.proof-drop-zone-pane:hover {
+    -fx-background-color: #F3F4F6;
+    -fx-border-color: #9CA3AF;
+}
+
+.proof-drop-zone-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6B7280;
+    -fx-text-alignment: CENTER;
+    -fx-alignment: CENTER;
+}
+
+.proof-error-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #B91C1C;
+}
+
+.proof-remove-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #9CA3AF;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 2 6;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+
+.proof-remove-button:hover {
+    -fx-text-fill: #B91C1C;
+    -fx-background-color: #FEF2F2;
+}
+
 .form-view-footer {
     -fx-alignment: CENTER_RIGHT;
     -fx-spacing: 12;
