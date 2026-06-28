@@ -62,7 +62,7 @@ class RemovePaymentProofInteractorTest {
 
   private PaymentProof createProof() {
     return proofRepository.create(
-        PaymentProof.create("comprovante.pdf", "stored-uuid.pdf", ProofFileType.PDF,
+        PaymentProof.create("comprovante.pdf", "Comprovante", "stored-uuid.pdf", ProofFileType.PDF,
             LocalDate.of(2026, 6, 1), receiptId));
   }
 

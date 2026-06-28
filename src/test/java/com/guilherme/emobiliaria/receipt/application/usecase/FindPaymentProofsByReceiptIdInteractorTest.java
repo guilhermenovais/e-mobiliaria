@@ -66,10 +66,11 @@ class FindPaymentProofsByReceiptIdInteractorTest {
     @DisplayName("When receipt exists with proofs, should return all proofs")
     void shouldReturnProofsWhenReceiptExists() {
       proofRepository.create(
-          PaymentProof.create("a.pdf", "stored-a.pdf", ProofFileType.PDF, LocalDate.of(2026, 6, 1),
-              receiptId));
-      proofRepository.create(PaymentProof.create("b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
-          LocalDate.of(2026, 6, 2), receiptId));
+          PaymentProof.create("a.pdf", "a.pdf", "stored-a.pdf", ProofFileType.PDF,
+              LocalDate.of(2026, 6, 1), receiptId));
+      proofRepository.create(
+          PaymentProof.create("b.jpg", "b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
+              LocalDate.of(2026, 6, 2), receiptId));
 
       FindPaymentProofsByReceiptIdOutput output =
           interactor.execute(new FindPaymentProofsByReceiptIdInput(receiptId));

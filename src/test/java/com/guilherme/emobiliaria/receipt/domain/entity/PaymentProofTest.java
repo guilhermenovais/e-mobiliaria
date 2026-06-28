@@ -16,14 +16,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class PaymentProofTest {
 
   private static final String VALID_ORIGINAL_FILE_NAME = "comprovante.pdf";
+  private static final String VALID_DISPLAY_NAME = "Comprovante";
   private static final String VALID_STORED_FILE_NAME = "uuid-stored.pdf";
   private static final ProofFileType VALID_FILE_TYPE = ProofFileType.PDF;
   private static final LocalDate VALID_ATTACHED_AT = LocalDate.of(2026, 6, 1);
   private static final Long VALID_RECEIPT_ID = 1L;
 
   private PaymentProof validProof() {
-    return PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_STORED_FILE_NAME, VALID_FILE_TYPE,
-        VALID_ATTACHED_AT, VALID_RECEIPT_ID);
+    return PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME, VALID_STORED_FILE_NAME,
+        VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID);
   }
 
   @Nested
@@ -46,8 +47,8 @@ class PaymentProofTest {
     @DisplayName("When originalFileName is null, should throw BusinessException")
     void shouldThrowWhenOriginalFileNameIsNull() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create(null, VALID_STORED_FILE_NAME, VALID_FILE_TYPE,
-              VALID_ATTACHED_AT, VALID_RECEIPT_ID));
+          () -> PaymentProof.create(null, VALID_DISPLAY_NAME, VALID_STORED_FILE_NAME,
+              VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID));
       assertEquals(ErrorMessage.PaymentProof.ORIGINAL_FILENAME_BLANK, ex.getErrorMessage());
     }
 
@@ -55,8 +56,8 @@ class PaymentProofTest {
     @DisplayName("When originalFileName is blank, should throw BusinessException")
     void shouldThrowWhenOriginalFileNameIsBlank() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create("  ", VALID_STORED_FILE_NAME, VALID_FILE_TYPE,
-              VALID_ATTACHED_AT, VALID_RECEIPT_ID));
+          () -> PaymentProof.create("  ", VALID_DISPLAY_NAME, VALID_STORED_FILE_NAME,
+              VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID));
       assertEquals(ErrorMessage.PaymentProof.ORIGINAL_FILENAME_BLANK, ex.getErrorMessage());
     }
 
@@ -64,8 +65,8 @@ class PaymentProofTest {
     @DisplayName("When storedFileName is null, should throw BusinessException")
     void shouldThrowWhenStoredFileNameIsNull() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, null, VALID_FILE_TYPE,
-              VALID_ATTACHED_AT, VALID_RECEIPT_ID));
+          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME, null,
+              VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID));
       assertEquals(ErrorMessage.PaymentProof.STORED_FILENAME_BLANK, ex.getErrorMessage());
     }
 
@@ -73,8 +74,8 @@ class PaymentProofTest {
     @DisplayName("When storedFileName is blank, should throw BusinessException")
     void shouldThrowWhenStoredFileNameIsBlank() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, "", VALID_FILE_TYPE,
-              VALID_ATTACHED_AT, VALID_RECEIPT_ID));
+          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME, "",
+              VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID));
       assertEquals(ErrorMessage.PaymentProof.STORED_FILENAME_BLANK, ex.getErrorMessage());
     }
 
@@ -82,8 +83,8 @@ class PaymentProofTest {
     @DisplayName("When fileType is null, should throw BusinessException")
     void shouldThrowWhenFileTypeIsNull() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_STORED_FILE_NAME, null,
-              VALID_ATTACHED_AT, VALID_RECEIPT_ID));
+          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME,
+              VALID_STORED_FILE_NAME, null, VALID_ATTACHED_AT, VALID_RECEIPT_ID));
       assertEquals(ErrorMessage.PaymentProof.FILE_TYPE_NULL, ex.getErrorMessage());
     }
 
@@ -91,8 +92,8 @@ class PaymentProofTest {
     @DisplayName("When attachedAt is null, should throw BusinessException")
     void shouldThrowWhenAttachedAtIsNull() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_STORED_FILE_NAME,
-              VALID_FILE_TYPE, null, VALID_RECEIPT_ID));
+          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME,
+              VALID_STORED_FILE_NAME, VALID_FILE_TYPE, null, VALID_RECEIPT_ID));
       assertEquals(ErrorMessage.PaymentProof.ATTACHED_AT_NULL, ex.getErrorMessage());
     }
 
@@ -100,8 +101,8 @@ class PaymentProofTest {
     @DisplayName("When receiptId is null, should throw BusinessException")
     void shouldThrowWhenReceiptIdIsNull() {
       BusinessException ex = assertThrows(BusinessException.class,
-          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_STORED_FILE_NAME,
-              VALID_FILE_TYPE, VALID_ATTACHED_AT, null));
+          () -> PaymentProof.create(VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME,
+              VALID_STORED_FILE_NAME, VALID_FILE_TYPE, VALID_ATTACHED_AT, null));
       assertEquals(ErrorMessage.PaymentProof.RECEIPT_ID_NULL, ex.getErrorMessage());
     }
   }
@@ -113,9 +114,8 @@ class PaymentProofTest {
     @Test
     @DisplayName("When restored with id, should set id and all fields")
     void shouldRestoreWithId() {
-      PaymentProof proof =
-          PaymentProof.restore(42L, VALID_ORIGINAL_FILE_NAME, VALID_STORED_FILE_NAME,
-              VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID);
+      PaymentProof proof = PaymentProof.restore(42L, VALID_ORIGINAL_FILE_NAME, VALID_DISPLAY_NAME,
+          VALID_STORED_FILE_NAME, VALID_FILE_TYPE, VALID_ATTACHED_AT, VALID_RECEIPT_ID);
 
       assertEquals(42L, proof.getId());
       assertEquals(VALID_ORIGINAL_FILE_NAME, proof.getOriginalFileName());

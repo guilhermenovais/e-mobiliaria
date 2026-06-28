@@ -7,7 +7,6 @@ import com.guilherme.emobiliaria.contract.infrastructure.repository.JdbcPaymentA
 import com.guilherme.emobiliaria.person.domain.entity.Address;
 import com.guilherme.emobiliaria.person.domain.entity.BrazilianState;
 import com.guilherme.emobiliaria.person.domain.entity.CivilState;
-import com.guilherme.emobiliaria.person.domain.entity.Person;
 import com.guilherme.emobiliaria.person.domain.entity.PhysicalPerson;
 import com.guilherme.emobiliaria.person.infrastructure.repository.JdbcAddressRepository;
 import com.guilherme.emobiliaria.person.infrastructure.repository.JdbcPhysicalPersonRepository;
@@ -81,7 +80,8 @@ class JdbcPaymentProofRepositoryTest {
   }
 
   private PaymentProof validProof(Long receiptId) {
-    return PaymentProof.create("comprovante.pdf", "stored-file.pdf", ProofFileType.PDF,
+    return PaymentProof.create("comprovante.pdf", "Comprovante", "stored-file.pdf",
+        ProofFileType.PDF,
         LocalDate.of(2026, 6, 1), receiptId);
   }
 
@@ -112,10 +112,9 @@ class JdbcPaymentProofRepositoryTest {
     @DisplayName("When proofs exist for receipt, should return them")
     void shouldReturnProofsForReceipt() {
       Long receiptId = createReceipt();
-      repository.create(
-          PaymentProof.create("a.pdf", "stored-a.pdf", ProofFileType.PDF, LocalDate.of(2026, 6, 1),
-              receiptId));
-      repository.create(PaymentProof.create("b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
+      repository.create(PaymentProof.create("a.pdf", "a.pdf", "stored-a.pdf", ProofFileType.PDF,
+          LocalDate.of(2026, 6, 1), receiptId));
+      repository.create(PaymentProof.create("b.jpg", "b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
           LocalDate.of(2026, 6, 2), receiptId));
 
       List<PaymentProof> proofs = repository.findAllByReceiptId(receiptId);
@@ -164,10 +163,9 @@ class JdbcPaymentProofRepositoryTest {
     @DisplayName("When multiple proofs exist, should delete all for receipt")
     void shouldDeleteAllProofsForReceipt() {
       Long receiptId = createReceipt();
-      repository.create(
-          PaymentProof.create("a.pdf", "stored-a.pdf", ProofFileType.PDF, LocalDate.of(2026, 6, 1),
-              receiptId));
-      repository.create(PaymentProof.create("b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
+      repository.create(PaymentProof.create("a.pdf", "a.pdf", "stored-a.pdf", ProofFileType.PDF,
+          LocalDate.of(2026, 6, 1), receiptId));
+      repository.create(PaymentProof.create("b.jpg", "b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
           LocalDate.of(2026, 6, 2), receiptId));
 
       repository.deleteAllByReceiptId(receiptId);
@@ -185,10 +183,9 @@ class JdbcPaymentProofRepositoryTest {
     void shouldReturnCorrectCountsPerReceipt() {
       Long receiptId1 = createReceipt();
       Long receiptId2 = createReceipt();
-      repository.create(
-          PaymentProof.create("a.pdf", "stored-a.pdf", ProofFileType.PDF, LocalDate.of(2026, 6, 1),
-              receiptId1));
-      repository.create(PaymentProof.create("b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
+      repository.create(PaymentProof.create("a.pdf", "a.pdf", "stored-a.pdf", ProofFileType.PDF,
+          LocalDate.of(2026, 6, 1), receiptId1));
+      repository.create(PaymentProof.create("b.jpg", "b.jpg", "stored-b.jpg", ProofFileType.IMAGE,
           LocalDate.of(2026, 6, 2), receiptId1));
 
       Map<Long, Integer> counts = repository.countByReceiptIds(List.of(receiptId1, receiptId2));

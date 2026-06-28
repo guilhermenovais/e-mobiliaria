@@ -75,8 +75,8 @@ class AttachPaymentProofInteractorTest {
       Path tempFile = Files.createTempFile("test-proof", ".pdf");
       Files.write(tempFile, new byte[] {1, 2, 3});
 
-      AttachPaymentProofOutput output =
-          interactor.execute(new AttachPaymentProofFromFileInput(receiptId, tempFile, "prova.pdf"));
+      AttachPaymentProofOutput output = interactor.execute(
+          new AttachPaymentProofFromFileInput(receiptId, tempFile, "prova.pdf", "prova.pdf"));
 
       assertNotNull(output.proof().getId());
       assertEquals("prova.pdf", output.proof().getOriginalFileName());
@@ -92,7 +92,7 @@ class AttachPaymentProofInteractorTest {
       Path tempFile = Files.createTempFile("test-proof", ".docx");
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
-          new AttachPaymentProofFromFileInput(receiptId, tempFile, "prova.docx")));
+          new AttachPaymentProofFromFileInput(receiptId, tempFile, "prova.docx", "prova.docx")));
       assertEquals(ErrorMessage.PaymentProof.UNSUPPORTED_FILE_TYPE, ex.getErrorMessage());
 
       Files.deleteIfExists(tempFile);
@@ -104,7 +104,7 @@ class AttachPaymentProofInteractorTest {
       Path tempFile = Files.createTempFile("test-proof", ".pdf");
 
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
-          new AttachPaymentProofFromFileInput(999L, tempFile, "prova.pdf")));
+          new AttachPaymentProofFromFileInput(999L, tempFile, "prova.pdf", "prova.pdf")));
       assertEquals(ErrorMessage.Receipt.NOT_FOUND, ex.getErrorMessage());
 
       Files.deleteIfExists(tempFile);
@@ -122,7 +122,8 @@ class AttachPaymentProofInteractorTest {
       byte[] imageBytes = new byte[] {1, 2, 3};
 
       AttachPaymentProofOutput output = interactor.execute(
-          new AttachPaymentProofFromBytesInput(receiptId, imageBytes, "clipboard.png"));
+          new AttachPaymentProofFromBytesInput(receiptId, imageBytes, "clipboard.png",
+              "clipboard.png"));
 
       assertNotNull(output.proof().getId());
       assertEquals("clipboard.png", output.proof().getOriginalFileName());
@@ -134,7 +135,8 @@ class AttachPaymentProofInteractorTest {
     @DisplayName("When bytes file has unsupported extension, should throw BusinessException")
     void shouldThrowWhenExtensionUnsupportedForBytes() {
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
-          new AttachPaymentProofFromBytesInput(receiptId, new byte[] {1}, "prova.bmp2")));
+          new AttachPaymentProofFromBytesInput(receiptId, new byte[] {1}, "prova.bmp2",
+              "prova.bmp2")));
       assertEquals(ErrorMessage.PaymentProof.UNSUPPORTED_FILE_TYPE, ex.getErrorMessage());
     }
 
@@ -142,7 +144,8 @@ class AttachPaymentProofInteractorTest {
     @DisplayName("When receipt does not exist, should throw BusinessException with NOT_FOUND")
     void shouldThrowWhenReceiptNotFoundForBytes() {
       BusinessException ex = assertThrows(BusinessException.class, () -> interactor.execute(
-          new AttachPaymentProofFromBytesInput(999L, new byte[] {1}, "clipboard.png")));
+          new AttachPaymentProofFromBytesInput(999L, new byte[] {1}, "clipboard.png",
+              "clipboard.png")));
       assertEquals(ErrorMessage.Receipt.NOT_FOUND, ex.getErrorMessage());
     }
   }
