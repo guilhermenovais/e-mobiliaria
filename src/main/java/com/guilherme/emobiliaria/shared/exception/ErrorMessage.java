@@ -266,7 +266,9 @@ public interface ErrorMessage {
 
   enum PaymentProof implements ErrorMessage {
     ORIGINAL_FILENAME_BLANK("payment_proof.original_filename_blank",
-        "Original filename must not be blank"), STORED_FILENAME_BLANK(
+        "Original filename must not be blank"), DISPLAY_NAME_BLANK(
+        "payment_proof.display_name_blank",
+        "Display name must not be blank"), STORED_FILENAME_BLANK(
         "payment_proof.stored_filename_blank", "Stored filename must not be blank"), FILE_TYPE_NULL(
         "payment_proof.file_type_null", "File type must not be null"), ATTACHED_AT_NULL(
         "payment_proof.attached_at_null", "Attached at date must not be null"), RECEIPT_ID_NULL(

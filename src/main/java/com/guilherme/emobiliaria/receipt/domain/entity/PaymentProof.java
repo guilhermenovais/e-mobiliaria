@@ -9,6 +9,7 @@ public class PaymentProof {
 
   private Long id;
   private String originalFileName;
+  private String displayName;
   private String storedFileName;
   private ProofFileType fileType;
   private LocalDate attachedAt;
@@ -17,10 +18,11 @@ public class PaymentProof {
   private PaymentProof() {
   }
 
-  public static PaymentProof create(String originalFileName, String storedFileName,
-      ProofFileType fileType, LocalDate attachedAt, Long receiptId) {
+  public static PaymentProof create(String originalFileName, String displayName,
+      String storedFileName, ProofFileType fileType, LocalDate attachedAt, Long receiptId) {
     PaymentProof proof = new PaymentProof();
     proof.setOriginalFileName(originalFileName);
+    proof.setDisplayName(displayName);
     proof.setStoredFileName(storedFileName);
     proof.setFileType(fileType);
     proof.setAttachedAt(attachedAt);
@@ -28,9 +30,10 @@ public class PaymentProof {
     return proof;
   }
 
-  public static PaymentProof restore(Long id, String originalFileName, String storedFileName,
-      ProofFileType fileType, LocalDate attachedAt, Long receiptId) {
-    PaymentProof proof = create(originalFileName, storedFileName, fileType, attachedAt, receiptId);
+  public static PaymentProof restore(Long id, String originalFileName, String displayName,
+      String storedFileName, ProofFileType fileType, LocalDate attachedAt, Long receiptId) {
+    PaymentProof proof =
+        create(originalFileName, displayName, storedFileName, fileType, attachedAt, receiptId);
     proof.setId(id);
     return proof;
   }
@@ -52,6 +55,17 @@ public class PaymentProof {
       throw new BusinessException(ErrorMessage.PaymentProof.ORIGINAL_FILENAME_BLANK);
     }
     this.originalFileName = originalFileName;
+  }
+
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    if (displayName == null || displayName.isBlank()) {
+      throw new BusinessException(ErrorMessage.PaymentProof.DISPLAY_NAME_BLANK);
+    }
+    this.displayName = displayName;
   }
 
   public String getStoredFileName() {

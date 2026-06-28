@@ -608,11 +608,11 @@ public class ReceiptFormController {
             if (pending.imageBytes() != null) {
               attachProof.execute(
                   new AttachPaymentProofFromBytesInput(finalReceiptId, pending.imageBytes(),
-                      pending.originalFileName()));
+                      pending.originalFileName(), pending.displayName()));
             } else {
               attachProof.execute(
                   new AttachPaymentProofFromFileInput(finalReceiptId, pending.file(),
-                      pending.originalFileName()));
+                      pending.originalFileName(), pending.displayName()));
             }
           }
           return null;
@@ -637,10 +637,10 @@ public class ReceiptFormController {
             if (pending.imageBytes() != null) {
               attachProof.execute(
                   new AttachPaymentProofFromBytesInput(newReceiptId, pending.imageBytes(),
-                      pending.originalFileName()));
+                      pending.originalFileName(), pending.displayName()));
             } else {
               attachProof.execute(new AttachPaymentProofFromFileInput(newReceiptId, pending.file(),
-                  pending.originalFileName()));
+                  pending.originalFileName(), pending.displayName()));
             }
           }
           return null;

@@ -37,7 +37,7 @@ public class ProofSelectionDialog extends Dialog<PaymentProof> {
           setText(null);
         } else {
           String icon = proof.getFileType() == ProofFileType.PDF ? "📄 " : "🖼 ";
-          setText(icon + proof.getOriginalFileName());
+          setText(icon + proof.getDisplayName());
         }
       }
     };

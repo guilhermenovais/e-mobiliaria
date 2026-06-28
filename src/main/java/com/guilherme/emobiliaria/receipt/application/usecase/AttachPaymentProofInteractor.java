@@ -35,8 +35,8 @@ public class AttachPaymentProofInteractor {
         .orElseThrow(() -> new BusinessException(ErrorMessage.PaymentProof.UNSUPPORTED_FILE_TYPE));
     String storedName = storageService.copyToStorage(input.sourceFile(), input.originalFileName());
     PaymentProof proof =
-        PaymentProof.create(input.originalFileName(), storedName, fileType, LocalDate.now(),
-            input.receiptId());
+        PaymentProof.create(input.originalFileName(), input.displayName(), storedName, fileType,
+            LocalDate.now(), input.receiptId());
     return new AttachPaymentProofOutput(proofRepository.create(proof));
   }
 
@@ -48,8 +48,8 @@ public class AttachPaymentProofInteractor {
     String storedName =
         storageService.copyBytesToStorage(input.imageBytes(), input.originalFileName());
     PaymentProof proof =
-        PaymentProof.create(input.originalFileName(), storedName, fileType, LocalDate.now(),
-            input.receiptId());
+        PaymentProof.create(input.originalFileName(), input.displayName(), storedName, fileType,
+            LocalDate.now(), input.receiptId());
     return new AttachPaymentProofOutput(proofRepository.create(proof));
   }
 }

@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -164,6 +166,11 @@ public class ProofDropZonePane extends VBox {
     }
   }
 
+  private static String stripExtension(String name) {
+    int dot = name.lastIndexOf('.');
+    return dot > 0 ? name.substring(0, dot) : name;
+  }
+
   private void addFileIfSupported(Path path, String name) {
     clearError();
     if (ProofFileType.fromExtension(name).isEmpty()) {
@@ -179,8 +186,13 @@ public class ProofDropZonePane extends VBox {
           "Duplicate file");
       return;
     }
+    String defaultDisplayName = stripExtension(name);
+    Optional<String> displayName = promptDisplayName(defaultDisplayName);
+    if (displayName.isEmpty()) {
+      return;
+    }
     ProofFileType fileType = ProofFileType.fromExtension(name).get();
-    PendingProof pending = new PendingProof(path, null, name, fileType);
+    PendingProof pending = new PendingProof(path, null, name, fileType, displayName.get());
     pendingFiles.add(pending);
     pendingFileNames.add(lowerName);
     proofListView.getItems().add(new ProofListItem(pending));
@@ -196,11 +208,31 @@ public class ProofDropZonePane extends VBox {
           "Duplicate file");
       return;
     }
-    PendingProof pending = new PendingProof(null, bytes, name, ProofFileType.IMAGE);
+    String defaultDisplayName = stripExtension(name);
+    Optional<String> displayName = promptDisplayName(defaultDisplayName);
+    if (displayName.isEmpty()) {
+      return;
+    }
+    PendingProof pending =
+        new PendingProof(null, bytes, name, ProofFileType.IMAGE, displayName.get());
     pendingFiles.add(pending);
     pendingFileNames.add(lowerName);
     proofListView.getItems().add(new ProofListItem(pending));
     refreshListVisibility();
+  }
+
+  private Optional<String> promptDisplayName(String defaultName) {
+    TextInputDialog dialog = new TextInputDialog(defaultName);
+    if (bundle != null) {
+      dialog.setTitle(bundle.getString("receipt.form.proof.name_dialog.title"));
+      dialog.setHeaderText(bundle.getString("receipt.form.proof.name_dialog.header"));
+      dialog.setContentText(bundle.getString("receipt.form.proof.name_dialog.label"));
+    } else {
+      dialog.setTitle("Name the Proof");
+      dialog.setHeaderText("Enter a display name for this file");
+      dialog.setContentText("Display name:");
+    }
+    return dialog.showAndWait().map(s -> s.isBlank() ? defaultName : s);
   }
 
   private void removeItem(ProofListItem item) {
@@ -233,8 +265,9 @@ public class ProofDropZonePane extends VBox {
     errorLabel.setManaged(false);
   }
 
+
   public record PendingProof(Path file, byte[] imageBytes, String originalFileName,
-                             ProofFileType fileType) {
+                             ProofFileType fileType, String displayName) {
   }
 
 
@@ -246,13 +279,13 @@ public class ProofDropZonePane extends VBox {
     ProofListItem(PaymentProof proof) {
       this.existingProof = proof;
       this.pendingProof = null;
-      build(proof.getOriginalFileName(), proof.getFileType());
+      build(proof.getDisplayName(), proof.getFileType());
     }
 
     ProofListItem(PendingProof pending) {
       this.existingProof = null;
       this.pendingProof = pending;
-      build(pending.originalFileName(), pending.fileType());
+      build(pending.displayName(), pending.fileType());
     }
 
     private void build(String name, ProofFileType type) {

@@ -32,14 +32,15 @@ public class JdbcPaymentProofRepository implements PaymentProofRepository {
   @Override
   public PaymentProof create(PaymentProof proof) {
     String sql =
-        "INSERT INTO payment_proofs (receipt_id, original_filename, stored_filename, file_type, attached_at) VALUES (?, ?, ?, ?, ?)";
+        "INSERT INTO payment_proofs (receipt_id, original_filename, display_name, stored_filename, file_type, attached_at) VALUES (?, ?, ?, ?, ?, ?)";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
       stmt.setLong(1, proof.getReceiptId());
       stmt.setString(2, proof.getOriginalFileName());
-      stmt.setString(3, proof.getStoredFileName());
-      stmt.setString(4, proof.getFileType().name());
-      stmt.setDate(5, Date.valueOf(proof.getAttachedAt()));
+      stmt.setString(3, proof.getDisplayName());
+      stmt.setString(4, proof.getStoredFileName());
+      stmt.setString(5, proof.getFileType().name());
+      stmt.setDate(6, Date.valueOf(proof.getAttachedAt()));
       stmt.executeUpdate();
       try (ResultSet keys = stmt.getGeneratedKeys()) {
         keys.next();
@@ -68,7 +69,7 @@ public class JdbcPaymentProofRepository implements PaymentProofRepository {
   @Override
   public List<PaymentProof> findAllByReceiptId(Long receiptId) {
     String sql =
-        "SELECT id, receipt_id, original_filename, stored_filename, file_type, attached_at FROM payment_proofs WHERE receipt_id=? ORDER BY attached_at, id";
+        "SELECT id, receipt_id, original_filename, display_name, stored_filename, file_type, attached_at FROM payment_proofs WHERE receipt_id=? ORDER BY attached_at, id";
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setLong(1, receiptId);
@@ -126,7 +127,8 @@ public class JdbcPaymentProofRepository implements PaymentProofRepository {
 
   private PaymentProof map(ResultSet rs) throws SQLException {
     return PaymentProof.restore(rs.getLong("id"), rs.getString("original_filename"),
-        rs.getString("stored_filename"), ProofFileType.valueOf(rs.getString("file_type")),
-        rs.getDate("attached_at").toLocalDate(), rs.getLong("receipt_id"));
+        rs.getString("display_name"), rs.getString("stored_filename"),
+        ProofFileType.valueOf(rs.getString("file_type")), rs.getDate("attached_at").toLocalDate(),
+        rs.getLong("receipt_id"));
   }
 }
