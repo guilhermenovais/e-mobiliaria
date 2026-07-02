@@ -6,6 +6,7 @@ import com.guilherme.emobiliaria.contract.application.usecase.FindAllContractsIn
 import com.guilherme.emobiliaria.contract.domain.entity.Contract;
 import com.guilherme.emobiliaria.contract.domain.entity.ContractFilter;
 import com.guilherme.emobiliaria.receipt.application.input.DeleteReceiptInput;
+import com.guilherme.emobiliaria.receipt.application.input.ExportReceiptsByMonthInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindAllReceiptsByContractIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.FindPaymentProofsByReceiptIdInput;
 import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInput;
@@ -16,13 +17,16 @@ import com.guilherme.emobiliaria.receipt.application.output.GenerateReceiptPdfOu
 import com.guilherme.emobiliaria.receipt.application.output.SearchReceiptsOutput;
 import com.guilherme.emobiliaria.receipt.application.output.SkippedProofInfo;
 import com.guilherme.emobiliaria.receipt.application.usecase.DeleteReceiptInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.ExportReceiptsByMonthInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindAllReceiptsByContractIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindPaymentProofsByReceiptIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.GenerateReceiptPdfInteractor;
+import com.guilherme.emobiliaria.receipt.application.usecase.GetExportableReceiptMonthsInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.GetReceiptProofCountsInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.SearchReceiptsInteractor;
 import com.guilherme.emobiliaria.receipt.domain.entity.PaymentProof;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
+import com.guilherme.emobiliaria.receipt.domain.entity.ReceiptExportResult;
 import com.guilherme.emobiliaria.receipt.domain.service.SkipReason;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
@@ -59,6 +63,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
@@ -88,6 +93,8 @@ public class ReceiptListController {
   private final GenerateReceiptPdfInteractor generatePdf;
   private final GetReceiptProofCountsInteractor getProofCounts;
   private final FindPaymentProofsByReceiptIdInteractor findProofsByReceiptId;
+  private final GetExportableReceiptMonthsInteractor getExportableReceiptMonths;
+  private final ExportReceiptsByMonthInteractor exportReceiptsByMonth;
   private final NavigationService navigationService;
   private final Provider<ReceiptFormController> formControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
@@ -99,6 +106,8 @@ public class ReceiptListController {
   private Label subtitleLabel;
   @FXML
   private Button newButton;
+  @FXML
+  private Button exportMonthButton;
   @FXML
   private TextField searchField;
   @FXML
@@ -130,8 +139,9 @@ public class ReceiptListController {
       DeleteReceiptInteractor deleteReceipt, GenerateReceiptPdfInteractor generatePdf,
       GetReceiptProofCountsInteractor getProofCounts,
       FindPaymentProofsByReceiptIdInteractor findProofsByReceiptId,
-      NavigationService navigationService, Provider<ReceiptFormController> formControllerProvider,
-      GuiceFxmlLoader fxmlLoader) {
+      GetExportableReceiptMonthsInteractor getExportableReceiptMonths,
+      ExportReceiptsByMonthInteractor exportReceiptsByMonth, NavigationService navigationService,
+      Provider<ReceiptFormController> formControllerProvider, GuiceFxmlLoader fxmlLoader) {
     this.findAllByContract = findAllByContract;
     this.searchReceipts = searchReceipts;
     this.findAllContracts = findAllContracts;
@@ -139,6 +149,8 @@ public class ReceiptListController {
     this.generatePdf = generatePdf;
     this.getProofCounts = getProofCounts;
     this.findProofsByReceiptId = findProofsByReceiptId;
+    this.getExportableReceiptMonths = getExportableReceiptMonths;
+    this.exportReceiptsByMonth = exportReceiptsByMonth;
     this.navigationService = navigationService;
     this.formControllerProvider = formControllerProvider;
     this.fxmlLoader = fxmlLoader;
@@ -195,6 +207,7 @@ public class ReceiptListController {
     titleLabel.setText(bundle.getString("receipt.list.title"));
     subtitleLabel.setText(bundle.getString("receipt.list.subtitle"));
     newButton.setText(bundle.getString("receipt.list.button.new"));
+    exportMonthButton.setText(bundle.getString("receipt.list.button.export_month"));
     searchField.setPromptText(bundle.getString("receipt.list.search_prompt"));
     contractFilterLabel.setText(bundle.getString("receipt.list.filter.contract"));
     clearFilterButton.setText(bundle.getString("receipt.list.button.clear_filter"));
@@ -209,6 +222,7 @@ public class ReceiptListController {
     buildTableColumns();
 
     newButton.setOnAction(e -> navigateToCreate());
+    exportMonthButton.setOnAction(e -> handleExportMonth());
     clearFilterButton.setOnAction(e -> {
       contractComboBox.getSelectionModel().clearSelection();
       loadPage(1);
@@ -506,6 +520,57 @@ public class ReceiptListController {
     alert.setHeaderText(bundle.getString("receipt.list.pdf.skipped_proofs.title"));
     alert.setContentText(
         bundle.getString("receipt.list.pdf.skipped_proofs.message") + "\n\n" + reasons);
+    alert.showAndWait();
+  }
+
+  // ── Export month ───────────────────────────────────────────────────────────
+
+  private void handleExportMonth() {
+    Task<List<YearMonth>> monthsTask = new Task<>() {
+      @Override
+      protected List<YearMonth> call() {
+        return getExportableReceiptMonths.execute().months();
+      }
+    };
+
+    monthsTask.setOnSucceeded(e -> Platform.runLater(() -> {
+      ExportReceiptsDialog dialog = new ExportReceiptsDialog(monthsTask.getValue(), bundle);
+      Optional<ExportReceiptsDialog.Result> result = dialog.showAndWait();
+      result.ifPresent(this::runExport);
+    }));
+    monthsTask.setOnFailed(e -> ErrorHandler.handle(monthsTask.getException(), bundle));
+    new Thread(monthsTask).start();
+  }
+
+  private void runExport(ExportReceiptsDialog.Result exportSelection) {
+    Task<ReceiptExportResult> exportTask = new Task<>() {
+      @Override
+      protected ReceiptExportResult call() {
+        return exportReceiptsByMonth.execute(new ExportReceiptsByMonthInput(exportSelection.month(),
+            exportSelection.destinationFolder())).result();
+      }
+    };
+
+    exportTask.setOnSucceeded(
+        e -> Platform.runLater(() -> showExportResult(exportTask.getValue())));
+    exportTask.setOnFailed(e -> ErrorHandler.handle(exportTask.getException(), bundle));
+    new Thread(exportTask).start();
+  }
+
+  private void showExportResult(ReceiptExportResult result) {
+    StringBuilder message = new StringBuilder(
+        bundle.getString("receipt.export.result.message").formatted(result.exportedCount()));
+    if (!result.failures().isEmpty()) {
+      String failureList = result.failures().stream().map(f -> f.receiptId() + ": " + f.reason())
+          .collect(Collectors.joining(", "));
+      message.append(bundle.getString("receipt.export.result.failures_suffix")
+          .formatted(result.failures().size(), failureList));
+    }
+
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle(bundle.getString("receipt.export.result.title"));
+    alert.setHeaderText(null);
+    alert.setContentText(message.toString());
     alert.showAndWait();
   }
 

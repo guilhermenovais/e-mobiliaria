@@ -196,7 +196,8 @@ public interface ErrorMessage {
         "receipt.discount_negative", "Discount must not be negative"), FINE_NEGATIVE(
         "receipt.fine_negative", "Fine must not be negative"), CONTRACT_NULL(
         "receipt.contract_null", "Contract must not be null"), NOT_FOUND("receipt.not_found",
-        "Receipt not found");
+        "Receipt not found"), EXPORT_FOLDER_NOT_WRITABLE("receipt.export.folder_not_writable",
+        "Destination folder is not writable");
 
     private final String translationKey;
     private final String logMessage;
