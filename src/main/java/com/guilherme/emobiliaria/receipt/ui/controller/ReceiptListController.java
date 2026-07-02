@@ -12,7 +12,9 @@ import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInp
 import com.guilherme.emobiliaria.receipt.application.input.GetReceiptProofCountsInput;
 import com.guilherme.emobiliaria.receipt.application.input.SearchReceiptsInput;
 import com.guilherme.emobiliaria.receipt.application.output.FindAllReceiptsByContractIdOutput;
+import com.guilherme.emobiliaria.receipt.application.output.GenerateReceiptPdfOutput;
 import com.guilherme.emobiliaria.receipt.application.output.SearchReceiptsOutput;
+import com.guilherme.emobiliaria.receipt.application.output.SkippedProofInfo;
 import com.guilherme.emobiliaria.receipt.application.usecase.DeleteReceiptInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindAllReceiptsByContractIdInteractor;
 import com.guilherme.emobiliaria.receipt.application.usecase.FindPaymentProofsByReceiptIdInteractor;
@@ -21,6 +23,7 @@ import com.guilherme.emobiliaria.receipt.application.usecase.GetReceiptProofCoun
 import com.guilherme.emobiliaria.receipt.application.usecase.SearchReceiptsInteractor;
 import com.guilherme.emobiliaria.receipt.domain.entity.PaymentProof;
 import com.guilherme.emobiliaria.receipt.domain.entity.Receipt;
+import com.guilherme.emobiliaria.receipt.domain.service.SkipReason;
 import com.guilherme.emobiliaria.shared.di.GuiceFxmlLoader;
 import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
@@ -88,9 +91,9 @@ public class ReceiptListController {
   private final NavigationService navigationService;
   private final Provider<ReceiptFormController> formControllerProvider;
   private final GuiceFxmlLoader fxmlLoader;
+  private final Set<Long> receiptsWithProofs = new HashSet<>();
   @FXML
   private Label titleLabel;
-
   // ── FXML fields ────────────────────────────────────────────────────────────
   @FXML
   private Label subtitleLabel;
@@ -115,13 +118,11 @@ public class ReceiptListController {
   @FXML
   private Button nextButton;
   private int currentPage = 1;
-
   // ── State ──────────────────────────────────────────────────────────────────
   private int totalPages = 1;
   private long totalResults = 0;
   private Long preSelectedContractId = null;
   private ResourceBundle bundle;
-  private final Set<Long> receiptsWithProofs = new HashSet<>();
 
   @Inject
   public ReceiptListController(FindAllReceiptsByContractIdInteractor findAllByContract,
@@ -143,12 +144,6 @@ public class ReceiptListController {
     this.fxmlLoader = fxmlLoader;
   }
 
-  boolean hasProofs(Long receiptId) {
-    return receiptsWithProofs.contains(receiptId);
-  }
-
-  // ── Pre-selection (called before buildView) ────────────────────────────────
-
   private static ListCell<Contract> contractCell() {
     return new ListCell<>() {
       @Override
@@ -168,7 +163,7 @@ public class ReceiptListController {
     };
   }
 
-  // ── Initialization ─────────────────────────────────────────────────────────
+  // ── Pre-selection (called before buildView) ────────────────────────────────
 
   private static String contractTenantName(Contract contract) {
     var first = contract.getTenants().get(0);
@@ -179,6 +174,12 @@ public class ReceiptListController {
       return jp.getCorporateName();
     }
     return "";
+  }
+
+  // ── Initialization ─────────────────────────────────────────────────────────
+
+  boolean hasProofs(Long receiptId) {
+    return receiptsWithProofs.contains(receiptId);
   }
 
   // ── Contract cell factory ──────────────────────────────────────────────────
@@ -460,18 +461,18 @@ public class ReceiptListController {
     pdfBtn.setText("");
     pdfBtn.setDisable(true);
 
-    Task<Void> task = new Task<>() {
+    Task<GenerateReceiptPdfOutput> task = new Task<>() {
       @Override
-      protected Void call() throws Exception {
-        byte[] pdfBytes =
-            generatePdf.execute(new GenerateReceiptPdfInput(receipt.getId())).pdfBytes();
+      protected GenerateReceiptPdfOutput call() throws Exception {
+        GenerateReceiptPdfOutput output =
+            generatePdf.execute(new GenerateReceiptPdfInput(receipt.getId()));
         File tmp = File.createTempFile("recibo_" + receipt.getId() + "_", ".pdf");
         tmp.deleteOnExit();
         try (FileOutputStream fos = new FileOutputStream(tmp)) {
-          fos.write(pdfBytes);
+          fos.write(output.pdfBytes());
         }
         Desktop.getDesktop().open(tmp);
-        return null;
+        return output;
       }
     };
 
@@ -479,6 +480,7 @@ public class ReceiptListController {
       pdfBtn.setGraphic(null);
       pdfBtn.setText(bundle.getString("receipt.list.button.generate_pdf"));
       pdfBtn.setDisable(false);
+      showSkippedProofsAlert(task.getValue().skippedProofs());
     });
     task.setOnFailed(e -> {
       pdfBtn.setGraphic(null);
@@ -487,6 +489,24 @@ public class ReceiptListController {
       ErrorHandler.handle(task.getException(), bundle);
     });
     new Thread(task).start();
+  }
+
+  private void showSkippedProofsAlert(List<SkippedProofInfo> skippedProofs) {
+    if (skippedProofs.isEmpty()) {
+      return;
+    }
+    String reasons = skippedProofs.stream().map(
+            skipped -> "- " + skipped.displayName() + " (" + bundle.getString(
+                skipped.reason() == SkipReason.MISSING ?
+                    "receipt.list.pdf.skipped_proofs.reason.missing" :
+                    "receipt.list.pdf.skipped_proofs.reason.unreadable") + ")")
+        .collect(Collectors.joining("\n"));
+
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setHeaderText(bundle.getString("receipt.list.pdf.skipped_proofs.title"));
+    alert.setContentText(
+        bundle.getString("receipt.list.pdf.skipped_proofs.message") + "\n\n" + reasons);
+    alert.showAndWait();
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────────
