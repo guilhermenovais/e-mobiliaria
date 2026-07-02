@@ -10,4 +10,10 @@ public class FakeReceiptFileService extends FakeImplementation implements Receip
     maybeFail();
     return new byte[] {0x25, 0x50, 0x44, 0x46};
   }
+
+  @Override
+  public String defaultFileName(Receipt receipt) {
+    maybeFail();
+    return "Recibo_" + receipt.getId() + ".pdf";
+  }
 }

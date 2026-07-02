@@ -5,6 +5,7 @@ import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,4 +26,8 @@ public interface ReceiptRepository {
       Long excludeReceiptId);
 
   List<LocalDate> findAllPaymentDueDatesByContractId(Long contractId);
+
+  List<YearMonth> findAllReceiptMonths();
+
+  List<Receipt> findAllByMonth(YearMonth month);
 }

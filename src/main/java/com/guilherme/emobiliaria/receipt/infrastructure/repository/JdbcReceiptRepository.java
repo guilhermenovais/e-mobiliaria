@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.Period;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -229,6 +230,43 @@ public class JdbcReceiptRepository implements ReceiptRepository {
           result.add(rs.getDate("payment_due_date").toLocalDate());
         }
         return result;
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Receipt.NOT_FOUND, e);
+    }
+  }
+
+  @Override
+  public List<YearMonth> findAllReceiptMonths() {
+    String sql =
+        "SELECT DISTINCT FORMATDATETIME(date, 'yyyy-MM') AS ym FROM receipts ORDER BY ym DESC";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql);
+        ResultSet rs = stmt.executeQuery()) {
+      List<YearMonth> result = new ArrayList<>();
+      while (rs.next()) {
+        result.add(YearMonth.parse(rs.getString("ym")));
+      }
+      return result;
+    } catch (SQLException e) {
+      throw new PersistenceException(ErrorMessage.Receipt.NOT_FOUND, e);
+    }
+  }
+
+  @Override
+  public List<Receipt> findAllByMonth(YearMonth month) {
+    String sql =
+        "SELECT id, date, payment_due_date, interval_start, interval_end, discount, fine, observation, contract_id FROM receipts WHERE date BETWEEN ? AND ?";
+    try (Connection conn = dataSource.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setDate(1, Date.valueOf(month.atDay(1)));
+      stmt.setDate(2, Date.valueOf(month.atEndOfMonth()));
+      try (ResultSet rs = stmt.executeQuery()) {
+        List<Receipt> items = new ArrayList<>();
+        while (rs.next()) {
+          items.add(map(rs, conn));
+        }
+        return items;
       }
     } catch (SQLException e) {
       throw new PersistenceException(ErrorMessage.Receipt.NOT_FOUND, e);

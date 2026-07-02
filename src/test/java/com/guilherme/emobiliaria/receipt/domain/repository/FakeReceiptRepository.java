@@ -8,8 +8,10 @@ import com.guilherme.emobiliaria.shared.persistence.PagedResult;
 import com.guilherme.emobiliaria.shared.persistence.PaginationInput;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,5 +109,18 @@ public class FakeReceiptRepository extends FakeImplementation implements Receipt
     maybeFail();
     return store.values().stream().filter(r -> Objects.equals(r.getContract().getId(), contractId))
         .map(Receipt::getPaymentDueDate).filter(Objects::nonNull).toList();
+  }
+
+  @Override
+  public List<YearMonth> findAllReceiptMonths() {
+    maybeFail();
+    return store.values().stream().map(r -> YearMonth.from(r.getDate())).distinct()
+        .sorted(Comparator.reverseOrder()).toList();
+  }
+
+  @Override
+  public List<Receipt> findAllByMonth(YearMonth month) {
+    maybeFail();
+    return store.values().stream().filter(r -> YearMonth.from(r.getDate()).equals(month)).toList();
   }
 }

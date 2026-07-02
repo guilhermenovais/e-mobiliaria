@@ -16,7 +16,7 @@ import java.util.ResourceBundle;
 
 import static com.guilherme.emobiliaria.shared.pdf.PdfTemplate.bold;
 
-class TemplateFormatter {
+public class TemplateFormatter {
 
   private static final String[] ONES_PT =
       {"", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze",
@@ -86,7 +86,7 @@ class TemplateFormatter {
     return digits.substring(0, 5) + "-" + digits.substring(5, 8);
   }
 
-  static String personName(Person person) {
+  public static String personName(Person person) {
     if (person instanceof PhysicalPerson pp)
       return pp.getName();
     if (person instanceof JuridicalPerson jp)
