@@ -15,6 +15,8 @@ module com.guilherme.emobiliaria {
   requires java.net.http;
   requires java.desktop;
   requires org.jfree.jfreechart;
+  requires com.github.librepdf.openpdf;
+  requires metadata.extractor;
 
   opens com.guilherme.emobiliaria to javafx.fxml;
   exports com.guilherme.emobiliaria;

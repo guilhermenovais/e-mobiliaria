@@ -19,8 +19,13 @@ import com.guilherme.emobiliaria.property.domain.repository.FakePropertyReposito
 import com.guilherme.emobiliaria.receipt.application.input.CreateReceiptInput;
 import com.guilherme.emobiliaria.receipt.application.input.GenerateReceiptPdfInput;
 import com.guilherme.emobiliaria.receipt.application.output.GenerateReceiptPdfOutput;
+import com.guilherme.emobiliaria.receipt.domain.entity.PaymentProof;
+import com.guilherme.emobiliaria.receipt.domain.repository.FakePaymentProofRepository;
 import com.guilherme.emobiliaria.receipt.domain.repository.FakeReceiptRepository;
+import com.guilherme.emobiliaria.receipt.domain.service.FakePaymentProofPdfEmbeddingService;
 import com.guilherme.emobiliaria.receipt.domain.service.FakeReceiptFileService;
+import com.guilherme.emobiliaria.receipt.domain.service.SkipReason;
+import com.guilherme.emobiliaria.receipt.domain.service.SkippedProof;
 import com.guilherme.emobiliaria.shared.exception.BusinessException;
 import com.guilherme.emobiliaria.shared.exception.ErrorMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +40,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GenerateReceiptPdfInteractorTest {
 
@@ -43,6 +49,8 @@ class GenerateReceiptPdfInteractorTest {
   private FakePaymentAccountRepository paymentAccountRepository;
   private FakePropertyRepository propertyRepository;
   private FakePhysicalPersonRepository physicalPersonRepository;
+  private FakePaymentProofRepository paymentProofRepository;
+  private FakePaymentProofPdfEmbeddingService paymentProofPdfEmbeddingService;
   private GenerateReceiptPdfInteractor interactor;
   private CreateReceiptInteractor createReceiptInteractor;
   private CreateContractInteractor createContractInteractor;
@@ -54,9 +62,12 @@ class GenerateReceiptPdfInteractorTest {
     paymentAccountRepository = new FakePaymentAccountRepository();
     propertyRepository = new FakePropertyRepository();
     physicalPersonRepository = new FakePhysicalPersonRepository();
+    paymentProofRepository = new FakePaymentProofRepository();
+    paymentProofPdfEmbeddingService = new FakePaymentProofPdfEmbeddingService();
     FakeJuridicalPersonRepository juridicalPersonRepository = new FakeJuridicalPersonRepository();
     FakeReceiptFileService receiptFileService = new FakeReceiptFileService();
-    interactor = new GenerateReceiptPdfInteractor(receiptRepository, receiptFileService);
+    interactor = new GenerateReceiptPdfInteractor(receiptRepository, receiptFileService,
+        paymentProofRepository, paymentProofPdfEmbeddingService);
     createReceiptInteractor = new CreateReceiptInteractor(receiptRepository, contractRepository);
     createContractInteractor =
         new CreateContractInteractor(contractRepository, paymentAccountRepository,
@@ -116,6 +127,39 @@ class GenerateReceiptPdfInteractorTest {
           () -> interactor.execute(new GenerateReceiptPdfInput(999L)));
 
       assertEquals(ErrorMessage.Receipt.NOT_FOUND, ex.getErrorMessage());
+    }
+
+    @Test
+    @DisplayName("When receipt has no proofs, should return empty skippedProofs")
+    void shouldReturnEmptySkippedProofsWhenReceiptHasNoProofs() {
+      Long contractId = createContract();
+      Long receiptId = createReceipt(contractId);
+
+      GenerateReceiptPdfOutput output = interactor.execute(new GenerateReceiptPdfInput(receiptId));
+
+      assertNotNull(output.skippedProofs());
+      assertTrue(output.skippedProofs().isEmpty());
+      assertEquals(4, output.pdfBytes().length);
+    }
+
+    @Test
+    @DisplayName(
+        "When embedding service reports skipped proofs, should pass them through unchanged")
+    void shouldPassThroughSkippedProofsFromEmbeddingService() {
+      Long contractId = createContract();
+      Long receiptId = createReceipt(contractId);
+      PaymentProof proof = PaymentProof.create("comprovante.jpg", "Comprovante 1", "stored.jpg",
+          com.guilherme.emobiliaria.receipt.domain.entity.ProofFileType.IMAGE, LocalDate.now(),
+          receiptId);
+      paymentProofRepository.create(proof);
+      paymentProofPdfEmbeddingService.configureSkippedProofs(
+          List.of(new SkippedProof(proof, SkipReason.MISSING)));
+
+      GenerateReceiptPdfOutput output = interactor.execute(new GenerateReceiptPdfInput(receiptId));
+
+      assertEquals(1, output.skippedProofs().size());
+      assertEquals("Comprovante 1", output.skippedProofs().get(0).displayName());
+      assertEquals(SkipReason.MISSING, output.skippedProofs().get(0).reason());
     }
   }
 }
